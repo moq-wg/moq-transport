@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-10T06:35:05.400744+00:00",
+  "timestamp": "2026-11-12T06:25:37.148915+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -235273,19 +235273,60 @@
       "labels": [],
       "body": "Rename AUTHORIZATION_TOKEN to AUTHORIZATION_PAYLOAD, including related\r\nterminology, fields, cache/error names, registries, and references.\r\n",
       "createdAt": "2026-11-06T18:34:57Z",
-      "updatedAt": "2026-11-06T18:40:44Z",
+      "updatedAt": "2026-11-10T20:50:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "authorization-payload-rename",
-      "headRefOid": "657ff194ea521d258f871937ce51eed19facb982",
+      "headRefOid": "1886c2f580dad71c4d81f4fe90be979bb3d25fc6",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXHQmdQ",
+          "commit": {
+            "abbreviatedOid": "657ff19"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-10T17:08:29Z",
+          "updatedAt": "2026-11-10T17:08:29Z",
+          "comments": [
+            {
+              "originalPosition": 625,
+              "body": "Don't update the release notes",
+              "createdAt": "2026-11-10T17:08:29Z",
+              "updatedAt": "2026-11-10T17:08:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXKKk-w",
+          "commit": {
+            "abbreviatedOid": "657ff19"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-10T20:50:12Z",
+          "updatedAt": "2026-11-10T20:50:13Z",
+          "comments": [
+            {
+              "originalPosition": 625,
+              "body": "Done.",
+              "createdAt": "2026-11-10T20:50:12Z",
+              "updatedAt": "2026-11-10T20:50:13Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 2061,
@@ -235319,6 +235360,34 @@
           "updatedAt": "2026-11-06T19:31:45Z"
         }
       ],
+      "reviews": []
+    },
+    {
+      "number": 2064,
+      "id": "PR_kwDOG2Ho4M8AAAABOP57oQ",
+      "title": "Clarify actions on Fill Fetch Invalid Range",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2064",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "Section 3.4 says that INVALID_RANGE does not open a data stream. 3.4.1 says REQUEST_ERROR instead opens a stream and immediately resets it.\n\nAfter asking @afrind, this is what he meant.",
+      "createdAt": "2026-11-11T00:06:26Z",
+      "updatedAt": "2026-11-11T00:06:27Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "martinduke-patch-12",
+      "headRefOid": "505c399f884548377944c553a52de541ba2e84c6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
     }
   ]
