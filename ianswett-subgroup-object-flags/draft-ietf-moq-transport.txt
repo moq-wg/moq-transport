@@ -5340,76 +5340,44 @@ EXT 1 and EXT N can be modified or removed by Relays
 
                    Figure 27: MOQT Subgroup Object Fields
 
-   The Object Flags field is a variable-length integer that encodes a
-   set of flags for the Object.  All values defined in this
-   specification fit in a single-byte encoding (values less than 128).
+   The four low-order bits and bit 5 of Object Flags encode per-Object
+   metadata:
 
-   The four low-order bits and bit 5 of the Object Flags field determine
-   which fields are present and encode per-Object metadata:
+   *  *PROPERTIES* (0x01): When 1, Properties (Section 11.1.2) are
+      present; if Properties Length is 0, the endpoint MUST close the
+      session with MALFORMED_OBJECT.
 
-   *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
-      present.  When set to 1, the Object Properties structure defined
-      in Section 11.1.2 is present.  When set to 0, the field is absent.
-      If an endpoint receives an Object with the PROPERTIES bit set and
-      a Properties Length of 0, it MUST close the session with
-      MALFORMED_OBJECT.
+   *  *END_OF_GROUP* (0x02): When 1, no Object with the same Group ID
+      and a larger Object ID exists; any subsequent Object on the stream
+      makes the track Malformed (Section 12.1).
 
-   *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
-      1, this indicates that no Object with the same Group ID and an
-      Object ID greater than the Object ID of this Object exists.  An
-      Object with the END_OF_GROUP bit set MUST be the last Object on
-      the Subgroup stream; if a receiver receives a subsequent Object on
-      the stream, it MUST treat the track as Malformed (see
-      Section 12.1).
+   *  *DELTA_MODE* (bits 2-3, mask 0x0C): Determines the Object ID
+      delta:
 
-   *  The *DELTA_MODE* field (bits 2-3, mask 0x0C) is a two-bit field
-      that determines the encoding of the Object ID delta.  To extract
-      this value, perform a bitwise AND with mask 0x0C and right-shift
-      by 2 bits:
+      -  0b00, 0b01, 0b10: Object ID Delta is omitted and the delta is
+         0, 1, or 2.
 
-      -  0b00: The Object ID Delta field is absent and the delta is 0.
+      -  0b11: Object ID Delta is present and the delta is Object ID
+         Delta + 3.
 
-      -  0b01: The Object ID Delta field is absent and the delta is 1.
-
-      -  0b10: The Object ID Delta field is absent and the delta is 2.
-
-      -  0b11: The Object ID Delta field is present and the delta is
-         Object ID Delta + 3.
-
-   *  The *STATUS* bit (0x20) indicates whether the Object contains an
-      Object Status or Object Payload.  When set to 1, the Object Status
-      field is present and the Object Payload Length and Object Payload
-      fields are omitted.  When set to 0, the Object Payload Length and
-      Object Payload fields are present and the Object Status field is
+   *  *STATUS* (0x20): When 1, Object Status is present and Object
+      Payload Length and Object Payload are omitted.  When 0, Object
+      Payload Length and Object Payload are present and Object Status is
       omitted.
 
-   The following Object Flags values are invalid.  If an endpoint
-   receives an Object with any of these values, it MUST close the
-   session with MALFORMED_OBJECT:
+   If an Object has Object Flags with both STATUS (0x20) and
+   END_OF_GROUP (0x02) set, or any unspecified bit set (including values
+   >= 128), the endpoint MUST close the session with MALFORMED_OBJECT.
+   If both STATUS and PROPERTIES are set and Object Status is not Normal
+   (0x0), the endpoint MUST close the session with
+   INVALID_OBJECT_STATUS.
 
-   *  Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
-      set.
-
-   *  Values with a bit set whose meaning is not specified, including
-      values of 128 or greater.
-
-   If a Subgroup Object includes both the STATUS bit and PROPERTIES bit,
-   and the Object Status is not Normal (0x0), the endpoint MUST close
-   the session with INVALID_OBJECT_STATUS, because only Normal Objects
-   can have Properties.
-
-   For the first Object in the Subgroup stream, the Object ID is equal
-   to the delta decoded from DELTA_MODE and Object ID Delta.  For
-   subsequent Objects in the Subgroup stream, the Object ID is the
-   previous Object ID in the Subgroup stream plus the decoded delta + 1.
-   If the resulting Object ID would be greater than 2^64 - 1, the
-   endpoint MUST close the session with DELTA_ENCODING_OVERFLOW.  For
-   example, a Subgroup of sequential Object IDs starting at 0 uses
-   DELTA_MODE = 0b00 (delta = 0) for all Objects.  A consumer cannot
-   infer information about the existence of Objects between the current
-   and previous Object ID in the Subgroup (e.g. when the decoded delta
-   is non-zero) unless there is a Prior Object ID Gap property (see
-   Section 10.9).
+   The Object ID is the decoded delta for the first Object in the
+   stream, and the previous Object ID + decoded delta + 1 for subsequent
+   Objects; if it would exceed 2^64 - 1, the endpoint MUST close the
+   session with DELTA_ENCODING_OVERFLOW.  A consumer cannot infer
+   whether Objects exist between non-consecutive Object IDs unless a
+   Prior Object ID Gap property (Section 10.9) is present.
 
 11.3.2.  Closing Subgroup Streams
 
@@ -5488,15 +5456,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    received all objects in a subgroup from the start of the
    subscription.  If a relay, it can forward stream FINs to its own
    subscribers once those objects have been sent.  A relay MAY treat
-   receipt of an Object with the END_OF_GROUP bit set, or an Object with
-   End of Group or End of Track status, as a signal to close
-   corresponding streams even if the FIN has not arrived, as further
-   objects on the stream would make the track malformed.
+   receipt of an Object with the END_OF_GROUP bit or End of Group or End
+   of Track status as a signal to close corresponding streams even if
+   the FIN has not arrived, as further objects would make the track
+   malformed.
 
-   Similarly, an Object with the END_OF_GROUP bit set or End of Group
-   status indicates the maximum Object ID in the Group, so if all
-   Objects in the Group have been received, a FIN can be sent on any
-   stream where the entire subgroup has been sent.
+   Similarly, END_OF_GROUP indicates the maximum Object ID in the Group,
+   so if all Objects in the Group have been received, a FIN can be sent
+   on any stream where the entire subgroup has been sent.
 
    Processing a reset means that there might be other objects in the
    Subgroup beyond the last one received.  A relay might immediately
@@ -5780,11 +5747,9 @@ EXT 1 and EXT N can be modified or removed by Relays
         terminated by FIN with different final Objects.
 
    4.   An Object is received in a Group whose Object ID is larger than
-        the final Object in the Group, or following an Object with the
-        END_OF_GROUP bit set on the same Subgroup stream.  The final
-        Object in a Group is indicated by an Object with the
-        END_OF_GROUP bit set, an Object with Status END_OF_GROUP, or End
-        of Group in a FETCH response.  If the end of a Group is
+        the final Object in the Group.  The final Object in a Group is
+        indicated by the END_OF_GROUP bit, Object Status END_OF_GROUP,
+        or End of Group in a FETCH response.  If the end of a Group is
         implicitly determined via a gap in a FETCH response, the final
         Object in the Group remains unknown.
 
@@ -5909,8 +5874,8 @@ EXT 1 and EXT N can be modified or removed by Relays
       unknown type or invalid Type Flags.
 
    MALFORMED_OBJECT (0x201):  The serialization of an Object on a data
-      stream or in a datagram cannot be decoded or has invalid flags,
-      for example a flag references a prior Object that does not exist.
+      stream or in a datagram is invalid or cannot be decoded, e.g., a
+      flag references a nonexistent prior Object.
 
    INVALID_OBJECT_STATUS (0x202):  An Object has an invalid Object
       Status, or has Properties when its status is not Normal.
