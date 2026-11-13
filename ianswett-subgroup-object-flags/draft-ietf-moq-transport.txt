@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 May 2027                                       I. Swett, Ed.
+Expires: 17 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        12 November 2026
+                                                        13 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 May 2027.
+   This Internet-Draft will expire on 17 May 2027.
 
 Copyright Notice
 
@@ -5461,9 +5461,10 @@ EXT 1 and EXT N can be modified or removed by Relays
    the FIN has not arrived, as further objects would make the track
    malformed.
 
-   Similarly, END_OF_GROUP indicates the maximum Object ID in the Group,
-   so if all Objects in the Group have been received, a FIN can be sent
-   on any stream where the entire subgroup has been sent.
+   Similarly, an Object with the END_OF_GROUP bit or End of Group status
+   indicates the maximum Object ID in the Group, so if all Objects in
+   the Group have been received, a FIN can be sent on any stream where
+   the entire subgroup has been sent.
 
    Processing a reset means that there might be other objects in the
    Subgroup beyond the last one received.  A relay might immediately
