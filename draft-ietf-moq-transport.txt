@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 16 May 2027                                       I. Swett, Ed.
+Expires: 18 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        12 November 2026
+                                                        14 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 May 2027.
+   This Internet-Draft will expire on 18 May 2027.
 
 Copyright Notice
 
@@ -4497,8 +4497,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    close the session with INVALID_PARAMETER.
 
    If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's
-   preference from the Track is used.  If omitted from FETCH, the
-   receiver uses Ascending (0x1).
+   preference from the Track is used.  If omitted from FETCH or
+   FILL_PARAMETERS, the receiver uses Ascending (0x1).
 
 9.19.9.  LOCATION FILTER Parameter
 
@@ -4712,10 +4712,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    independent of the subscription's own Location filter.
 
    A parameter that is omitted from FILL_PARAMETERS takes the value it
-   has for the subscription; FILL_PARAMETERS therefore carries only the
-   settings that differ.  An endpoint that receives a parameter inside
-   FILL_PARAMETERS that is not listed above MUST close the session with
-   INVALID_PARAMETER.
+   has for the subscription, except GROUP_ORDER (see Section 9.19.8);
+   FILL_PARAMETERS therefore carries only the settings that differ.  An
+   endpoint that receives a parameter inside FILL_PARAMETERS that is not
+   listed above MUST close the session with INVALID_PARAMETER.
 
    The value of FILL_PARAMETERS is a separate parameter scope.
    Parameters inside it are not considered to appear in the enclosing
