@@ -1469,8 +1469,8 @@ scheduled.
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
 DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
-priority can also be set per subgroup or datagram in the subgroup header or
-datagram (see {{data-streams}}), which overrides the default.
+priority can also be set per subgroup or datagram in the subgroup header,
+object stream, or datagram (see {{data-streams}}), which overrides the default.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -2061,9 +2061,9 @@ Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
-change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap property could be removed in FETCH,
-where it's redundant.
+change an `OBJECT_STREAM` with `END_OF_GROUP` set to a `SUBGROUP_HEADER` stream
+ending with an End of Group status Object, or a Prior Group ID Gap property
+could be removed in FETCH, where it's redundant.
 
 A relay MAY cache that a range of Objects is Gone (see {{object-states}}).  If
 it later receives one of those Objects, it can cache and forward the Object.  A
