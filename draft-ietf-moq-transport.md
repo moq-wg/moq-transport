@@ -4681,9 +4681,9 @@ Object Status is not Normal (0x0), the endpoint MUST close the session with
 
 ## Subgroup Streams
 
-When Objects are sent on streams, the stream begins with a Subgroup, Object, or
-Fetch Header and is followed by one or more serialized Objects (or a single
-Object in the case of `OBJECT_STREAM`).
+When Objects are sent on streams, the stream either is an `OBJECT_STREAM`
+carrying a single Object, or begins with a `SUBGROUP_HEADER` or `FETCH_HEADER`
+followed by one or more Objects.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
 middle of a serialized Object, the receiver SHOULD close the session with
 `TRUNCATED_OBJECT`.
@@ -4693,9 +4693,10 @@ Header field values.
 
 ### Object Stream {#object-stream}
 
-An `OBJECT_STREAM` carries a single Subgroup Object on a unidirectional stream,
-using the same field layout and `0x01`, `0x02`, `0x04`, `0x08`, and `0x20`
-Type Flags as `OBJECT_DATAGRAM` ({{object-datagram}}):
+An `OBJECT_STREAM` carries a single Subgroup Object on a unidirectional stream.
+It uses the same fields, `Type Flags` bits, and error handling as
+`OBJECT_DATAGRAM` ({{object-datagram}}), except bit 6 (`0x40`) of `Type Flags`
+is 1:
 
 ~~~
 OBJECT_STREAM {
@@ -4711,24 +4712,16 @@ OBJECT_STREAM {
 ~~~
 {: #object-stream-format title="MOQT OBJECT_STREAM"}
 
-In an `OBJECT_STREAM`, bit 6 (`0x40`) of `Type Flags` is 1, bit 4 (`0x10`)
-is 0, and bits 0-3 and bit 5 have the same definitions and invalidity rules
-(`INVALID_STREAM_HEADER`, `MALFORMED_OBJECT`, and `INVALID_OBJECT_STATUS`) as
-`OBJECT_DATAGRAM`. Any other unspecified bits (including values of 128 or
-greater) MUST close the session with `INVALID_STREAM_HEADER`.
-
 The Object has `Delivery Mode` = `Subgroup` and `Subgroup ID` equal to its
-`Object ID`, and MUST be the first and only Object in its Subgroup (equivalent
-to `FIRST_OBJECT` = 1). Receiving a different Object in the same Subgroup on
-another stream makes the track Malformed ({{malformed-tracks}}).
+`Object ID`, and MUST be the first and only Object in its Subgroup. Receiving
+a different Object in the same Subgroup on another stream makes the track
+Malformed ({{malformed-tracks}}).
 
-When `STATUS` is 0, all bytes following the header until the stream terminates
-with a `FIN` form the `Object Payload`. When `STATUS` is 1, the stream MUST
-end with a `FIN` immediately after `Object Status`; if any bytes follow
-`Object Status`, the endpoint MUST close the session with `MALFORMED_OBJECT`.
-If an `OBJECT_STREAM` is reset before a `FIN` is received, the receiver MUST
-discard any partial Object data and MUST NOT treat the Object or
-`END_OF_GROUP` as received.
+When `STATUS` is 0, the `Object Payload` is all remaining bytes on the stream
+until `FIN`. When `STATUS` is 1, any bytes following `Object Status` before
+`FIN` MUST close the session with `MALFORMED_OBJECT`. If an `OBJECT_STREAM` is
+reset before `FIN`, the receiver MUST discard the incomplete Object and MUST NOT
+treat the Object or `END_OF_GROUP` as received.
 
 ### Subgroup Header {#subgroup-header}
 
