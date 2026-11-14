@@ -4734,12 +4734,13 @@ fields are present in the header:
   * 0b10: The Subgroup ID field is present in the header.
   * 0b11: Reserved for future use.
 
-* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
-  largest Object in the Group. When set to 1, the subscriber can infer the final
-  Object in the Group when the data stream is terminated by a FIN. In this case,
-  Objects that have the same Group ID and an Object ID larger than the last
-  Object received on the stream do not exist. This does not apply when the data
-  stream is reset.
+* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains a
+  single Object, which is the largest Object in the Group. When set to 1,
+  Objects that have the same Group ID and an Object ID larger than the Object
+  received on the stream do not exist. A publisher that sets this bit but does
+  not send the Object MUST reset the stream. A receiver that receives more than
+  one Object on the stream MUST treat the track as Malformed (see
+  {{malformed-tracks}}).
 
 * The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Subgroup
@@ -5105,8 +5106,8 @@ include:
    different final Objects.
 4. An Object is received in a Group whose Object
    ID is larger than the final Object in the Group.  The final Object in a Group
-   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
-   Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
+   is the Object with Status END_OF_GROUP, or the Object in a Subgroup which
+   has the END_OF_GROUP bit set.  If the end of a Group is
    implicitly determined via a gap in a FETCH response, the final Object in the
    Group remains unknown.
 5. An Object is received whose Group and Object ID are larger than
@@ -5122,6 +5123,8 @@ include:
    not allow multiple instances (see {{properties}}).
 10. An Object is received after it has been recorded as not existing, or is
     signalled as not existing after it was received (see {{object-states}}).
+11. More than one Object is received on a Subgroup stream which has the
+    END_OF_GROUP bit set.
 
 The above list of conditions is not considered exhaustive.
 
