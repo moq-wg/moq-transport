@@ -7763,9 +7763,9 @@ Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> 
         <h3 id="name-subgroup-streams">
 <a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-subgroup-streams" class="section-name selfRef">Subgroup Streams</a>
         </h3>
-<p id="section-11.3-1">When Objects are sent on streams, the stream begins with a Subgroup, Object, or
-Fetch Header and is followed by one or more serialized Objects (or a single
-Object in the case of <code>OBJECT_STREAM</code>).
+<p id="section-11.3-1">When Objects are sent on streams, the stream either is an <code>OBJECT_STREAM</code>
+carrying a single Object, or begins with a <code>SUBGROUP_HEADER</code> or <code>FETCH_HEADER</code>
+followed by one or more Objects.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
 middle of a serialized Object, the receiver <span class="bcp14">SHOULD</span> close the session with
 <code>TRUNCATED_OBJECT</code>.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
@@ -7776,9 +7776,10 @@ Header field values.<a href="#section-11.3-2" class="pilcrow">¶</a></p>
           <h4 id="name-object-stream">
 <a href="#section-11.3.1" class="section-number selfRef">11.3.1. </a><a href="#name-object-stream" class="section-name selfRef">Object Stream</a>
           </h4>
-<p id="section-11.3.1-1">An <code>OBJECT_STREAM</code> carries a single Subgroup Object on a unidirectional stream,
-using the same field layout and <code>0x01</code>, <code>0x02</code>, <code>0x04</code>, <code>0x08</code>, and <code>0x20</code>
-Type Flags as <code>OBJECT_DATAGRAM</code> (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>):<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-1">An <code>OBJECT_STREAM</code> carries a single Subgroup Object on a unidirectional stream.
+It uses the same fields, <code>Type Flags</code> bits, and error handling as
+<code>OBJECT_DATAGRAM</code> (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>), except bit 6 (<code>0x40</code>) of <code>Type Flags</code>
+is 1:<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_stream"></span><div id="object-stream-format">
 <figure id="figure-26">
             <div class="alignLeft art-text artwork" id="section-11.3.1-2.1">
@@ -7799,22 +7800,15 @@ OBJECT_STREAM {
 <a href="#name-moqt-object_stream" class="selfRef">MOQT OBJECT_STREAM</a>
             </figcaption></figure>
 </div>
-<p id="section-11.3.1-3">In an <code>OBJECT_STREAM</code>, bit 6 (<code>0x40</code>) of <code>Type Flags</code> is 1, bit 4 (<code>0x10</code>)
-is 0, and bits 0-3 and bit 5 have the same definitions and invalidity rules
-(<code>INVALID_STREAM_HEADER</code>, <code>MALFORMED_OBJECT</code>, and <code>INVALID_OBJECT_STATUS</code>) as
-<code>OBJECT_DATAGRAM</code>. Any other unspecified bits (including values of 128 or
-greater) <span class="bcp14">MUST</span> close the session with <code>INVALID_STREAM_HEADER</code>.<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-11.3.1-4">The Object has <code>Delivery Mode</code> = <code>Subgroup</code> and <code>Subgroup ID</code> equal to its
-<code>Object ID</code>, and <span class="bcp14">MUST</span> be the first and only Object in its Subgroup (equivalent
-to <code>FIRST_OBJECT</code> = 1). Receiving a different Object in the same Subgroup on
-another stream makes the track Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
-<p id="section-11.3.1-5">When <code>STATUS</code> is 0, all bytes following the header until the stream terminates
-with a <code>FIN</code> form the <code>Object Payload</code>. When <code>STATUS</code> is 1, the stream <span class="bcp14">MUST</span>
-end with a <code>FIN</code> immediately after <code>Object Status</code>; if any bytes follow
-<code>Object Status</code>, the endpoint <span class="bcp14">MUST</span> close the session with <code>MALFORMED_OBJECT</code>.
-If an <code>OBJECT_STREAM</code> is reset before a <code>FIN</code> is received, the receiver <span class="bcp14">MUST</span>
-discard any partial Object data and <span class="bcp14">MUST NOT</span> treat the Object or
-<code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-5" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-3">The Object has <code>Delivery Mode</code> = <code>Subgroup</code> and <code>Subgroup ID</code> equal to its
+<code>Object ID</code>, and <span class="bcp14">MUST</span> be the first and only Object in its Subgroup. Receiving
+a different Object in the same Subgroup on another stream makes the track
+Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-4">When <code>STATUS</code> is 0, the <code>Object Payload</code> is all remaining bytes on the stream
+until <code>FIN</code>. When <code>STATUS</code> is 1, any bytes following <code>Object Status</code> before
+<code>FIN</code> <span class="bcp14">MUST</span> close the session with <code>MALFORMED_OBJECT</code>. If an <code>OBJECT_STREAM</code> is
+reset before <code>FIN</code>, the receiver <span class="bcp14">MUST</span> discard the incomplete Object and <span class="bcp14">MUST NOT</span>
+treat the Object or <code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-header">
