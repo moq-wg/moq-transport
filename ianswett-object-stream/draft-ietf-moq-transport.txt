@@ -1802,8 +1802,8 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    schedulable object.  A default for the subscription is specified in
    the DEFAULT_PUBLISHER_PRIORITY Track Property (Section 10.4).
    Publisher priority can also be set per subgroup or datagram in the
-   subgroup header or datagram (see Section 11), which overrides the
-   default.
+   subgroup header, object stream, or datagram (see Section 11), which
+   overrides the default.
 
    Group Order is a property of an individual subscription.  It can be
    either 'Ascending' (groups with lower group ID are sent first), or
@@ -2453,9 +2453,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    For ranges of objects that do not exist, relays MAY change the
    representation of a missing range to a semantically equivalent one.
-   For instance, a relay may change an End-of-Group="Y" Subgroup Header
-   to an equivalent object with an End of Group status, or a Prior Group
-   ID Gap property could be removed in FETCH, where it's redundant.
+   For instance, a relay may change an OBJECT_STREAM with END_OF_GROUP
+   set to a SUBGROUP_HEADER stream ending with an End of Group status
+   Object, or a Prior Group ID Gap property could be removed in FETCH,
+   where it's redundant.
 
    A relay MAY cache that a range of Objects is Gone (see
    Section 2.1.2).  If it later receives one of those Objects, it can
