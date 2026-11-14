@@ -6833,7 +6833,8 @@ Objects (see <a href="#priorities" class="auto internal xref">Section 5.1</a>). 
 (0x2). If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span>
 close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.8-2" class="pilcrow">¶</a></p>
 <p id="section-9.19.8-3">If omitted from SUBSCRIBE or SUBSCRIBE_TRACKS, the publisher's preference from
-the Track is used. If omitted from FETCH, the receiver uses Ascending (0x1).<a href="#section-9.19.8-3" class="pilcrow">¶</a></p>
+the Track is used. If omitted from FETCH or FILL_PARAMETERS, the receiver uses
+Ascending (0x1).<a href="#section-9.19.8-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="location-filter">
@@ -7157,8 +7158,9 @@ is opened only when FILL_PARAMETERS is present.<a href="#section-9.19.15-1" clas
 evaluated using the rules for a Fetch (see <a href="#location-filter" class="auto internal xref">Section 9.19.9</a>); it is
 independent of the subscription's own Location filter.<a href="#section-9.19.15-4" class="pilcrow">¶</a></p>
 <p id="section-9.19.15-5">A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
-subscription; FILL_PARAMETERS therefore carries only the settings that
-differ. An endpoint that receives a parameter inside FILL_PARAMETERS that is not
+subscription, except GROUP_ORDER (see <a href="#group-order" class="auto internal xref">Section 9.19.8</a>); FILL_PARAMETERS
+therefore carries only the settings that differ. An endpoint that receives a
+parameter inside FILL_PARAMETERS that is not
 listed above <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.15-5" class="pilcrow">¶</a></p>
 <p id="section-9.19.15-6">The value of FILL_PARAMETERS is a separate parameter scope. Parameters inside
 it are not considered to appear in the enclosing message for the purposes of
