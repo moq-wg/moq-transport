@@ -4719,8 +4719,8 @@ greater) MUST close the session with `INVALID_STREAM_HEADER`.
 
 The Object has `Delivery Mode` = `Subgroup` and `Subgroup ID` equal to its
 `Object ID`, and MUST be the first and only Object in its Subgroup (equivalent
-to `FIRST_OBJECT` = 1). Receiving another Object in the same Subgroup makes the
-track Malformed ({{malformed-tracks}}).
+to `FIRST_OBJECT` = 1). Receiving a different Object in the same Subgroup on
+another stream makes the track Malformed ({{malformed-tracks}}).
 
 When `STATUS` is 0, all bytes following the header until the stream terminates
 with a `FIN` form the `Object Payload`. When `STATUS` is 1, the stream MUST
