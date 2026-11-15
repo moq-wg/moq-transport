@@ -4717,11 +4717,10 @@ The Object has `Delivery Mode` = `Subgroup` and `Subgroup ID` equal to its
 a different Object in the same Subgroup on another stream makes the track
 Malformed ({{malformed-tracks}}).
 
-When `STATUS` is 0, the `Object Payload` is all remaining bytes on the stream
-until `FIN`. When `STATUS` is 1, any bytes following `Object Status` before
-`FIN` MUST close the session with `MALFORMED_OBJECT`. If an `OBJECT_STREAM` is
-reset before `FIN`, the receiver MUST discard the incomplete Object and MUST NOT
-treat the Object or `END_OF_GROUP` as received.
+When `STATUS` is 0, there is no explicit length field for the `Object Payload`;
+all bytes on the stream following the header until `FIN` form the payload. If
+an `OBJECT_STREAM` is reset before `FIN`, the receiver MUST discard the
+incomplete Object and MUST NOT treat the Object or `END_OF_GROUP` as received.
 
 ### Subgroup Header {#subgroup-header}
 
