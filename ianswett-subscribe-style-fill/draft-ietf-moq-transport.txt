@@ -1377,7 +1377,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    in subgroups and datagrams instead of on the fill fetch stream.  When
    doing so, the publisher includes the FIRST_SUBSCRIBE_GROUP parameter
    (see Section 9.19.18) in SUBSCRIBE_OK, PUBLISH, or REQUEST_UPDATE_OK.
-   All Groups in the fill range with Group IDs greater than or equal to
+   A publisher or relay SHOULD only include a Group in
+   FIRST_SUBSCRIBE_GROUP if it has all Objects in that Group up to
+   Largest Object available in cache or is receiving the Group from its
+   start on an upstream subscription, and FILL_PARAMETERS does not
+   specify narrower Range Filters than the subscription.  All Groups in
+   the fill range with Group IDs greater than or equal to
    FIRST_SUBSCRIBE_GROUP MUST be subscription-delivered in their
    entirety using the subscription's parameters (including
    SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT, see
