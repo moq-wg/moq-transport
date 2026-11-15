@@ -3120,36 +3120,30 @@ Pass = (NOT Paused) AND Location Filters AND Range Filters
 <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>) causes the publisher to open a unidirectional stream
 beginning with a FETCH_HEADER (see <a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>) and delivered as a FETCH
 response (see <a href="#message-fetch" class="auto internal xref">Section 9.11</a>).  This is called a fill fetch stream.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">The <strong>fill range</strong> is the range of Locations selected by the Location filter
-inside FILL_PARAMETERS, or the subscription's Location filter if it is
-omitted. The filter is evaluated using the rules for a Fetch in
-<a href="#location-filter" class="auto internal xref">Section 9.19.9</a>, so the fill range never extends beyond <code>Largest
-Object</code>. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
-the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest
+<p id="section-3.4-2">The <strong>fill range</strong> is the range of Locations selected by the subscription's
+Location filter, evaluated using the rules for a Fetch in <a href="#location-filter" class="auto internal xref">Section 9.19.9</a>,
+so the fill range never extends beyond <code>Largest Object</code>. When the subscription
+has no Location filter, or has Location Filter Type 0x00 (None), the fill range
+is the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest
 Object</code> from the <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK, PUBLISH or
-REQUEST_UPDATE_OK.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
-<p id="section-3.4-3">Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to
-<code>Largest Object</code> while the subscription itself starts at the Next Group.  If
-the fill range is empty, or starts after Largest Object, the publisher does not
-open a fill fetch stream.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.4-4">The fill fetch stream inherits the subscription's parameters, including
+REQUEST_UPDATE_OK.  If no Objects have been published for the Track, or if the
+fill range is empty or starts after <code>Largest Object</code>, the publisher does not
+open a fill fetch stream.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.4-3">The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
 FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
 <a href="#fill-timeout" class="auto internal xref">Section 9.19.5</a>) applies to fill fetch streams in the same way it applies to a
-FETCH.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.4-5">The FETCH_HEADER on the fill fetch stream carries the subscription's Request
+FETCH.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4-4">The FETCH_HEADER on the fill fetch stream carries the subscription's Request
 ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
-fill.  As a result of REQUEST_UPDATE, a subscription can have
-multiple fill fetch streams open at once, each identified by its Request ID;
-opening a new fill fetch stream does not implicitly cancel any previously
-opened fill fetch streams.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
-<p id="section-3.4-6">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  When the
-fill range overlaps the subscription's Location filter, an object can be both
-fill-delivered and subscription-delivered.  A subscriber that wants each Object
-delivered exactly once uses the Next Object Subscription Location Filter coupled
-with an open-ended fill range, which the publisher will end at Largest Object.<a href="#section-3.4-6" class="pilcrow">¶</a></p>
+fill.  A subscription can have at most one open fill fetch stream at a time.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
+<p id="section-3.4-5">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  Once a
+publisher begins processing a fill range, Objects in that fill range are
+delivered on the fill fetch stream instead of being subscription-delivered, and
+the publisher <span class="bcp14">MUST NOT</span> subsequently subscription-deliver any Object in that fill
+range unless that Object was skipped as a Timed-Out gap on the fill fetch
+stream.  A publisher <span class="bcp14">MAY</span> skip delivering an Object on the fill fetch stream if
+it was already subscription-delivered prior to a REQUEST_UPDATE.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 <div id="opening-and-closing-fill-fetch-streams">
 <section id="section-3.4.1">
           <h4 id="name-opening-and-closing-fill-fe">
@@ -3169,7 +3163,9 @@ not open one either.<a href="#section-3.4.1-2.1.1" class="pilcrow">¶</a></p>
 fetch stream.<a href="#section-3.4.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.4.1-2.3">
-              <p id="section-3.4.1-2.3.1">When the subscription is cancelled, the publisher <span class="bcp14">MUST</span> reset any open fill fetch streams.<a href="#section-3.4.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.1-2.3.1">When the subscription is cancelled or paused, or when a REQUEST_UPDATE
+contains LOCATION_FILTER or FILL_PARAMETERS, the publisher <span class="bcp14">MUST</span> reset any open
+fill fetch stream for the subscription before opening a new one.<a href="#section-3.4.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-3.4.1-3">The publisher signals that the fill is complete by closing the stream with a
@@ -3198,14 +3194,13 @@ will have different approaches for when to begin a new Group.<a href="#section-3
 Filter <a href="#location-filters" class="auto internal xref">Section 3.3.1</a> that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>) whose Location filter has StartGroup=1, which fills
-the current Group from its start.<a href="#section-3.5-3" class="pilcrow">¶</a></p>
+Relative Start Location Filter (<code>0x01</code>) with <code>StartGroup=1</code>, which starts at
+the current Group, and a FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 <p id="section-3.5-4">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
-FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
-which can be relative.  The publisher delivers the fill range on a fill fetch
-stream and subscription-delivered Objects in subgroups or
-datagrams (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).<a href="#section-3.5-4" class="pilcrow">¶</a></p>
+Location Filter that selects the intended Groups, which can be relative, and a
+FILL_PARAMETERS parameter.  The publisher delivers the fill range on a fill
+fetch stream and subsequent Objects as subscription-delivered Objects in
+subgroups or datagrams (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).<a href="#section-3.5-4" class="pilcrow">¶</a></p>
 <p id="section-3.5-5">To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 a Location Filter <a href="#location-filters" class="auto internal xref">Section 3.3.1</a> that starts at the Next Group.<a href="#section-3.5-5" class="pilcrow">¶</a></p>
 <div id="dynamically-starting-new-groups">
@@ -3249,8 +3244,9 @@ excessive overlap, and responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK normally
 without waiting for the transition point. While the switch is pending, the
 publisher continues delivering the old subscription and withholds Objects on
 the new subscription.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">When the publisher selects a transition Group N on the new track (where M = N - 1
-for Group ID alignment, or the preceding aligned Group otherwise), it:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">When the publisher selects a transition Group N on the new track (where
+M = N - 1 for Group ID alignment, or the preceding aligned Group otherwise),
+it:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.6-4.1">
             <p id="section-3.6-4.1.1">Updates the new subscription's LOCATION_FILTER to start at <code>{N, 0}</code>, begins
@@ -3264,14 +3260,19 @@ PAUSED=1 if N is 0), resets any open streams on it for Groups &gt; M, and sends
 PUBLISH_STATE_NOTIFY reporting the updated LOCATION_FILTER or PAUSED=1.<a href="#section-3.6-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-3.6-5">If the publisher cannot complete the switch (for example, the tracks are not
+<p id="section-3.6-5">If the message carrying SWITCH_FROM also carries FILL_PARAMETERS, the publisher
+<span class="bcp14">MAY</span> select a Group N that is not larger than the Group of the new track's
+<code>Largest Object</code>; otherwise, N <span class="bcp14">MUST</span> be larger.  Any fill fetch stream is opened
+when the publisher executes the switch, instead of when it processes the
+message, and its fill range starts at <code>{N, 0}</code> (see <a href="#fill-semantics" class="auto internal xref">Section 3.4</a>).<a href="#section-3.6-5" class="pilcrow">¶</a></p>
+<p id="section-3.6-6">If the publisher cannot complete the switch (for example, the tracks are not
 aligned or bandwidth is insufficient), it leaves the old subscription
 unmodified, resets any streams opened for the new subscription, and pauses the
 new subscription by sending PUBLISH_STATE_NOTIFY with PAUSED=1. If the old
 subscription does not exist or has ended, the publisher proceeds with the new
 subscription normally. A subsequent REQUEST_UPDATE on the new subscription with
 PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels any pending switch. Relays
-handle SWITCH_FROM locally across their downstream subscriptions.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
+handle SWITCH_FROM locally across their downstream subscriptions.<a href="#section-3.6-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subscribe-tracks">
@@ -6882,8 +6883,7 @@ Ascending (0x1).<a href="#section-9.19.8-3" class="pilcrow">¶</a></p>
           </h4>
 <p id="section-9.19.9-1">The LOCATION_FILTER parameter (Parameter Type 0x21) <span class="bcp14">MAY</span> appear in a FETCH,
 SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription) or
-PUBLISH_STATE_NOTIFY message, or inside a FILL_PARAMETERS parameter (see
-<a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>). It is a Location Filter (see
+PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
 <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>).<a href="#section-9.19.9-1" class="pilcrow">¶</a></p>
 <p id="section-9.19.9-2">A Location filter parameter has the following structure:<a href="#section-9.19.9-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-9.19.9-3">
@@ -7149,13 +7149,6 @@ is opened only when FILL_PARAMETERS is present.<a href="#section-9.19.15-1" clas
 </td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">0x21</td>
-                <td class="text-left" rowspan="1" colspan="1">LOCATION_FILTER</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#location-filter" class="auto internal xref">Section 9.19.9</a>
-</td>
-              </tr>
-              <tr>
                 <td class="text-left" rowspan="1" colspan="1">0x22</td>
                 <td class="text-left" rowspan="1" colspan="1">GROUP_ORDER</td>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -7192,24 +7185,25 @@ is opened only when FILL_PARAMETERS is present.<a href="#section-9.19.15-1" clas
               </tr>
             </tbody>
           </table>
-<p id="section-9.19.15-4">The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
-evaluated using the rules for a Fetch (see <a href="#location-filter" class="auto internal xref">Section 9.19.9</a>); it is
-independent of the subscription's own Location filter.<a href="#section-9.19.15-4" class="pilcrow">¶</a></p>
-<p id="section-9.19.15-5">A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
+<p id="section-9.19.15-4">A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
 subscription, except GROUP_ORDER (see <a href="#group-order" class="auto internal xref">Section 9.19.8</a>); FILL_PARAMETERS
 therefore carries only the settings that differ. An endpoint that receives a
 parameter inside FILL_PARAMETERS that is not
-listed above <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.15-5" class="pilcrow">¶</a></p>
-<p id="section-9.19.15-6">The value of FILL_PARAMETERS is a separate parameter scope. Parameters inside
+listed above <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.15-4" class="pilcrow">¶</a></p>
+<p id="section-9.19.15-5">The value of FILL_PARAMETERS is a separate parameter scope. Parameters inside
 it are not considered to appear in the enclosing message for the purposes of
 <a href="#message-params" class="auto internal xref">Section 9.19</a>, so a Parameter Type <span class="bcp14">MAY</span> appear both in the message and
-inside FILL_PARAMETERS.<a href="#section-9.19.15-6" class="pilcrow">¶</a></p>
-<p id="section-9.19.15-7">FILL_PARAMETERS is not retained as subscription state. It applies only to the
+inside FILL_PARAMETERS.<a href="#section-9.19.15-5" class="pilcrow">¶</a></p>
+<p id="section-9.19.15-6">FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
-<a href="#message-request-update" class="auto internal xref">Section 9.5</a> do not apply to it.  A REQUEST_UPDATE containing
-FILL_PARAMETERS cannot be coalesced with other REQUEST_UPDATEs.  A publisher
-can reject a REQUEST_UPDATE containing FILL_PARAMETERS with <code>EXCESSIVE_LOAD</code> if
-it has too many active fill fetch streams.<a href="#section-9.19.15-7" class="pilcrow">¶</a></p>
+<a href="#message-request-update" class="auto internal xref">Section 9.5</a> do not apply to it.  When multiple REQUEST_UPDATE
+messages are coalesced (see <a href="#message-request-update" class="auto internal xref">Section 9.5</a>), at most one fill fetch
+stream is opened, using the last FILL_PARAMETERS in the coalesced messages
+(with that message's Request ID in FETCH_HEADER), unless a subsequent coalesced
+message pauses the subscription or updates LOCATION_FILTER without
+FILL_PARAMETERS.  No fill fetch stream is opened for coalesced REQUEST_UPDATE
+messages whose FILL_PARAMETERS is superseded.  A publisher can reject a
+REQUEST_UPDATE with <code>EXCESSIVE_LOAD</code> if it receives too many fill requests.<a href="#section-9.19.15-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="switch-from">
@@ -7220,8 +7214,10 @@ it has too many active fill fetch streams.<a href="#section-9.19.15-7" class="pi
 <p id="section-9.19.16-1">The SWITCH_FROM parameter (Parameter Type 0x24) is a varint containing the
 Request ID of the old subscription to switch from (see <a href="#track-switching" class="auto internal xref">Section 3.6</a>). It
 <span class="bcp14">MAY</span> appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription) message, and is
-not retained as subscription state. A REQUEST_UPDATE containing SWITCH_FROM
-cannot be coalesced with other REQUEST_UPDATEs (see <a href="#message-request-update" class="auto internal xref">Section 9.5</a>).<a href="#section-9.19.16-1" class="pilcrow">¶</a></p>
+not retained as subscription state.  When multiple REQUEST_UPDATE messages are
+coalesced (see <a href="#message-request-update" class="auto internal xref">Section 9.5</a>), only the last SWITCH_FROM applies,
+unless a subsequent coalesced message cancels the switch (see
+<a href="#track-switching" class="auto internal xref">Section 3.6</a>).<a href="#section-9.19.16-1" class="pilcrow">¶</a></p>
 <p id="section-9.19.16-2">If SWITCH_FROM equals the new subscription's Request ID or appears alongside
 PAUSED=1, the publisher <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.
 Including SWITCH_FROM requests that the publisher update LOCATION_FILTER and

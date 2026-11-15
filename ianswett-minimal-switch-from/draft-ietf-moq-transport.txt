@@ -1334,21 +1334,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    FETCH response (see Section 9.11).  This is called a fill fetch
    stream.
 
-   The *fill range* is the range of Locations selected by the Location
-   filter inside FILL_PARAMETERS, or the subscription's Location filter
-   if it is omitted.  The filter is evaluated using the rules for a
-   Fetch in Section 9.19.9, so the fill range never extends beyond
-   Largest Object.  When the subscription has no Location filter, or the
-   LOCATION_FILTER inside FILL_PARAMETERS has Location Filter Type 0x00
-   (None), the fill range is the entire track up to Largest Object.  The
-   subscriber learns the Largest Object from the LARGEST_OBJECT
-   parameter in SUBSCRIBE_OK, PUBLISH or REQUEST_UPDATE_OK.
-
-   Because the fill range is specified independently of the
-   subscription's Location filter, a subscriber can retrieve a range of
-   Groups prior to Largest Object while the subscription itself starts
-   at the Next Group.  If the fill range is empty, or starts after
-   Largest Object, the publisher does not open a fill fetch stream.
+   The *fill range* is the range of Locations selected by the
+   subscription's Location filter, evaluated using the rules for a Fetch
+   in Section 9.19.9, so the fill range never extends beyond Largest
+   Object.  When the subscription has no Location filter, or has
+   Location Filter Type 0x00 (None), the fill range is the entire track
+   up to Largest Object.  The subscriber learns the Largest Object from
+   the LARGEST_OBJECT parameter in SUBSCRIBE_OK, PUBLISH or
+   REQUEST_UPDATE_OK.  If no Objects have been published for the Track,
+   or if the fill range is empty or starts after Largest Object, the
+   publisher does not open a fill fetch stream.
 
    The fill fetch stream inherits the subscription's parameters,
    including subscriber priority, range filters and authorization;
@@ -1358,17 +1353,17 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The FETCH_HEADER on the fill fetch stream carries the subscription's
    Request ID for an initial fill, or the REQUEST_UPDATE Request ID for
-   a subsequent fill.  As a result of REQUEST_UPDATE, a subscription can
-   have multiple fill fetch streams open at once, each identified by its
-   Request ID; opening a new fill fetch stream does not implicitly
-   cancel any previously opened fill fetch streams.
+   a subsequent fill.  A subscription can have at most one open fill
+   fetch stream at a time.
 
    An object delivered on the fill fetch stream is *fill-delivered*.
-   When the fill range overlaps the subscription's Location filter, an
-   object can be both fill-delivered and subscription-delivered.  A
-   subscriber that wants each Object delivered exactly once uses the
-   Next Object Subscription Location Filter coupled with an open-ended
-   fill range, which the publisher will end at Largest Object.
+   Once a publisher begins processing a fill range, Objects in that fill
+   range are delivered on the fill fetch stream instead of being
+   subscription-delivered, and the publisher MUST NOT subsequently
+   subscription-deliver any Object in that fill range unless that Object
+   was skipped as a Timed-Out gap on the fill fetch stream.  A publisher
+   MAY skip delivering an Object on the fill fetch stream if it was
+   already subscription-delivered prior to a REQUEST_UPDATE.
 
 3.4.1.  Opening and Closing Fill Fetch Streams
 
@@ -1383,8 +1378,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open
       a new fill fetch stream.
 
-   *  When the subscription is cancelled, the publisher MUST reset any
-      open fill fetch streams.
+   *  When the subscription is cancelled or paused, or when a
+      REQUEST_UPDATE contains LOCATION_FILTER or FILL_PARAMETERS, the
+      publisher MUST reset any open fill fetch stream for the
+      subscription before opening a new one.
 
    The publisher signals that the fill is complete by closing the stream
    with a FIN once all objects in the fill range have been delivered.
@@ -1410,15 +1407,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Delivery begins with the next Object and can begin mid-group.
 
    To join a Track at the current Group, the subscriber sends a
-   SUBSCRIBE with a Location Filter that starts at the Next Object and a
-   FILL_PARAMETERS parameter (see Section 9.19.15) whose Location filter
-   has StartGroup=1, which fills the current Group from its start.
+   SUBSCRIBE with a Relative Start Location Filter (0x01) with
+   StartGroup=1, which starts at the current Group, and a
+   FILL_PARAMETERS parameter (see Section 9.19.15).
 
    To join a Track at a past Group, the subscriber sends a SUBSCRIBE
-   with a FILL_PARAMETERS parameter whose Location filter selects the
-   intended Groups, which can be relative.  The publisher delivers the
-   fill range on a fill fetch stream and subscription-delivered Objects
-   in subgroups or datagrams (see Section 3.4).
+   with a Location Filter that selects the intended Groups, which can be
+   relative, and a FILL_PARAMETERS parameter.  The publisher delivers
+   the fill range on a fill fetch stream and subsequent Objects as
+   subscription-delivered Objects in subgroups or datagrams (see
+   Section 3.4).
 
    To join a Track at the next Group, the subscriber sends a SUBSCRIBE
    with a Location Filter Section 3.3.1 that starts at the Next Group.
@@ -1475,6 +1473,13 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       (or sets PAUSED=1 if N is 0), resets any open streams on it for
       Groups > M, and sends PUBLISH_STATE_NOTIFY reporting the updated
       LOCATION_FILTER or PAUSED=1.
+
+   If the message carrying SWITCH_FROM also carries FILL_PARAMETERS, the
+   publisher MAY select a Group N that is not larger than the Group of
+   the new track's Largest Object; otherwise, N MUST be larger.  Any
+   fill fetch stream is opened when the publisher executes the switch,
+   instead of when it processes the message, and its fill range starts
+   at {N, 0} (see Section 3.4).
 
    If the publisher cannot complete the switch (for example, the tracks
    are not aligned or bandwidth is insufficient), it leaves the old
@@ -4546,8 +4551,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a
    FETCH, SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a
-   subscription) or PUBLISH_STATE_NOTIFY message, or inside a
-   FILL_PARAMETERS parameter (see Section 9.19.15).  It is a Location
+   subscription) or PUBLISH_STATE_NOTIFY message.  It is a Location
    Filter (see Section 3.3.1).
 
    A Location filter parameter has the following structure:
@@ -4734,8 +4738,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
        +----------------+------------------------+----------------+
        | 0x20           | SUBSCRIBER_PRIORITY    | Section 9.19.7 |
        +----------------+------------------------+----------------+
-       | 0x21           | LOCATION_FILTER        | Section 9.19.9 |
-       +----------------+------------------------+----------------+
        | 0x22           | GROUP_ORDER            | Section 9.19.8 |
        +----------------+------------------------+----------------+
        | 0x25           | SUBGROUP_FILTER        | Section 3.3.2  |
@@ -4748,10 +4750,6 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
        +----------------+------------------------+----------------+
 
                                  Table 7
-
-   The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and
-   is evaluated using the rules for a Fetch (see Section 9.19.9); it is
-   independent of the subscription's own Location filter.
 
    A parameter that is omitted from FILL_PARAMETERS takes the value it
    has for the subscription, except GROUP_ORDER (see Section 9.19.8);
@@ -4766,19 +4764,25 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    FILL_PARAMETERS is not retained as subscription state.  It applies
    only to the message that carries it, so the sticky-parameter rules in
-   Section 9.5 do not apply to it.  A REQUEST_UPDATE containing
-   FILL_PARAMETERS cannot be coalesced with other REQUEST_UPDATEs.  A
-   publisher can reject a REQUEST_UPDATE containing FILL_PARAMETERS with
-   EXCESSIVE_LOAD if it has too many active fill fetch streams.
+   Section 9.5 do not apply to it.  When multiple REQUEST_UPDATE
+   messages are coalesced (see Section 9.5), at most one fill fetch
+   stream is opened, using the last FILL_PARAMETERS in the coalesced
+   messages (with that message's Request ID in FETCH_HEADER), unless a
+   subsequent coalesced message pauses the subscription or updates
+   LOCATION_FILTER without FILL_PARAMETERS.  No fill fetch stream is
+   opened for coalesced REQUEST_UPDATE messages whose FILL_PARAMETERS is
+   superseded.  A publisher can reject a REQUEST_UPDATE with
+   EXCESSIVE_LOAD if it receives too many fill requests.
 
 9.19.16.  SWITCH_FROM Parameter
 
    The SWITCH_FROM parameter (Parameter Type 0x24) is a varint
    containing the Request ID of the old subscription to switch from (see
    Section 3.6).  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
-   subscription) message, and is not retained as subscription state.  A
-   REQUEST_UPDATE containing SWITCH_FROM cannot be coalesced with other
-   REQUEST_UPDATEs (see Section 9.5).
+   subscription) message, and is not retained as subscription state.
+   When multiple REQUEST_UPDATE messages are coalesced (see
+   Section 9.5), only the last SWITCH_FROM applies, unless a subsequent
+   coalesced message cancels the switch (see Section 3.6).
 
    If SWITCH_FROM equals the new subscription's Request ID or appears
    alongside PAUSED=1, the publisher MUST close the session with
