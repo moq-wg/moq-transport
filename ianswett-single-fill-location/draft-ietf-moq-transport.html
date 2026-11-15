@@ -3120,8 +3120,9 @@ so the fill range never extends beyond <code>Largest Object</code>. When the sub
 has no Location filter, or has Location Filter Type 0x00 (None), the fill range
 is the entire track up to <code>Largest Object</code>.  The subscriber learns the <code>Largest
 Object</code> from the <code>LARGEST_OBJECT</code> parameter in SUBSCRIBE_OK, PUBLISH or
-REQUEST_UPDATE_OK.  If the fill range is empty, or starts after <code>Largest
-Object</code>, the publisher does not open a fill fetch stream.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+REQUEST_UPDATE_OK.  If no Objects have been published for the Track, or if the
+fill range is empty or starts after <code>Largest Object</code>, the publisher does not
+open a fill fetch stream.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
 FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
@@ -3130,12 +3131,13 @@ FETCH.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <p id="section-3.4-4">The FETCH_HEADER on the fill fetch stream carries the subscription's Request
 ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
 fill.  A subscription can have at most one open fill fetch stream at a time.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.4-5">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  Objects in
-the fill range are delivered on the fill fetch stream instead of being
-subscription-delivered, except that an Object skipped as a Timed-Out gap on the
-fill fetch stream <span class="bcp14">MAY</span> be subscription-delivered if it is subsequently received.
-A publisher <span class="bcp14">MUST NOT</span> deliver the same Object as both fill-delivered and
-subscription-delivered.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
+<p id="section-3.4-5">An object delivered on the fill fetch stream is <strong>fill-delivered</strong>.  Once a
+publisher begins processing a fill range, Objects in that fill range are
+delivered on the fill fetch stream instead of being subscription-delivered, and
+the publisher <span class="bcp14">MUST NOT</span> subsequently subscription-deliver any Object in that fill
+range unless that Object was skipped as a Timed-Out gap on the fill fetch
+stream.  A publisher <span class="bcp14">MAY</span> skip delivering an Object on the fill fetch stream if
+it was already subscription-delivered prior to a REQUEST_UPDATE.<a href="#section-3.4-5" class="pilcrow">¶</a></p>
 <div id="opening-and-closing-fill-fetch-streams">
 <section id="section-3.4.1">
           <h4 id="name-opening-and-closing-fill-fe">
@@ -3186,8 +3188,8 @@ will have different approaches for when to begin a new Group.<a href="#section-3
 Filter <a href="#location-filters" class="auto internal xref">Section 3.3.1</a> that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that has StartGroup=1, which starts at the current Group, and a
-FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).<a href="#section-3.5-3" class="pilcrow">¶</a></p>
+Relative Start Location Filter (<code>0x01</code>) with <code>StartGroup=1</code>, which starts at
+the current Group, and a FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 <p id="section-3.5-4">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 Location Filter that selects the intended Groups, which can be relative, and a
 FILL_PARAMETERS parameter.  The publisher delivers the fill range on a fill
@@ -7146,7 +7148,9 @@ messages are coalesced (see <a href="#message-request-update" class="auto intern
 stream is opened, using the last FILL_PARAMETERS in the coalesced messages
 (with that message's Request ID in FETCH_HEADER), unless a subsequent coalesced
 message pauses the subscription or updates LOCATION_FILTER without
-FILL_PARAMETERS.<a href="#section-9.19.15-6" class="pilcrow">¶</a></p>
+FILL_PARAMETERS.  No fill fetch stream is opened for coalesced REQUEST_UPDATE
+messages whose FILL_PARAMETERS is superseded.  A publisher can reject a
+REQUEST_UPDATE with <code>EXCESSIVE_LOAD</code> if it receives too many fill requests.<a href="#section-9.19.15-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
