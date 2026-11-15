@@ -4696,7 +4696,7 @@ Header field values.
 An `OBJECT_STREAM` carries a single Subgroup Object on a unidirectional stream.
 It uses the same fields, `Type Flags` bits, and error handling as
 `OBJECT_DATAGRAM` ({{object-datagram}}), except bit 6 (`0x40`) of `Type Flags`
-is 1:
+is always 1:
 
 ~~~
 OBJECT_STREAM {
