@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-12T06:25:37.148915+00:00",
+  "timestamp": "2026-11-15T05:33:19.765333+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -45768,7 +45768,7 @@
       ],
       "body": "Standard congestion control algorithms download data as fast as possible. Since throughput between client and server is typically much higher than the encoded rate of the content (Netflix report an average of 13x higher), this leads to bursty downloads at either the Object or Group . Bustiness leads to buffer bloat and packet loss. Instead of downloading data as fast as possible, a better goal for CC is to download as fast as needed. In the ABR content, the \"as needed\" refers to a rate which prevents the player's ABR algorithm from switching down and simultaneously allows it to switch up. In their testing, a rate of 3.5x encoded birtate satisfied these goals\n\nDelivering \"as fast as needed\" produced performance benefits (in Netflix study presented at MHV26 Conference by TY) in throughput, retrans and RTT. \n\n![Image](https://github.com/user-attachments/assets/4b0c56fd-0ab8-40d2-b1dd-f7f0ba188b13)\n\nTo allow similar gains in MOQT, we should enable a new \"send rate\" parameter to accompany a SUBSCRIBE or FETCH. This parameter specifies the rate at which the client wishes to have the content sent by the relay.. The value of the parameter is the rate in kbps at which the content should be paced. A client can adjust the send rate using a REQUEST_UPDATE message. A value of 0 has special meaning and it disables any pacing. \n\n\n\n",
       "createdAt": "2026-02-02T22:21:55Z",
-      "updatedAt": "2026-10-16T20:51:46Z",
+      "updatedAt": "2026-11-14T05:58:34Z",
       "closedAt": null,
       "comments": [
         {
@@ -45959,6 +45959,13 @@
           "body": "Pacing _QUIC connections in general_ is already widely implemented; RFC 9002 says \"A sender SHOULD pace sending of all in-flight packets based on input from the congestion controller\".\n\nPacing _an entire connection_ to a certain application-specified rate is generally known to be good for video traffic (see, e.g., the Sammy paper cited in the draft).\n\nPacing _individual QUIC streams_ has less precedent, and in general likely to interact poorly with a lot of congestion controllers.  Because of that, I am very skeptical of the feature as described.  It probably might work with a few iterations, but it's a clear sign it should be in its own draft.",
           "createdAt": "2026-10-16T20:51:46Z",
           "updatedAt": "2026-10-16T20:51:46Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "We (Meta) published a related draft for HTTP https://datatracker.ietf.org/doc/draft-chatzis-httpbis-required-rate/\n\nwhich got some discussion here: https://lists.w3.org/Archives/Public/ietf-http-wg/2026OctDec/0170.html\n\nThe interesting bit there is that the rate is actually a signal to the priority engine -- it can lower the priority when a response has satisfied the required rate.  I don't know if this assuages the concerns folks had about the intersection with pacing at lower layers.",
+          "createdAt": "2026-11-14T05:58:34Z",
+          "updatedAt": "2026-11-14T05:58:34Z"
         }
       ]
     },
@@ -56462,7 +56469,7 @@
       ],
       "body": "In Fetch-Fill, it's possible that while delivering some of the Objects, others become permanently unavailable.\n\nIf those Objects are past the initial Largest Object, there's no way to indicate that they're unavailable in the same way Fetch can.\n\nFor example, if one does a Fetch-Fill to join 20 seconds behind the latest Object and has enough bandwidth to catch up, but it takes time (ie: 10s), then if the Objects the Fetch-Fill said would be delivered via Subscribe are permanently unavailable, it's unclear what to do.",
       "createdAt": "2026-10-22T01:55:37Z",
-      "updatedAt": "2026-11-03T17:26:41Z",
+      "updatedAt": "2026-11-14T04:24:01Z",
       "closedAt": null,
       "comments": [
         {
@@ -56499,6 +56506,13 @@
           "body": "The subscriber can also set a longer delivery timeout during join and tighten it later.",
           "createdAt": "2026-10-23T06:31:25Z",
           "updatedAt": "2026-10-23T06:31:25Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I'm not sure there's anything actionable in this issue?",
+          "createdAt": "2026-11-14T04:24:01Z",
+          "updatedAt": "2026-11-14T04:24:01Z"
         }
       ]
     },
@@ -56625,7 +56639,7 @@
       "id": "I_kwDOG2Ho4M8AAAABcL_qeQ",
       "title": "MAX_CONTROL_MESSAGE_SIZE (0x09) is an odd Setup Option type but is described as a varint",
       "url": "https://github.com/moq-wg/moq-transport/issues/2054",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "zshenker",
       "authorAssociation": "NONE",
       "assignees": [],
@@ -56634,8 +56648,8 @@
       ],
       "body": "\u00a79.1.8 defines MAX_CONTROL_MESSAGE_SIZE as Setup Option Type 0x09, and says:\n\n> The value is encoded as a variable-length integer and MUST be at least 65535.\n\nSetup Options are Key-Value-Pairs, and \u00a78.3 makes a pair's encoding depend on the parity of its Type:\n\n> Length: Only present when Type is odd.\n\nSo on the wire, 0x09 is a Length followed by a byte value. The varint described in \u00a79.1.8 has to sit inside that byte value. Every other numeric Setup Option has an even type and a bare varint value: MAX_AUTH_TOKEN_CACHE_SIZE (0x04), MAX_FILTER_RANGES (0x06) and MAX_REQUEST_UPDATES (0x08). 0x09 looks like it was simply the next free codepoint after 0x08 when #2017 added it.\n\nAs written, the text is consistent: an implementation can encode 0x09 as Length + varint. But the two sections are easy to read apart. An implementer who follows only \u00a79.1.8 might write a bare varint. A peer that follows \u00a78.3 then reads that varint as a Length, and the rest of the SETUP is misparsed or the session fails. The option is new in -23, so there are no deployed implementations to stay compatible with.\n\nTwo possible fixes:\n\n1. **Renumber it to an even type** (for example 0x0A), so the value is a bare varint like the other numeric options. This is my preference: it matches the existing pattern and removes the ambiguity.\n2. **Keep 0x09 and say so explicitly** in \u00a79.1.8: \"Because the Option Type is odd, the value is length-prefixed; the Length covers a single variable-length integer, and a receiver MUST close the session with MALFORMED_KEY_VALUE if the value is not exactly one variable-length integer.\"\n\nSeparately, \u00a79.1.8 says the value \"MUST be at least 65535\" but doesn't say what a receiver does otherwise. \u00a712.2 defines MALFORMED_KEY_VALUE as a Key-Value-Pair, \"such as a Setup Option\", whose Value doesn't match its Type's definition. The Track Properties in \u00a710.4\u2013\u00a710.6 already use that code for out-of-range values. Suggest stating the same here: a receiver that gets a MAX_CONTROL_MESSAGE_SIZE below 65535, or a value that isn't a single variable-length integer, MUST close the session with MALFORMED_KEY_VALUE.\n",
       "createdAt": "2026-11-03T16:16:50Z",
-      "updatedAt": "2026-11-03T17:26:08Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-12T19:24:10Z",
+      "closedAt": "2026-11-12T19:24:10Z",
       "comments": []
     },
     {
@@ -56647,19 +56661,36 @@
       "author": "vasilvv",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion"
+      ],
       "body": "The current definition implies that they are not sent, which feels somewhat against the spirit of Mandatory Track Properties.  I don't have an opinion either way, someone who understands the motivation behind both of those features should probably chime in here.\n\n(regardless of what we decide, there should be at least an editorial PR telling you which way it goes)",
       "createdAt": "2026-11-04T13:43:26Z",
-      "updatedAt": "2026-11-04T13:44:05Z",
+      "updatedAt": "2026-11-14T09:36:09Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Mandatory Track Properties lack a clear use case.",
+          "createdAt": "2026-11-14T04:55:34Z",
+          "updatedAt": "2026-11-14T04:55:34Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "REDUNDANT_PUBLISHERS (#2003) is a use case for Mandatory Track Properties. It only works if INCLUDE_PROPERTIES=0 does not apply to Mandatory Track Properties.\n\nREDUNDANT_PUBLISHERS lets two encoders publish the same Track (see #2003). Their copies of a Group may not be the same. A relay that supports the property delivers each Group from one encoder only. A relay that does not support it would mix Objects of both copies in one Group, or close the Track as malformed. Therefore, the property has to be mandatory: a relay that does not understand it must not carry the Track. @riedlse and I are writing a draft that defines it, with a Setup Option as discussed in #1939.\n\nOn the question of @vasilvv: I would make INCLUDE_PROPERTIES=0 apply only to the properties that are not Mandatory Track Properties. Otherwise, an endpoint that does not understand REDUNDANT_PUBLISHERS would not see it. The endpoint would accept the Track and break it.\n\nI expect to share the draft next week, but I won't be at SF to discuss it, unfortunately.",
+          "createdAt": "2026-11-14T09:36:09Z",
+          "updatedAt": "2026-11-14T09:36:09Z"
+        }
+      ]
     },
     {
       "number": 2062,
       "id": "I_kwDOG2Ho4M8AAAABdJoQ7A",
       "title": "GROUP_ORDER for FILL_FETCH",
       "url": "https://github.com/moq-wg/moq-transport/issues/2062",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinduke",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -56668,8 +56699,8 @@
       ],
       "body": "This goes in the \"I don't care what the answer is but we ought to write it down\" category.\n\nIn SUBSCRIBE, the subscriber can specify a Group Order, which is honored. If  not specified, it defaults to the publisher's default group order.\n\n9.19.8 is clear that with FETCH, if omitted it is Ascending. This is critical because data streams that arrive before FETCH_OK otherwise couldn't be parsed.\n\nI imagine this is also true for Fill FETCH, IAW with the following rules:\n- If in FILL_PARAMETERS, use that Group Order; done.\n- If in SUBSCRIBE, use that Group Order; what if it's a REQUEST_UPDATE with FILL_PARAMETERS with GROUP_ORDER? I take it that it refers to the original SUBSCRIBE?\n- If neither, Ascending, even though it's in a SUBSCRIBE?\n\n",
       "createdAt": "2026-11-06T21:47:02Z",
-      "updatedAt": "2026-11-07T15:06:53Z",
-      "closedAt": null,
+      "updatedAt": "2026-11-14T04:13:35Z",
+      "closedAt": "2026-11-14T04:13:35Z",
       "comments": [
         {
           "author": "zshenker",
@@ -56710,6 +56741,30 @@
           "body": "> I would actually suggest that it fin the stream with no objects. That is a more robust way to make sure the signal gets there reliably than depending on RESET_STREAM_AT.\n\nYou can't send a FIN, that has semantics meaning no objects exist in the requested range.\n\n> if a Fill FETCH arrives with an obviously invalid range (i.e. a NextObject filter or a Relative filter with value 0), MUST I do the open-and-reset thing, or can I throw an error?\n\nIn a SUBSCRIBE you have the option of sending a REQUEST_ERROR.  In REQUEST_UDPATE, you can REQ_UP_ERROR, but that kills the subscription.\n\nWe can add more error codes as we see fit.  Probably let's collect ideas after we get more implementation/interop.",
           "createdAt": "2026-11-07T01:36:50Z",
           "updatedAt": "2026-11-07T01:36:50Z"
+        }
+      ]
+    },
+    {
+      "number": 2066,
+      "id": "I_kwDOG2Ho4M8AAAABevea4A",
+      "title": "If FILL_PARAMETERS does not include SUBSCRIBER_PRIORITY, is its priority tied to future REQUEST_UPDATES?",
+      "url": "https://github.com/moq-wg/moq-transport/issues/2066",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "In the \"FILL_PARAMETERS\" section it says:\n\n> A parameter that is omitted from FILL_PARAMETERS takes the value it has for the subscription.\n\nThe fill fetch stream will therefore have a priority that incorporates SUBSCRIBER_PRIORITY from the subscription. If that SUBSCRIBER_PRIORITY is then updated via REQUEST_UPDATE, does that retroactively apply to fill fetch streams that did not have an explicit SUBSCRIBER_PRIORITY in FILL_PARAMETERS?\n\n\n\n",
+      "createdAt": "2026-11-12T20:04:02Z",
+      "updatedAt": "2026-11-14T04:11:37Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The question is less about if SUBSCRIBER_PRIORITY is not in FILL_PARAMS and more about if REQUEST_UPDATE has any impact on already opened fill-fetch.  I think we discussed this and came to the conclusion that you can't update the priority of a fill fetch?  You can always cancel it and open a new fill-fetch or fetch with a different priority.",
+          "createdAt": "2026-11-14T04:11:36Z",
+          "updatedAt": "2026-11-14T04:11:36Z"
         }
       ]
     }
@@ -223755,13 +223810,13 @@
       ],
       "body": "Extracts the SetID evaluation rules into a dedicated Filter Sets subsection under Range Filters and adds worked examples of AND, OR, mixed conjunctions, and relay aggregation.]\r\n\r\nPart of #1810",
       "createdAt": "2026-09-01T21:26:41Z",
-      "updatedAt": "2026-11-05T19:36:15Z",
+      "updatedAt": "2026-11-12T20:11:54Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
+      "baseRefOid": "047c629ff3753dc33b935dbd9d0d0564da87fb63",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "range-set-id",
-      "headRefOid": "33989197914d75a417ba640d9e8ab3115881af3e",
+      "headRefOid": "c6a5772ca8276f831e2bc03e036d0ab012c7a756",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -223809,6 +223864,66 @@
               "body": "Examples might be useful, but I'm inclined to skip them for now.\n\nI would like a subsection on updating Range Filters",
               "createdAt": "2026-09-02T14:01:21Z",
               "updatedAt": "2026-09-02T14:03:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoxdoA",
+          "commit": {
+            "abbreviatedOid": "c6a5772"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-12T20:04:05Z",
+          "updatedAt": "2026-11-12T20:04:06Z",
+          "comments": [
+            {
+              "originalPosition": 25,
+              "body": "```suggestion\nfields using FilterSets. SetIDs are not shared between Object Property\n```",
+              "createdAt": "2026-11-12T20:04:06Z",
+              "updatedAt": "2026-11-12T20:04:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoyQKg",
+          "commit": {
+            "abbreviatedOid": "c6a5772"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-12T20:05:06Z",
+          "updatedAt": "2026-11-12T20:05:07Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "Moved this sentence above \"The evaluation rules are:\" as suggested:\n\n```suggestion\nit belongs to.\n\nA single SetID suffices when all conditions must hold; express an OR of distinct conjunctions that OR'd Ranges on a single field cannot.\n\nThe evaluation rules are:\n\n* Ranges within a single filter parameter are combined with logical OR.\n* Filter parameters carrying the same SetID are combined with logical AND.\n* Filter sets (parameters carrying different SetIDs) are combined with logical OR.\n\nThe overall match condition for a request is therefore an OR of ANDs:\n`(set 0) OR (set 1) OR ... OR (set 255)`, where each `set i` is the AND of every filter parameter tagged with SetID=i. An Object matches the request if any one filter set matches.\n```",
+              "createdAt": "2026-11-12T20:05:06Z",
+              "updatedAt": "2026-11-12T20:11:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXo3fDA",
+          "commit": {
+            "abbreviatedOid": "c6a5772"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-12T20:11:54Z",
+          "updatedAt": "2026-11-12T20:11:54Z",
+          "comments": [
+            {
+              "originalPosition": 42,
+              "body": "Adding a subsection on updating Range Filters to replace the examples range (lines 1038\u20131077) using `REQUEST_UPDATE`:\n\n```suggestion\n### Updating Range Filters {#updating-range-filters}\n\nRange Filters can be added, modified, or removed in a `REQUEST_UPDATE` message.\n\nWhen updating Range Filters:\n* Including a Range Filter parameter with a given SetID in a `REQUEST_UPDATE` message replaces the existing filter parameter with that SetID.\n* Setting the Length of a Range Filter parameter to 0 in `REQUEST_UPDATE` removes that filter parameter.\n* Unmodified SetIDs continue to be evaluated as previously defined.\n```",
+              "createdAt": "2026-11-12T20:11:54Z",
+              "updatedAt": "2026-11-12T20:11:55Z"
             }
           ]
         }
@@ -229290,7 +229405,7 @@
       ],
       "body": "Add Top Tracks Filter under Filtering SUBSCRIBE_TRACKS.\nAdd new setup option, filter parameter, track property, and update tables of types for each.",
       "createdAt": "2026-10-12T01:45:26Z",
-      "updatedAt": "2026-11-06T18:47:40Z",
+      "updatedAt": "2026-11-12T20:18:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
@@ -229377,6 +229492,46 @@
           "createdAt": "2026-10-14T13:41:30Z",
           "updatedAt": "2026-10-14T13:41:30Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXmvddQ",
+          "commit": {
+            "abbreviatedOid": "9b8baa2"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-12T17:31:57Z",
+          "updatedAt": "2026-11-12T17:31:58Z",
+          "comments": [
+            {
+              "originalPosition": 189,
+              "body": "This is an odd codepoint for an integer key.  Recommend 0xA?",
+              "createdAt": "2026-11-12T17:31:58Z",
+              "updatedAt": "2026-11-12T17:31:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXo8iXw",
+          "commit": {
+            "abbreviatedOid": "9b8baa2"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-12T20:18:47Z",
+          "updatedAt": "2026-11-12T20:18:47Z",
+          "comments": [
+            {
+              "originalPosition": 189,
+              "body": "J/k I mean 0xC (or 0x1A or something) since we just used 0x0A",
+              "createdAt": "2026-11-12T20:18:47Z",
+              "updatedAt": "2026-11-12T20:18:47Z"
+            }
+          ]
         }
       ]
     },
@@ -233333,15 +233488,15 @@
         "Subscribe",
         "Design"
       ],
-      "body": "When a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery.\r\n\r\n* Only when `FILL_PARAMETERS` omits `LOCATION_FILTER`.\r\n* Subscribe style delivery starts at `FIRST_SUBSCRIBE_GROUP` and prior Groups are delivered on the Fill-Fetch stream\r\n\r\nFixes #1358",
+      "body": "When a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery.  Designed to build on #2069 though it can be landed separately.\r\n\r\n* Subscribe-style delivery starts at `FIRST_SUBSCRIBE_GROUP` and prior Groups in the fill range are delivered on the Fill-Fetch stream.\r\n* Clarifies cache-completeness criteria, Range Filter respect, Datagram guidance (`SHOULD NOT`), fill stream end location (`{FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}`), and `INVALID_PARAMETER` bounds.\r\n* Works alongside #2069 (which removes `LOCATION_FILTER` from `FILL_PARAMETERS`); note that if both land, the fill-delivery partition sentence in `#2069` should exclude Groups `>= FIRST_SUBSCRIBE_GROUP`.\r\n\r\nFixes #1358",
       "createdAt": "2026-10-21T05:13:56Z",
-      "updatedAt": "2026-11-02T12:11:24Z",
+      "updatedAt": "2026-11-15T04:03:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "c4579d7254e931db6aeda098c7c88332b6a0e0b8",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-style-fill",
-      "headRefOid": "874dbbb3b78b0354f9db7f6af9750d7462e5279b",
+      "headRefOid": "de5ffc1a3281b254dd56d0c5cf94934d13deb5c0",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -233353,6 +233508,20 @@
           "body": "I originally asked about this in a [comment](https://github.com/moq-wg/moq-transport/issues/1358#issuecomment-6436370757) on #1358, but I think this PR is a more appropriate place.\r\n\r\nHas a dynamically updated `FIRST_SUBSCRIBE_GROUP` boundary, as the live edge advances, been considered?\r\n\r\nIf so, I'd be interested in understanding the trade-offs and the reasoning behind the current design.\r\n",
           "createdAt": "2026-11-02T12:11:24Z",
           "updatedAt": "2026-11-02T12:11:24Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I've updated the PR to remove the `LOCATION_FILTER` condition on `FILL_PARAMETERS` (to align with #2069, which removes `LOCATION_FILTER` from `FILL_PARAMETERS`).  Obviously some of the rest of these comments are AI written, but I believe they are accurate.  Let me know if I've misused AI in this case.\r\n\r\n\r\n### Summary of how this addresses prior WG feedback:\r\n* **Interoperability with non-caching relays & large/datagram-heavy groups (@afrind, @vasilvv)**: Following the approach discussed in #1358, the subscriber always includes `FILL_PARAMETERS` when requesting past/current groups, and `FIRST_SUBSCRIBE_GROUP` is optional (`MAY`) for the publisher/relay. A non-caching relay, or a publisher with many subgroups/datagrams per group, can simply omit `FIRST_SUBSCRIBE_GROUP` and use the fill fetch stream.\r\n* **Cache completeness & no altering `LARGEST_OBJECT` (@vasilvv, @suhasHere, @gwendalsimon)**: Unlike #1607, `LARGEST_OBJECT` in `SUBSCRIBE_OK` / `PUBLISH` / `REQUEST_UPDATE_OK` is never modified, preserving latency calculations and subscription aggregation. A publisher or relay `SHOULD` only include a Group in `FIRST_SUBSCRIBE_GROUP` when it has all Objects in that Group up to `Largest Object` available in cache (or is receiving the Group from its start on an upstream subscription) and `FILL_PARAMETERS` does not specify narrower Range Filters than the subscription.\r\n* **No cross-subgroup HoLB, no split-subgroup buffering, and proper `order=DESC` preemption (@kixelated, @fluffy)**: When `FIRST_SUBSCRIBE_GROUP` is set to the current Group (or an earlier Group), those Groups are delivered in their entirety on normal Subscribe subgroups using the subscription's parameters (including `GROUP_ORDER = Descending` and delivery timeouts) rather than `FILL_PARAMETERS`'s default `Ascending` order (#2049). This eliminates cross-subgroup HoLB (#1358), avoids splitting the current Group across a fill stream and subgroup streams (#1358), and allows the next Group to immediately preempt the current Group under Section 7.1 Rule 3 (#1614).\r\n\r\n---\r\n\r\n> @supurazako: Has a dynamically updated `FIRST_SUBSCRIBE_GROUP` boundary, as the live edge advances, been considered? If so, I'd be interested in understanding the trade-offs and the reasoning behind the current design.\r\n\r\n`FIRST_SUBSCRIBE_GROUP` only needs to be signaled once per `SUBSCRIBE` / `PUBLISH` / `REQUEST_UPDATE` (alongside the snapshot `LARGEST_OBJECT` in the response) because all Groups *after* `Largest Object` are already subscription-delivered. Dynamically moving the cutoff between an already-open fill fetch stream and subscription delivery mid-flight would require extra control signaling and create race conditions where the subscriber doesn't know whether a Group is arriving on the fill stream or subgroup streams. Evaluating the split once at `[Start, FIRST_SUBSCRIBE_GROUP)` (fill stream) and `[FIRST_SUBSCRIBE_GROUP, End]` (subscription delivery) keeps both the relay and client state machines simple.",
+          "createdAt": "2026-11-15T02:56:39Z",
+          "updatedAt": "2026-11-15T03:39:10Z"
+        },
+        {
+          "author": "supurazako",
+          "authorAssociation": "NONE",
+          "body": "> @ianswett  FIRST_SUBSCRIBE_GROUP only needs to be signaled once per SUBSCRIBE / PUBLISH / REQUEST_UPDATE (alongside the snapshot LARGEST_OBJECT in the response) because all Groups after Largest Object are already subscription-delivered. Dynamically moving the cutoff between an already-open fill fetch stream and subscription delivery mid-flight would require extra control signaling and create race conditions where the subscriber doesn't know whether a Group is arriving on the fill stream or subgroup streams. Evaluating the split once at [Start, FIRST_SUBSCRIBE_GROUP) (fill stream) and [FIRST_SUBSCRIBE_GROUP, End] (subscription delivery) keeps both the relay and client state machines simple.\n\nThanks for the explanation. I understand that dynamically changing the boundary would require additional signaling and introduce race conditions. I agree that choosing the boundary once per request is a sensible way to keep the design simple.",
+          "createdAt": "2026-11-15T04:03:47Z",
+          "updatedAt": "2026-11-15T04:03:47Z"
         }
       ],
       "reviews": [
@@ -234763,26 +234932,28 @@
       "id": "PR_kwDOG2Ho4M8AAAABL4ZWMQ",
       "title": "Default FILL_PARAMETERS Group Order to Ascending",
       "url": "https://github.com/moq-wg/moq-transport/pull/2049",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
         "Editorial & Minor Design"
       ],
-      "body": "A fill fetch stream uses Ascending when GROUP_ORDER is omitted from FILL_PARAMETERS, rather than inheriting the subscription's Group Order.",
+      "body": "A fill fetch stream uses Ascending when GROUP_ORDER is omitted from FILL_PARAMETERS, rather than inheriting the subscription's Group Order.\r\n\r\nFixes: #2062 ",
       "createdAt": "2026-10-30T23:19:00Z",
-      "updatedAt": "2026-11-05T19:38:11Z",
+      "updatedAt": "2026-11-14T04:13:38Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "f6a1b6b8ce35385125a305ae1a5b85a21c40faae",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "fill-group-order-default",
       "headRefOid": "7e4da815e7f679295323af5d47cd9e3e38bfcfb2",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-14T04:13:33Z",
+      "mergedAt": "2026-11-14T04:13:33Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666"
+      },
       "comments": [
         {
           "author": "afrind",
@@ -234804,6 +234975,58 @@
           "body": "",
           "createdAt": "2026-11-05T19:38:11Z",
           "updatedAt": "2026-11-05T19:38:11Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoV3Kg",
+          "commit": {
+            "abbreviatedOid": "7e4da81"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:29:57Z",
+          "updatedAt": "2026-11-12T19:29:57Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoXWtg",
+          "commit": {
+            "abbreviatedOid": "7e4da81"
+          },
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:31:47Z",
+          "updatedAt": "2026-11-12T19:31:47Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXokMwg",
+          "commit": {
+            "abbreviatedOid": "7e4da81"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:47:30Z",
+          "updatedAt": "2026-11-12T19:47:30Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXs9meg",
+          "commit": {
+            "abbreviatedOid": "7e4da81"
+          },
+          "author": "sandarsh",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-13T03:36:51Z",
+          "updatedAt": "2026-11-13T03:36:51Z",
           "comments": []
         }
       ]
@@ -234927,7 +235150,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABMnTuiw",
       "title": "Make MAX_CONTROL_MESSAGE_SIZE an even Setup Option type",
       "url": "https://github.com/moq-wg/moq-transport/pull/2055",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "afrind",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -234936,17 +235159,19 @@
       ],
       "body": "Odd Key-Value-Pair types are length-prefixed, but the option is a single varint like the other numeric Setup Options. Move it to 0x0A and require MALFORMED_KEY_VALUE for values below 65535.\n\nFixes: #2054",
       "createdAt": "2026-11-03T17:15:03Z",
-      "updatedAt": "2026-11-05T19:42:30Z",
+      "updatedAt": "2026-11-12T19:24:13Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "max-control-message-size-type",
       "headRefOid": "722c29c8e8151494720826576031f92d0233e7a7",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-12T19:24:09Z",
+      "mergedAt": "2026-11-12T19:24:09Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "1367a6722a82b0bf9532a7869a3f9ae7be983e00"
+      },
       "comments": [],
       "reviews": [
         {
@@ -234993,6 +235218,19 @@
           "body": "",
           "createdAt": "2026-11-05T19:42:30Z",
           "updatedAt": "2026-11-05T19:42:30Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoPb7w",
+          "commit": {
+            "abbreviatedOid": "722c29c"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:22:05Z",
+          "updatedAt": "2026-11-12T19:22:05Z",
           "comments": []
         }
       ]
@@ -235165,7 +235403,7 @@
       ],
       "body": "Filters can remove the final Object of a Group after a Subgroup stream with END_OF_GROUP set has been opened, so a FIN no longer identifies the end of the Group. Restrict the bit to a single Object, make a second Object Malformed, and require a reset if the Object is not sent. Filters apply only to Normal Objects, so End of Group status can still be delivered.\n\nFixes: #2032\n\nOne question is whether we should allow a non-normal object (e.g. EOG/EOT) on a sg with EOG bit set.  I initially said no here.",
       "createdAt": "2026-11-03T18:46:25Z",
-      "updatedAt": "2026-11-07T02:23:25Z",
+      "updatedAt": "2026-11-15T00:37:02Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
@@ -235258,6 +235496,19 @@
           "createdAt": "2026-11-05T19:53:56Z",
           "updatedAt": "2026-11-05T19:53:56Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYCe-dA",
+          "commit": {
+            "abbreviatedOid": "aba1fa3"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I now prefer #2068 (and maybe #2067)",
+          "createdAt": "2026-11-15T00:37:02Z",
+          "updatedAt": "2026-11-15T00:37:02Z",
+          "comments": []
         }
       ]
     },
@@ -235266,24 +235517,28 @@
       "id": "PR_kwDOG2Ho4M8AAAABNYNZ3A",
       "title": "Rename AUTHORIZATION_TOKEN to AUTHORIZATION_PAYLOAD",
       "url": "https://github.com/moq-wg/moq-transport/pull/2060",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Editorial"
+      ],
       "body": "Rename AUTHORIZATION_TOKEN to AUTHORIZATION_PAYLOAD, including related\r\nterminology, fields, cache/error names, registries, and references.\r\n",
       "createdAt": "2026-11-06T18:34:57Z",
-      "updatedAt": "2026-11-10T20:50:13Z",
+      "updatedAt": "2026-11-12T19:26:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "0f807dff80111065203d2d737b6134ed9192b0f8",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "authorization-payload-rename",
       "headRefOid": "1886c2f580dad71c4d81f4fe90be979bb3d25fc6",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-12T19:26:22Z",
+      "mergedAt": "2026-11-12T19:26:22Z",
+      "mergedBy": "afrind",
+      "mergeCommit": {
+        "oid": "047c629ff3753dc33b935dbd9d0d0564da87fb63"
+      },
       "comments": [],
       "reviews": [
         {
@@ -235325,6 +235580,45 @@
               "updatedAt": "2026-11-10T20:50:13Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoSagA",
+          "commit": {
+            "abbreviatedOid": "1886c2f"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:25:45Z",
+          "updatedAt": "2026-11-12T19:25:45Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoSi-Q",
+          "commit": {
+            "abbreviatedOid": "1886c2f"
+          },
+          "author": "vasilvv",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:25:56Z",
+          "updatedAt": "2026-11-12T19:25:56Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABXoSp_Q",
+          "commit": {
+            "abbreviatedOid": "1886c2f"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-12T19:26:04Z",
+          "updatedAt": "2026-11-12T19:26:04Z",
+          "comments": []
         }
       ]
     },
@@ -235383,6 +235677,146 @@
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "martinduke-patch-12",
       "headRefOid": "505c399f884548377944c553a52de541ba2e84c6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2065,
+      "id": "PR_kwDOG2Ho4M8AAAABOvcwBw",
+      "title": "Generalize authorization payload descriptions",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2065",
+      "state": "OPEN",
+      "author": "sharmafb",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Follow-up to the merged renaming in #2060. Generalize the descriptions to cover tokens, proofs, challenges, and responses.\r\n",
+      "createdAt": "2026-11-12T19:56:06Z",
+      "updatedAt": "2026-11-12T20:01:42Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "047c629ff3753dc33b935dbd9d0d0564da87fb63",
+      "headRepository": "sharmafb/moq-transport",
+      "headRefName": "authorization-payload-language",
+      "headRefOid": "a1d759286127dd46056ddff211ed25083a41c63d",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2067,
+      "id": "PR_kwDOG2Ho4M8AAAABOxnp4g",
+      "title": "Add Object Flags to Subgroup Objects and move END_OF_GROUP and PROPERTIES",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2067",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format"
+      ],
+      "body": "Replace the per-Subgroup `PROPERTIES` and `END_OF_GROUP` bits in `SUBGROUP_HEADER` with a single-byte `Object Flags (vi64)` field on each Subgroup Object, aligned with `OBJECT_DATAGRAM`:\r\n\r\n- **`PROPERTIES` (`0x01`):** Per-Object Properties presence, avoiding a 1-byte `Properties Length = 0` on property-less Objects in mixed or relayed Subgroups.\r\n- **`END_OF_GROUP` (`0x02`):** Per-Object End of Group signal for both single-Object and multi-Object Subgroups without stream-open prediction hazards when filters change mid-stream.\r\n- **`DELTA_MODE` (`0x0C`):** 2-bit inline Object ID delta (`0`, `1`, `2` inline; `0b11` encodes `delta - 3` in `Object ID Delta`), keeping sequential and 2\u20133 interleaved Subgroups the exact same wire size as before.\r\n- **`STATUS` (`0x20`):** Omits `Object Payload Length` when `Object Status` is present, shrinking standalone status Objects from 3\u20134 bytes to 2 bytes while allowing zero-length `Normal` Objects (`STATUS = 0`, `Object Payload Length = 0`) to carry `END_OF_GROUP`.\r\n\r\nAlso frees bits `0x01` and `0x08` in `SUBGROUP_HEADER` `Type Flags`. (See #2023)\r\n\r\nFixes #2032\r\nAn alternative to #2058 \r\nA cleaner and less error prone fix for #1073",
+      "createdAt": "2026-11-12T22:49:14Z",
+      "updatedAt": "2026-11-14T23:50:34Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-subgroup-object-flags",
+      "headRefOid": "e384e6ac275126abd104cbacdd62fc53784abafb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This framing does consume an extra byte for single Object Subgroups when the Object ID is >3.\r\n\r\nIf that's a concern, I'd suggest we create an OBJECT_STREAM (or OBJECT_SUBGROUP) stream-type that is basically identical to OBJECT_DATAGRAM, but on a Stream.\r\n\r\n### Add `OBJECT_STREAM` (`0b01X0XXXX` = `OBJECT_DATAGRAM | 0x40`)\r\nIn `#stream-types` ([draft-ietf-moq-transport.md](file:///usr/local/google/home/ianswett/Projects/moq-transport/draft-ietf-moq-transport.md#L1877-L1888)), `0x05` is `FETCH_HEADER` and `0b0XX1XXXX` is `SUBGROUP_HEADER`. Every value in **`0b01X0XXXX`** (`0x40..0x4F` and `0x60..0x6F` \u2014 bit 6 = `1`, bit 4 = `0`) is completely unused.\r\n\r\nSetting bit `0x40` to `1` lets `OBJECT_STREAM` share the **exact same 5 flag bits and wire layout** as `OBJECT_DATAGRAM` ([draft-ietf-moq-transport.md](file:///usr/local/google/home/ianswett/Projects/moq-transport/draft-ietf-moq-transport.md#L4612-L4661)):\r\n\r\n```text\r\nOBJECT_STREAM {\r\n  Type Flags (vi64),          // 0b01X0XXXX: 0x01 PROPERTIES, 0x02 END_OF_GROUP,\r\n                              // 0x04 ZERO_OBJECT_ID, 0x08 DEFAULT_PRIORITY, 0x20 STATUS\r\n  Track Alias (vi64),\r\n  Group ID (vi64),\r\n  [Object ID (vi64),]\r\n  [Publisher Priority (8),]\r\n  [Properties (..),]\r\n  [Object Status (vi64),]\r\n  [Object Payload (..),]     // runs to stream FIN when STATUS == 0\r\n}\r\n```\r\n\r\nWith `Delivery Mode = Subgroup`, `Subgroup ID = Object ID` (matching `SUBGROUP_ID_MODE = 0b01` and single-Object Groups at `Object ID = 0`), and `FIRST_OBJECT = 1`:\r\n\r\n* **Wire overhead** (`Track Alias` 1 B, `Group ID` 1 B, `DEFAULT_PRIORITY=1`, no Properties):\r\n  * `Object ID = 0` (`ZERO_OBJECT_ID=1`): **3 B** (**2 B smaller** than `main`; **identical to `OBJECT_DATAGRAM`**).\r\n  * `Object ID = 1..127`: **4 B** (**1 B smaller** than `main` for `< 128 B` payloads, **2 B smaller** for `>= 128 B`; **identical to `OBJECT_DATAGRAM`**).\r\n* **Filter / reset safety:** Because `OBJECT_STREAM` only carries 1 Object and requires `FIN` to complete payload delivery, filters can't change mid-stream between Objects, and a reset before `FIN` discards the incomplete Object so `END_OF_GROUP` is never falsely inferred.\r\n* **Tradeoff:** Streams that need `Subgroup ID != Object ID` (e.g., `Subgroup ID = 0` with `Object ID > 0`), `FIRST_OBJECT = 0` (mid-Subgroup join/recovery), or Subgroup Properties (PR #2023) use `SUBGROUP_HEADER`.\r\n\r\n---",
+          "createdAt": "2026-11-13T16:06:17Z",
+          "updatedAt": "2026-11-13T16:06:17Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 2068,
+      "id": "PR_kwDOG2Ho4M8AAAABPKvvMQ",
+      "title": "Add OBJECT_STREAM and remove END_OF_GROUP from SUBGROUP_HEADER (Saves 1-2bytes for Single Object Subgroups)",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2068",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Wire Format"
+      ],
+      "body": "Remove `END_OF_GROUP` (`0x08`) from `SUBGROUP_HEADER` and introduce `OBJECT_STREAM` (`0b01X0XXXX`) for single-Object Subgroups, using the same `0x01`, `0x02`, `0x04`, `0x08`, and `0x20` Type Flags and field layout as `OBJECT_DATAGRAM`:\r\n\r\n- **Solves #2032 without `SUBGROUP_HEADER` edge cases:** `OBJECT_STREAM` carries a single Object (`Delivery Mode = Subgroup`, `Subgroup ID = Object ID`, `FIRST_OBJECT = 1`) whose payload runs to `FIN`, and resets before `FIN` discard the incomplete Object without inferring `END_OF_GROUP`.\r\n- **Smaller single-Object Subgroups:** Omits `Object Payload Length` and uses `ZERO_OBJECT_ID` (`0x04`), matching `OBJECT_DATAGRAM` wire overhead (3 B for `Object ID = 0`, 4 B for `Object ID = 1..127` \u2014 1\u20132 B smaller than `main`).\r\n- **Frees `SUBGROUP_HEADER` bit `0x08`:** Useful for Subgroup Properties (#2023).\r\n\r\nFixes #2032\r\nAn alternative to #2058 and #2067\r\n\r\nIt's not clear to me what we need Object Status for on this or Datagram, but I kept it for consistency.",
+      "createdAt": "2026-11-14T15:21:04Z",
+      "updatedAt": "2026-11-15T02:30:46Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-object-stream",
+      "headRefOid": "83824021f7576f43e83e189f913cf0471f0d0f6c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYCcOww",
+          "commit": {
+            "abbreviatedOid": "5120e36"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-15T00:30:48Z",
+          "updatedAt": "2026-11-15T00:30:48Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "```suggestion\nis always 1:\n```",
+              "createdAt": "2026-11-15T00:30:48Z",
+              "updatedAt": "2026-11-15T00:30:48Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2069,
+      "id": "PR_kwDOG2Ho4M8AAAABPQZ5Ew",
+      "title": "Remove LOCATION_FILTER from FILL_PARAMETERS and limit to one active fill fetch stream",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2069",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Needs Discussion",
+        "Design"
+      ],
+      "body": "Simplify Fill-Fetch semantics and prevent extra Objects from being sent when seeking or updating a subscription:\n\n* Remove `LOCATION_FILTER` from `FILL_PARAMETERS`; the fill range is always determined by the subscription's `LOCATION_FILTER` up to `Largest Object` (and does not open a fill fetch stream if no Objects have been published yet, the range is empty, or it starts after `Largest Object`).\n* Specify that once processing a fill range begins, Objects in the fill range are delivered on the fill fetch stream instead of being subscription-delivered (unless skipped as a Timed-Out gap on the fill fetch stream), preventing duplicate delivery without needing two separate Location Filters or retroactive tracking across prior subscription delivery.\n* Limit a subscription to at most one open fill fetch stream at a time: cancelling or pausing a subscription (`PAUSED=1`, consistent with subgroup resets), or sending a `REQUEST_UPDATE` containing `LOCATION_FILTER` or `FILL_PARAMETERS`, resets any open fill fetch stream for that subscription before opening a new one.\n* Allow coalescing `REQUEST_UPDATE` messages that contain `FILL_PARAMETERS`, opening at most one fill fetch stream for the last surviving `FILL_PARAMETERS` without opening streams for superseded updates (publishers can still reject excessive update churn with `EXCESSIVE_LOAD`).\n\nThis also simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035 and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n\nFixes #2048\nFixes #1992",
+      "createdAt": "2026-11-15T02:44:52Z",
+      "updatedAt": "2026-11-15T05:06:36Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-single-fill-location",
+      "headRefOid": "222d9926a872fa7f5c40320a119e6b9e257e252b",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
