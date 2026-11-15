@@ -3163,16 +3163,21 @@ PUBLISH, or REQUEST_UPDATE_OK.  A publisher or relay <span class="bcp14">SHOULD<
 in FIRST_SUBSCRIBE_GROUP if it has all Objects in that Group up to <code>Largest
 Object</code> available in cache or is receiving the Group from its start on an
 upstream subscription, and FILL_PARAMETERS does not specify narrower Range
-Filters than the subscription.  All Groups in the fill range with Group IDs
-greater than or equal to FIRST_SUBSCRIBE_GROUP <span class="bcp14">MUST</span> be subscription-delivered in
-their entirety using the subscription's parameters (including
+Filters than the subscription.  A publisher <span class="bcp14">SHOULD NOT</span> include Groups whose
+Objects use Datagram Delivery Mode in FIRST_SUBSCRIBE_GROUP.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-2">All Objects matching the subscription's filters in Groups in the fill range with
+Group IDs greater than or equal to FIRST_SUBSCRIBE_GROUP <span class="bcp14">MUST</span> be
+subscription-delivered (including both Objects at or before <code>Largest Object</code> and
+subsequent Objects) using the subscription's parameters (including
 SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT, see
-<a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>), and any Groups in the fill range with Group IDs less
-than FIRST_SUBSCRIBE_GROUP <span class="bcp14">MUST</span> be delivered on a fill fetch stream.  A Group
-<span class="bcp14">MUST NOT</span> be split between a fill fetch stream and subscription delivery, with
-the exception of the current Group when FIRST_SUBSCRIBE_GROUP is omitted.  If
-FIRST_SUBSCRIBE_GROUP is equal to the start Group of the fill range, the
-publisher does not open a fill fetch stream.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<a href="#delivery-timeouts" class="auto internal xref">Section 5.2</a>).  Any Groups in the fill range with Group IDs less than
+FIRST_SUBSCRIBE_GROUP <span class="bcp14">MUST</span> be delivered on a fill fetch stream; when a fill
+fetch stream is opened, its fill range ends at <code>{FIRST_SUBSCRIBE_GROUP - 1,
+2^64 - 1}</code>.  A Group <span class="bcp14">MUST NOT</span> be split
+between a fill fetch stream and subscription delivery, with the exception of the
+current Group when FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP
+is equal to the start Group of the fill range, the publisher does not open a
+fill fetch stream.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="opening-and-closing-fill-fetch-streams">
@@ -3225,8 +3230,8 @@ will have different approaches for when to begin a new Group.<a href="#section-3
 Filter <a href="#location-filters" class="auto internal xref">Section 3.3.1</a> that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 <p id="section-3.5-3">To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that has StartGroup=1, which starts at the current Group, and a
-FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).<a href="#section-3.5-3" class="pilcrow">¶</a></p>
+Relative Start Location Filter (<code>0x01</code>) with <code>StartGroup=1</code>, which starts at
+the current Group, and a FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).<a href="#section-3.5-3" class="pilcrow">¶</a></p>
 <p id="section-3.5-4">To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 Location Filter that selects the intended Groups, which can be relative, and a
 FILL_PARAMETERS parameter.  The publisher delivers the fill range on a fill
@@ -7255,9 +7260,9 @@ than on a fill fetch stream (see <a href="#fill-semantics" class="auto internal 
 the fill range are subscription-delivered.<a href="#section-9.19.18-2" class="pilcrow">¶</a></p>
 <p id="section-9.19.18-3">An endpoint <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code> if it receives
 FIRST_SUBSCRIBE_GROUP when FILL_PARAMETERS was not present in the corresponding
-SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, when LARGEST_OBJECT is omitted, or when
-the Group ID is smaller than the start Group of the fill range or greater than
-<code>Largest Object.Group</code>.<a href="#section-9.19.18-3" class="pilcrow">¶</a></p>
+SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, when the fill range is empty (including
+when LARGEST_OBJECT is omitted), or when the Group ID is smaller than the start
+Group of the fill range or greater than the end Group of the fill range.<a href="#section-9.19.18-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="paused-parameter">

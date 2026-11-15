@@ -1381,15 +1381,21 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    FIRST_SUBSCRIBE_GROUP if it has all Objects in that Group up to
    Largest Object available in cache or is receiving the Group from its
    start on an upstream subscription, and FILL_PARAMETERS does not
-   specify narrower Range Filters than the subscription.  All Groups in
-   the fill range with Group IDs greater than or equal to
-   FIRST_SUBSCRIBE_GROUP MUST be subscription-delivered in their
-   entirety using the subscription's parameters (including
-   SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT, see
-   Section 5.2), and any Groups in the fill range with Group IDs less
-   than FIRST_SUBSCRIBE_GROUP MUST be delivered on a fill fetch stream.
-   A Group MUST NOT be split between a fill fetch stream and
-   subscription delivery, with the exception of the current Group when
+   specify narrower Range Filters than the subscription.  A publisher
+   SHOULD NOT include Groups whose Objects use Datagram Delivery Mode in
+   FIRST_SUBSCRIBE_GROUP.
+
+   All Objects matching the subscription's filters in Groups in the fill
+   range with Group IDs greater than or equal to FIRST_SUBSCRIBE_GROUP
+   MUST be subscription-delivered (including both Objects at or before
+   Largest Object and subsequent Objects) using the subscription's
+   parameters (including SUBGROUP_DELIVERY_TIMEOUT and
+   OBJECT_DELIVERY_TIMEOUT, see Section 5.2).  Any Groups in the fill
+   range with Group IDs less than FIRST_SUBSCRIBE_GROUP MUST be
+   delivered on a fill fetch stream; when a fill fetch stream is opened,
+   its fill range ends at {FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}.  A
+   Group MUST NOT be split between a fill fetch stream and subscription
+   delivery, with the exception of the current Group when
    FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP is equal
    to the start Group of the fill range, the publisher does not open a
    fill fetch stream.
@@ -1436,9 +1442,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Delivery begins with the next Object and can begin mid-group.
 
    To join a Track at the current Group, the subscriber sends a
-   SUBSCRIBE with a Location Filter that has StartGroup=1, which starts
-   at the current Group, and a FILL_PARAMETERS parameter (see
-   Section 9.19.15).
+   SUBSCRIBE with a Relative Start Location Filter (0x01) with
+   StartGroup=1, which starts at the current Group, and a
+   FILL_PARAMETERS parameter (see Section 9.19.15).
 
    To join a Track at a past Group, the subscriber sends a SUBSCRIBE
    with a Location Filter that selects the intended Groups, which can be
@@ -4815,9 +4821,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    An endpoint MUST close the session with INVALID_PARAMETER if it
    receives FIRST_SUBSCRIBE_GROUP when FILL_PARAMETERS was not present
-   in the corresponding SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, when
-   LARGEST_OBJECT is omitted, or when the Group ID is smaller than the
-   start Group of the fill range or greater than Largest Object.Group.
+   in the corresponding SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, when the
+   fill range is empty (including when LARGEST_OBJECT is omitted), or
+   when the Group ID is smaller than the start Group of the fill range
+   or greater than the end Group of the fill range.
 
 9.19.19.  PAUSED Parameter
 
