@@ -1449,43 +1449,43 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 3.6.  Track Switching
 
-   A subscriber can request a transition from an active subscription
-   (the _suspending subscription_) to another subscription (the
-   _activating subscription_) by including SWITCH_FROM (Section 9.19.16)
-   in a SUBSCRIBE or REQUEST_UPDATE on the activating subscription's
-   stream.  Track switching is for tracks with aligned Groups (by Group
-   ID by default, or another alignment known to the publisher).  The
-   publisher executes the switch on a best-effort basis to avoid media
-   gaps or excessive overlapping traffic, and sends SUBSCRIBE_OK or
-   REQUEST_UPDATE_OK as soon as the activating track's Largest Object is
-   known, without waiting for the transition point.
+   A subscriber can request a coordinated switch from an existing
+   subscription (the old subscription) to another (the new subscription)
+   by including SWITCH_FROM (Section 9.19.16) in a SUBSCRIBE or
+   REQUEST_UPDATE on the new subscription's request stream.  Track
+   switching is intended for tracks with aligned Groups (by Group ID by
+   default, or another alignment known to the publisher).
 
-   While waiting for an aligned transition Group, the publisher
-   continues delivering the suspending subscription and withholds
-   objects on the activating subscription.  To execute the switch at
-   Group N of the activating track (following Group M of the suspending
-   track, where M = N - 1 when Group IDs are aligned), the publisher:
+   The publisher executes the switch on a best-effort basis to avoid
+   media gaps or excessive overlap, and responds with SUBSCRIBE_OK or
+   REQUEST_UPDATE_OK normally without waiting for the transition point.
+   While the switch is pending, the publisher continues delivering the
+   old subscription and withholds Objects on the new subscription.
 
-   *  Sets the activating subscription's Start Location to {N, 0}
-      (overriding any Start Location in its LOCATION_FILTER), unpauses
-      it if paused, begins delivering from {N, 0}, and sends
-      PUBLISH_STATE_NOTIFY (Section 9.10) with the updated
-      LOCATION_FILTER (and PAUSED=0 if changed).
+   When the publisher selects a transition Group N on the new track
+   (where M = N - 1 for Group ID alignment, or the preceding aligned
+   Group otherwise), it:
 
-   *  Sets the suspending subscription's End Group to M (or pauses it if
-      N is 0), resets any open streams on the suspending subscription
-      for Groups > M, and sends PUBLISH_STATE_NOTIFY with the updated
-      LOCATION_FILTER (and PAUSED=1 if paused).
+   *  Updates the new subscription's LOCATION_FILTER to start at {N, 0},
+      begins delivering Objects from {N, 0} (unpausing it if paused),
+      and sends PUBLISH_STATE_NOTIFY (Section 9.10) reporting the
+      updated LOCATION_FILTER (and PAUSED=0 if changed).
 
-   If the publisher cannot complete the switch cleanly (for example, the
-   tracks are not aligned or upstream or downstream bandwidth is
-   insufficient), it leaves the suspending subscription unmodified,
-   resets any streams opened for the activating subscription, and pauses
-   the activating subscription via PUBLISH_STATE_NOTIFY with PAUSED=1.
-   A subsequent REQUEST_UPDATE on the activating subscription with
+   *  Updates the old subscription's LOCATION_FILTER to end at Group M
+      (or sets PAUSED=1 if N is 0), resets any open streams on it for
+      Groups > M, and sends PUBLISH_STATE_NOTIFY reporting the updated
+      LOCATION_FILTER or PAUSED=1.
+
+   If the publisher cannot complete the switch (for example, the tracks
+   are not aligned or bandwidth is insufficient), it leaves the old
+   subscription unmodified, resets any streams opened for the new
+   subscription, and pauses the new subscription by sending
+   PUBLISH_STATE_NOTIFY with PAUSED=1.  If the old subscription does not
+   exist or has ended, the publisher proceeds with the new subscription
+   normally.  A subsequent REQUEST_UPDATE on the new subscription with
    PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels any pending switch.
-   Relays ordinarily handle SWITCH_FROM locally and MUST NOT forward it
-   upstream unless both subscriptions share an upstream session.
+   Relays handle SWITCH_FROM locally across their downstream
+   subscriptions.
 
 3.7.  Subscribing to Tracks by Prefix
 
@@ -4774,17 +4774,17 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 9.19.16.  SWITCH_FROM Parameter
 
    The SWITCH_FROM parameter (Parameter Type 0x24) is a varint
-   containing the Request ID of the suspending subscription (see
+   containing the Request ID of the old subscription to switch from (see
    Section 3.6).  It MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a
-   subscription) message, and is not retained as subscription state.
+   subscription) message, and is not retained as subscription state.  A
+   REQUEST_UPDATE containing SWITCH_FROM cannot be coalesced with other
+   REQUEST_UPDATEs (see Section 9.5).
 
-   If SWITCH_FROM equals the activating subscription's Request ID or
-   appears in a message with PAUSED=1, the publisher MUST close the
-   session with INVALID_PARAMETER.  If the referenced subscription does
-   not exist or has ended, the publisher ignores SWITCH_FROM.  Including
-   SWITCH_FROM authorizes the publisher to update LOCATION_FILTER and
-   PAUSED on both subscriptions using PUBLISH_STATE_NOTIFY
-   (Section 9.10).
+   If SWITCH_FROM equals the new subscription's Request ID or appears
+   alongside PAUSED=1, the publisher MUST close the session with
+   INVALID_PARAMETER.  Including SWITCH_FROM requests that the publisher
+   update LOCATION_FILTER and PAUSED on both subscriptions as needed via
+   PUBLISH_STATE_NOTIFY (Section 9.10).
 
 9.19.17.  EXPIRES Parameter
 
