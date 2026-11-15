@@ -7804,11 +7804,10 @@ OBJECT_STREAM {
 <code>Object ID</code>, and <span class="bcp14">MUST</span> be the first and only Object in its Subgroup. Receiving
 a different Object in the same Subgroup on another stream makes the track
 Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-11.3.1-4">When <code>STATUS</code> is 0, the <code>Object Payload</code> is all remaining bytes on the stream
-until <code>FIN</code>. When <code>STATUS</code> is 1, any bytes following <code>Object Status</code> before
-<code>FIN</code> <span class="bcp14">MUST</span> close the session with <code>MALFORMED_OBJECT</code>. If an <code>OBJECT_STREAM</code> is
-reset before <code>FIN</code>, the receiver <span class="bcp14">MUST</span> discard the incomplete Object and <span class="bcp14">MUST NOT</span>
-treat the Object or <code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-4">When <code>STATUS</code> is 0, there is no explicit length field for the <code>Object Payload</code>;
+all bytes on the stream following the header until <code>FIN</code> form the payload. If
+an <code>OBJECT_STREAM</code> is reset before <code>FIN</code>, the receiver <span class="bcp14">MUST</span> discard the
+incomplete Object and <span class="bcp14">MUST NOT</span> treat the Object or <code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-header">
