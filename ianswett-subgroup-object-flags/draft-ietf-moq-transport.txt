@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 18 May 2027                                       I. Swett, Ed.
+Expires: 19 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        14 November 2026
+                                                        15 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 May 2027.
+   This Internet-Draft will expire on 19 May 2027.
 
 Copyright Notice
 
@@ -677,10 +677,10 @@ Table of Contents
    signals that the Object is Gone or Unknown.  For example, a publisher
    that restarts without state and resumes a Track at a new Group, or
    that retains only recent history, signals earlier Objects as Gone in
-   FETCH responses.  Only the original publisher originates Gone (see
-   Section 3.2.3).  Because another source can still hold a Gone Object,
-   receiving an Object that was recorded as Gone or Unknown is not an
-   error.
+   subscriptions (Section 11.1.1) or FETCH responses (Section 11.4.2).
+   Only the original publisher originates Gone (see Section 3.2.3).
+   Because another source can still hold a Gone Object, receiving an
+   Object that was recorded as Gone or Unknown is not an error.
 
    Whenever the publisher communicates that certain objects do not
    exist, this fact is expressed as a contiguous range of non-existent
@@ -5096,13 +5096,23 @@ EXT 1 and EXT N can be modified or removed by Relays
    The Object Status is a field that is only present in objects that are
    delivered via a SUBSCRIPTION, and is absent in Objects delivered via
    a FETCH.  It allows the publisher to explicitly communicate that a
-   specific range of objects does not exist.
+   specific range of objects does not exist or is Gone (see
+   Section 2.1.2).
 
    Status can have the following values:
 
    *  0x0 := Normal object.  This status is implicit when the Object
       Status field is omitted, and can also be explicitly encoded for
       zero-length objects.
+
+   *  0x2 := Indicates Gone (see Section 2.1.2).  In a Datagram,
+      indicates that the specified Object is Gone.  In a Subgroup
+      stream, indicates that Objects in the Subgroup after the previous
+      Object on the stream (or from Object ID 0 for the first Object on
+      the stream) through the specified Object ID, inclusive, are Gone.
+      When the END_OF_GROUP bit is also set, all Objects in the Group
+      with an Object ID greater than the specified Object ID are also
+      Gone.
 
    *  0x3 := Indicates End of Group.  Indicates that no objects with the
       specified Group ID and the Object ID that is greater than or equal
@@ -5209,8 +5219,10 @@ EXT 1 and EXT N can be modified or removed by Relays
       MALFORMED_OBJECT.
 
    *  The *END_OF_GROUP* bit (0x02) indicates End of Group.  When set to
-      1, this indicates that no Object with the same Group ID and an
-      Object ID greater than the Object ID in this datagram exists.
+      1 on a Normal Object, this indicates that no Object with the same
+      Group ID and an Object ID greater than the Object ID in this
+      datagram exists; when set to 1 with Object Status Gone (0x2),
+      those Objects are Gone.
 
    *  The *ZERO_OBJECT_ID* bit (0x04) indicates when the Object ID field
       is present.  When set to 1, the Object ID field is omitted and the
@@ -5234,18 +5246,18 @@ EXT 1 and EXT N can be modified or removed by Relays
    a datagram with any of these values, it MUST close the session with
    INVALID_STREAM_HEADER:
 
-   *  Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
-      set.
-
    *  Values with bit 4 (0x10) set.  This bit is reserved and MUST be
       zero.
 
    *  Values with a bit set whose meaning is not specified.
 
-   If an Object Datagram includes both the STATUS bit and PROPERTIES
-   bit, and the Object Status is not Normal (0x0), the endpoint MUST
-   close the session with INVALID_OBJECT_STATUS, because only Normal
-   Objects can have Properties.
+   If an Object Datagram has both the STATUS bit (0x20) and END_OF_GROUP
+   bit (0x02) set when the Object Status is not Gone (0x2), the endpoint
+   MUST close the session with MALFORMED_OBJECT.  If an Object Datagram
+   includes both the STATUS bit and PROPERTIES bit, and the Object
+   Status is not Normal (0x0), the endpoint MUST close the session with
+   INVALID_OBJECT_STATUS, because only Normal Objects can have
+   Properties.
 
 11.3.  Subgroup Streams
 
@@ -5347,9 +5359,10 @@ EXT 1 and EXT N can be modified or removed by Relays
       present; if Properties Length is 0, the endpoint MUST close the
       session with MALFORMED_OBJECT.
 
-   *  *END_OF_GROUP* (0x02): When 1, no Object with the same Group ID
-      and a larger Object ID exists; any subsequent Object on the stream
-      makes the track Malformed (Section 12.1).
+   *  *END_OF_GROUP* (0x02): When 1 on a Normal Object, no Object with
+      the same Group ID and a larger Object ID exists (or with Object
+      Status Gone, those Objects are Gone); any subsequent Object on the
+      stream makes the track Malformed (Section 12.1).
 
    *  *DELTA_MODE* (bits 2-3, mask 0x0C): Determines the Object ID
       delta:
@@ -5366,11 +5379,11 @@ EXT 1 and EXT N can be modified or removed by Relays
       omitted.
 
    If an Object has Object Flags with both STATUS (0x20) and
-   END_OF_GROUP (0x02) set, or any unspecified bit set (including values
-   >= 128), the endpoint MUST close the session with MALFORMED_OBJECT.
-   If both STATUS and PROPERTIES are set and Object Status is not Normal
-   (0x0), the endpoint MUST close the session with
-   INVALID_OBJECT_STATUS.
+   END_OF_GROUP (0x02) set when Object Status is not Gone (0x2), or any
+   unspecified bit set (including values >= 128), the endpoint MUST
+   close the session with MALFORMED_OBJECT.  If both STATUS and
+   PROPERTIES are set and Object Status is not Normal (0x0), the
+   endpoint MUST close the session with INVALID_OBJECT_STATUS.
 
    The Object ID is the decoded delta for the first Object in the
    stream, and the previous Object ID + decoded delta + 1 for subsequent
@@ -5461,10 +5474,10 @@ EXT 1 and EXT N can be modified or removed by Relays
    the FIN has not arrived, as further objects would make the track
    malformed.
 
-   Similarly, an Object with the END_OF_GROUP bit or End of Group status
-   indicates the maximum Object ID in the Group, so if all Objects in
-   the Group have been received, a FIN can be sent on any stream where
-   the entire subgroup has been sent.
+   Similarly, an Object with the END_OF_GROUP bit on a Normal Object or
+   End of Group status indicates the maximum Object ID in the Group, so
+   if all Objects in the Group have been received, a FIN can be sent on
+   any stream where the entire subgroup has been sent.
 
    Processing a reset means that there might be other objects in the
    Subgroup beyond the last one received.  A relay might immediately
@@ -5749,10 +5762,10 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    4.   An Object is received in a Group whose Object ID is larger than
         the final Object in the Group.  The final Object in a Group is
-        indicated by the END_OF_GROUP bit, Object Status END_OF_GROUP,
-        or End of Group in a FETCH response.  If the end of a Group is
-        implicitly determined via a gap in a FETCH response, the final
-        Object in the Group remains unknown.
+        indicated by the END_OF_GROUP bit on a Normal Object, Object
+        Status END_OF_GROUP, or End of Group in a FETCH response.  If
+        the end of a Group is implicitly determined via a gap in a FETCH
+        response, the final Object in the Group remains unknown.
 
    5.   An Object is received whose Group and Object ID are larger than
         the final Object in the Track.  The final Object in a Track is
@@ -6779,6 +6792,8 @@ EXT 1 and EXT N can be modified or removed by Relays
             | Code | Name         | Payload | Specification  |
             +======+==============+=========+================+
             |  0x0 | Normal       | Yes     | Section 11.1.1 |
+            +------+--------------+---------+----------------+
+            |  0x2 | Gone         | No      | Section 11.1.1 |
             +------+--------------+---------+----------------+
             |  0x3 | End of Group | No      | Section 11.1.1 |
             +------+--------------+---------+----------------+
