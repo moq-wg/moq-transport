@@ -1460,14 +1460,14 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    While the switch is pending, the publisher continues delivering the
    old subscription and withholds Objects on the new subscription.
 
-   When the publisher selects a transition Group N on the new track
-   (where M = N - 1 for Group ID alignment, or the preceding aligned
-   Group otherwise), it:
+   When the publisher selects a transition Group N on the new track and
+   the corresponding final Group M on the old track (M = N - 1 for Group
+   ID alignment), it:
 
-   *  Updates the new subscription's LOCATION_FILTER to start at {N, 0},
-      begins delivering Objects from {N, 0} (unpausing it if paused),
-      and sends PUBLISH_STATE_NOTIFY (Section 9.10) reporting the
-      updated LOCATION_FILTER (and PAUSED=0 if changed).
+   *  Updates the new subscription's LOCATION_FILTER to start at {N, 0}
+      (with no End Location unless specified in the request), begins
+      delivering Objects from {N, 0}, and sends PUBLISH_STATE_NOTIFY
+      (Section 9.10) reporting the updated LOCATION_FILTER.
 
    *  Updates the old subscription's LOCATION_FILTER to end at Group M
       (or sets PAUSED=1 if N is 0), resets any open streams on it for
@@ -1485,12 +1485,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    are not aligned or bandwidth is insufficient), it leaves the old
    subscription unmodified, resets any streams opened for the new
    subscription, and pauses the new subscription by sending
-   PUBLISH_STATE_NOTIFY with PAUSED=1.  If the old subscription does not
-   exist or has ended, the publisher proceeds with the new subscription
-   normally.  A subsequent REQUEST_UPDATE on the new subscription with
-   PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels any pending switch.
-   Relays handle SWITCH_FROM locally across their downstream
-   subscriptions.
+   PUBLISH_STATE_NOTIFY with PAUSED=1.  If SWITCH_FROM does not identify
+   an active subscription, the publisher proceeds with the new
+   subscription normally.  A subsequent REQUEST_UPDATE on the new
+   subscription with PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels
+   any pending switch.  Relays handle SWITCH_FROM locally across their
+   downstream subscriptions.
 
 3.7.  Subscribing to Tracks by Prefix
 
@@ -4786,9 +4786,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    If SWITCH_FROM equals the new subscription's Request ID or appears
    alongside PAUSED=1, the publisher MUST close the session with
-   INVALID_PARAMETER.  Including SWITCH_FROM requests that the publisher
-   update LOCATION_FILTER and PAUSED on both subscriptions as needed via
-   PUBLISH_STATE_NOTIFY (Section 9.10).
+   INVALID_PARAMETER.  Including SWITCH_FROM sets PAUSED=0 on the new
+   subscription and requests that the publisher update LOCATION_FILTER
+   and PAUSED on both subscriptions as needed via PUBLISH_STATE_NOTIFY
+   (Section 9.10).
 
 9.19.17.  EXPIRES Parameter
 

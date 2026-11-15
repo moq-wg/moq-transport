@@ -3244,15 +3244,15 @@ excessive overlap, and responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK normally
 without waiting for the transition point. While the switch is pending, the
 publisher continues delivering the old subscription and withholds Objects on
 the new subscription.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">When the publisher selects a transition Group N on the new track (where
-M = N - 1 for Group ID alignment, or the preceding aligned Group otherwise),
-it:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">When the publisher selects a transition Group N on the new track and the
+corresponding final Group M on the old track (M = N - 1 for Group ID
+alignment), it:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.6-4.1">
-            <p id="section-3.6-4.1.1">Updates the new subscription's LOCATION_FILTER to start at <code>{N, 0}</code>, begins
-delivering Objects from <code>{N, 0}</code> (unpausing it if paused), and sends
-PUBLISH_STATE_NOTIFY (<a href="#ps-notify" class="auto internal xref">Section 9.10</a>) reporting the updated LOCATION_FILTER
-(and PAUSED=0 if changed).<a href="#section-3.6-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-3.6-4.1.1">Updates the new subscription's LOCATION_FILTER to start at <code>{N, 0}</code> (with no
+End Location unless specified in the request), begins delivering Objects from
+<code>{N, 0}</code>, and sends PUBLISH_STATE_NOTIFY (<a href="#ps-notify" class="auto internal xref">Section 9.10</a>) reporting the
+updated LOCATION_FILTER.<a href="#section-3.6-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.6-4.2">
             <p id="section-3.6-4.2.1">Updates the old subscription's LOCATION_FILTER to end at Group M (or sets
@@ -3268,8 +3268,8 @@ message, and its fill range starts at <code>{N, 0}</code> (see <a href="#fill-se
 <p id="section-3.6-6">If the publisher cannot complete the switch (for example, the tracks are not
 aligned or bandwidth is insufficient), it leaves the old subscription
 unmodified, resets any streams opened for the new subscription, and pauses the
-new subscription by sending PUBLISH_STATE_NOTIFY with PAUSED=1. If the old
-subscription does not exist or has ended, the publisher proceeds with the new
+new subscription by sending PUBLISH_STATE_NOTIFY with PAUSED=1. If SWITCH_FROM
+does not identify an active subscription, the publisher proceeds with the new
 subscription normally. A subsequent REQUEST_UPDATE on the new subscription with
 PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels any pending switch. Relays
 handle SWITCH_FROM locally across their downstream subscriptions.<a href="#section-3.6-6" class="pilcrow">¶</a></p>
@@ -7220,9 +7220,9 @@ unless a subsequent coalesced message cancels the switch (see
 <a href="#track-switching" class="auto internal xref">Section 3.6</a>).<a href="#section-9.19.16-1" class="pilcrow">¶</a></p>
 <p id="section-9.19.16-2">If SWITCH_FROM equals the new subscription's Request ID or appears alongside
 PAUSED=1, the publisher <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.
-Including SWITCH_FROM requests that the publisher update LOCATION_FILTER and
-PAUSED on both subscriptions as needed via PUBLISH_STATE_NOTIFY
-(<a href="#ps-notify" class="auto internal xref">Section 9.10</a>).<a href="#section-9.19.16-2" class="pilcrow">¶</a></p>
+Including SWITCH_FROM sets PAUSED=0 on the new subscription and requests that
+the publisher update LOCATION_FILTER and PAUSED on both subscriptions as needed
+via PUBLISH_STATE_NOTIFY (<a href="#ps-notify" class="auto internal xref">Section 9.10</a>).<a href="#section-9.19.16-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="expires">
