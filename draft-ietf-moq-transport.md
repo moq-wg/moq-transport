@@ -460,10 +460,11 @@ reasonable tradeoff between having an optimal mapping of Object relationships in
 a Group and minimizing the number of streams used.
 
 When the Original Publisher opens a new subgroup, it MUST set the FIRST_OBJECT
-bit ({{subgroup-header}}) to indicate that the first object in the subgroup
-stream is the first object ever published in that subgroup. A relay forwarding a
-subgroup that begins with the first object ever published in that subgroup MUST
-set the FIRST_OBJECT bit.
+bit ({{subgroup-header}}) or use `OBJECT_STREAM` ({{object-stream}}) to
+indicate that the first object in the subgroup stream is the first object ever
+published in that subgroup. A relay forwarding a subgroup that begins with the
+first object ever published in that subgroup MUST set the FIRST_OBJECT bit or
+use `OBJECT_STREAM`.
 
 ## Groups {#model-group}
 
@@ -1468,8 +1469,8 @@ scheduled.
 `Publisher Priority` is a priority number associated with an individual
 schedulable object.  A default for the subscription is specified in the
 DEFAULT_PUBLISHER_PRIORITY Track Property ({{publisher-priority}}). Publisher
-priority can also be set per subgroup or datagram in the subgroup header or
-datagram (see {{data-streams}}), which overrides the default.
+priority can also be set per subgroup or datagram in the subgroup header,
+object stream, or datagram (see {{data-streams}}), which overrides the default.
 
 `Group Order` is a property of an individual subscription.  It can be either
 'Ascending' (groups with lower group ID are sent first), or 'Descending'
@@ -1881,6 +1882,8 @@ the type of the stream.
 |-------------|-------------------------------------------------|
 | 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
+| 0b01X0XXXX  | OBJECT_STREAM ({{object-stream}})               |
+|-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
 | 0x132B3E28  | PADDING  ({{padding-streams}})                  |
@@ -1890,7 +1893,8 @@ An endpoint that receives an unknown stream type MUST close the session with
 `INVALID_STREAM_HEADER`.
 
 Control streams (SETUP) are described in {{session-init}}.
-Data streams (FETCH_HEADER, SUBGROUP_HEADER) are described in {{data-streams}}.
+Data streams (FETCH_HEADER, SUBGROUP_HEADER, OBJECT_STREAM) are described in
+{{data-streams}}.
 Padding streams are described in {{padding}}.
 
 ### Bidirectional Request Streams
@@ -2057,9 +2061,9 @@ Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
-change an End-of-Group="Y" Subgroup Header to an equivalent object with an End
-of Group status, or a Prior Group ID Gap property could be removed in FETCH,
-where it's redundant.
+change an `OBJECT_STREAM` with `END_OF_GROUP` set to a `SUBGROUP_HEADER` stream
+ending with an End of Group status Object, or a Prior Group ID Gap property
+could be removed in FETCH, where it's redundant.
 
 A relay MAY cache that a range of Objects is Gone (see {{object-states}}).  If
 it later receives one of those Objects, it can cache and forward the Object.  A
@@ -3535,7 +3539,7 @@ for this subscription, the publisher MUST set Stream Count to 0.  If
 the publisher is unable to set Stream Count to the exact number of streams
 opened for the subscription, it MUST set Stream Count to 2^64 - 1. Subscribers
 SHOULD use a timeout or other mechanism to remove subscription state in case
-the publisher set an incorrect value, reset a stream before the SUBGROUP_HEADER,
+the publisher set an incorrect value, reset a stream before the stream header,
 or set the maximum value.  If a subscriber receives more streams for a
 subscription than specified in Stream Count, it MAY close the session with a
 `PROTOCOL_VIOLATION`.
@@ -4512,7 +4516,7 @@ A publisher sends Objects matching a subscription on Data Streams or Datagrams
 and sends Objects matching a FETCH request on one Data Stream.
 
 Unidirectional stream types are defined in {{stream-types}}. Data streams
-use SUBGROUP_HEADER or FETCH_HEADER types.
+use SUBGROUP_HEADER, OBJECT_STREAM, or FETCH_HEADER types.
 
 All MOQT datagrams start with a variable-length integer indicating the type of
 the datagram.  See {{object-datagram}}.
@@ -4535,8 +4539,8 @@ not exist.
 
 `Status` can have the following values:
 
-* 0x0 := Normal object. This status is implicit for any non-zero length object.
-         Zero-length objects explicitly encode the Normal status.
+* 0x0 := Normal object. This status is implicit when the Object Status field is
+         omitted, and can also be explicitly encoded for zero-length objects.
 
 * 0x3 := Indicates End of Group. Indicates that no objects with the specified
          Group ID and the Object ID that is greater than or equal to the one
@@ -4677,14 +4681,49 @@ Object Status is not Normal (0x0), the endpoint MUST close the session with
 
 ## Subgroup Streams
 
-When Objects are sent on streams, the stream begins with a Subgroup or Fetch
-Header and is followed by one or more sets of serialized Object fields.
+When Objects are sent on streams, the stream either is an `OBJECT_STREAM`
+carrying a single Object, or begins with a `SUBGROUP_HEADER` or `FETCH_HEADER`
+followed by one or more Objects.
 If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
 middle of a serialized Object, the receiver SHOULD close the session with
 `TRUNCATED_OBJECT`.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
-Header field values.
+A publisher SHOULD NOT open more than one stream at a time with the same Track
+Alias, Group ID, and Subgroup ID.
+
+### Object Stream {#object-stream}
+
+An `OBJECT_STREAM` carries a single Subgroup Object on a unidirectional stream.
+It uses the same fields, `Type Flags` bits, and error handling as
+`OBJECT_DATAGRAM` ({{object-datagram}}), except bit 6 (`0x40`) of `Type Flags`
+is always 1:
+
+~~~
+OBJECT_STREAM {
+  Type Flags (vi64),
+  Track Alias (vi64),
+  Group ID (vi64),
+  [Object ID (vi64),]
+  [Publisher Priority (8),]
+  [Properties (..),]
+  [Object Status (vi64),]
+  [Object Payload (..),]
+}
+~~~
+{: #object-stream-format title="MOQT OBJECT_STREAM"}
+
+The Object has `Delivery Mode` = `Subgroup` and `Subgroup ID` equal to its
+`Object ID`, and MUST be the first and only Object in its Subgroup. Receiving
+a different Object in the same Subgroup on another stream makes the track
+Malformed ({{malformed-tracks}}).
+
+When `STATUS` is 0, there is no explicit length field for the `Object Payload`;
+all bytes on the stream following the header until `FIN` form the payload. When
+`STATUS` is 1, the stream MUST end with `FIN` immediately after `Object Status`;
+if additional bytes follow, the endpoint MUST close the session with
+`MALFORMED_OBJECT`. If an `OBJECT_STREAM` is reset before `FIN`, the receiver
+MUST discard the incomplete Object and MUST NOT treat the Object or
+`END_OF_GROUP` as received.
 
 ### Subgroup Header {#subgroup-header}
 
@@ -4713,8 +4752,8 @@ The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
 single-byte encoding (values less than 128).
 
-Bit 4 is always set to 1. The four low-order bits and bits 5-6 determine which
-fields are present in the header:
+Bit 4 is always set to 1. Bits 0-2 and bits 5-6 determine which fields are
+present in the header:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is present
   in all Objects in this Subgroup. When set to 1, the Object Properties structure
@@ -4734,13 +4773,6 @@ fields are present in the header:
   * 0b10: The Subgroup ID field is present in the header.
   * 0b11: Reserved for future use.
 
-* The **END_OF_GROUP** bit (0x08) indicates that this subgroup contains the
-  largest Object in the Group. When set to 1, the subscriber can infer the final
-  Object in the Group when the data stream is terminated by a FIN. In this case,
-  Objects that have the same Group ID and an Object ID larger than the last
-  Object received on the stream do not exist. This does not apply when the data
-  stream is reset.
-
 * The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Subgroup
   inherits the Publisher Priority specified in the control message that
@@ -4759,8 +4791,8 @@ header with any of these values, it MUST close the session with
 
 * Values where bit 4 is not set. Bit 4 MUST be 1 for SUBGROUP_HEADER.
 
-* Values of 128 or greater (i.e., any value that requires more than a one-byte
-  variable-length integer encoding).
+* Values with a bit set whose meaning is not specified, including values of 128
+  or greater.
 
 To send an Object with `Delivery Mode` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
@@ -4862,9 +4894,9 @@ sent. A relay MAY treat receipt of End of Group or End of Track objects as a
 signal to close corresponding streams even if the FIN has not arrived, as
 further objects on the stream would be a protocol violation.
 
-Similarly, an End of Group Object indicates the maximum Object ID in the
-Group, so if all Objects in the Group have been received, a FIN can be sent
-on any stream where the entire subgroup has been sent.
+Similarly, an Object with the END_OF_GROUP bit or End of Group status indicates
+the maximum Object ID in the Group, so if all Objects in the Group have been
+received, a FIN can be sent on any stream where the entire subgroup has been sent.
 
 Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
@@ -5103,12 +5135,11 @@ include:
    Subgroup stream before a FIN.
 3. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
-4. An Object is received in a Group whose Object
-   ID is larger than the final Object in the Group.  The final Object in a Group
-   is the Object with Status END_OF_GROUP, or the last Object before a FIN in a
-   Subgroup which has the END_OF_GROUP bit set.  If the end of a Group is
-   implicitly determined via a gap in a FETCH response, the final Object in the
-   Group remains unknown.
+4. An Object is received in a Group whose Object ID is larger than the final
+   Object in the Group.  The final Object in a Group is the Object with Status
+   END_OF_GROUP, or the Object in an OBJECT_STREAM or OBJECT_DATAGRAM which has
+   the END_OF_GROUP bit set.  If the end of a Group is implicitly determined via
+   a gap in a FETCH response, the final Object in the Group remains unknown.
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK.
