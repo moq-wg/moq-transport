@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 May 2027                                       I. Swett, Ed.
+Expires: 20 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        15 November 2026
+                                                        16 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2027.
+   This Internet-Draft will expire on 20 May 2027.
 
 Copyright Notice
 
@@ -1345,11 +1345,12 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    or if the fill range is empty or starts after Largest Object, the
    publisher does not open a fill fetch stream.
 
-   The fill fetch stream inherits the subscription's parameters,
-   including subscriber priority, range filters and authorization;
-   parameters carried inside FILL_PARAMETERS override them for the fill
-   fetch stream.  FILL_TIMEOUT (see Section 9.19.5) applies to fill
-   fetch streams in the same way it applies to a FETCH.
+   The fill fetch stream inherits the subscription's parameters in
+   effect when the fill begins, including subscriber priority, range
+   filters and authorization; parameters carried inside FILL_PARAMETERS
+   override them for the fill fetch stream.  FILL_TIMEOUT (see
+   Section 9.19.5) applies to fill fetch streams in the same way it
+   applies to a FETCH.
 
    The FETCH_HEADER on the fill fetch stream carries the subscription's
    Request ID for an initial fill, or the REQUEST_UPDATE Request ID for
@@ -1381,7 +1382,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    *  When the subscription is cancelled or paused, or when a
       REQUEST_UPDATE contains LOCATION_FILTER or FILL_PARAMETERS, the
       publisher MUST reset any open fill fetch stream for the
-      subscription before opening a new one.
+      subscription with CANCELLED before opening a new one.
 
    The publisher signals that the fill is complete by closing the stream
    with a FIN once all objects in the fill range have been delivered.
@@ -1460,26 +1461,27 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    While the switch is pending, the publisher continues delivering the
    old subscription and withholds Objects on the new subscription.
 
-   When the publisher selects a transition Group N on the new track and
-   the corresponding final Group M on the old track (M = N - 1 for Group
-   ID alignment), it:
+   To execute the switch, the publisher selects a transition Group N on
+   the new track and the corresponding final Group M on the old track (M
+   = N - 1 for Group ID alignment).  If the message carrying SWITCH_FROM
+   also carries FILL_PARAMETERS, the publisher MAY select a Group N less
+   than or equal to the new track's Largest Object.Group; otherwise, N
+   MUST be larger than Largest Object.Group (if any).
+
+   Once N and M are selected, the publisher:
 
    *  Updates the new subscription's LOCATION_FILTER to start at {N, 0}
       (with no End Location unless specified in the request), begins
-      delivering Objects from {N, 0}, and sends PUBLISH_STATE_NOTIFY
-      (Section 9.10) reporting the updated LOCATION_FILTER.
+      delivering Objects from {N, 0} (opening any fill fetch stream at
+      this point with its fill range starting at {N, 0}; see
+      Section 3.4), and sends PUBLISH_STATE_NOTIFY (Section 9.10)
+      reporting the updated LOCATION_FILTER.
 
    *  Updates the old subscription's LOCATION_FILTER to end at Group M
-      (or sets PAUSED=1 if N is 0), resets any open streams on it for
-      Groups > M, and sends PUBLISH_STATE_NOTIFY reporting the updated
-      LOCATION_FILTER or PAUSED=1.
-
-   If the message carrying SWITCH_FROM also carries FILL_PARAMETERS, the
-   publisher MAY select a Group N that is not larger than the Group of
-   the new track's Largest Object; otherwise, N MUST be larger.  Any
-   fill fetch stream is opened when the publisher executes the switch,
-   instead of when it processes the message, and its fill range starts
-   at {N, 0} (see Section 3.4).
+      (or sets PAUSED=1 if there is no preceding aligned Group), resets
+      any open streams on it for Groups > M, and sends
+      PUBLISH_STATE_NOTIFY reporting the updated LOCATION_FILTER or
+      PAUSED=1.
 
    If the publisher cannot complete the switch (for example, the tracks
    are not aligned or bandwidth is insufficient), it leaves the old
