@@ -3242,7 +3242,7 @@ subscription's request stream. Track switching is intended for tracks with
 aligned Groups (by Group ID by default, or another alignment known to the
 publisher).<a href="#section-3.6-1" class="pilcrow">¶</a></p>
 <p id="section-3.6-2">The publisher executes the switch on a best-effort basis to avoid media gaps or
-excessive overlap, and responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK normally
+excessive overlap, and typically responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK
 without waiting for the transition point. While the switch is pending, the
 publisher continues delivering the old subscription and withholds Objects on
 the new subscription.<a href="#section-3.6-2" class="pilcrow">¶</a></p>

@@ -1456,10 +1456,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    default, or another alignment known to the publisher).
 
    The publisher executes the switch on a best-effort basis to avoid
-   media gaps or excessive overlap, and responds with SUBSCRIBE_OK or
-   REQUEST_UPDATE_OK normally without waiting for the transition point.
-   While the switch is pending, the publisher continues delivering the
-   old subscription and withholds Objects on the new subscription.
+   media gaps or excessive overlap, and typically responds with
+   SUBSCRIBE_OK or REQUEST_UPDATE_OK without waiting for the transition
+   point.  While the switch is pending, the publisher continues
+   delivering the old subscription and withholds Objects on the new
+   subscription.
 
    To execute the switch, the publisher selects a transition Group N on
    the new track and the corresponding final Group M on the old track (M
