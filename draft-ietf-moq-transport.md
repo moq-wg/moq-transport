@@ -4688,8 +4688,8 @@ If a stream ends gracefully (i.e., the stream terminates with a FIN) in the
 middle of a serialized Object, the receiver SHOULD close the session with
 `TRUNCATED_OBJECT`.
 
-A publisher SHOULD NOT open more than one stream at a time with the same Subgroup
-Header field values.
+A publisher SHOULD NOT open more than one stream at a time with the same Track
+Alias, Group ID, and Subgroup ID.
 
 ### Object Stream {#object-stream}
 
@@ -4718,9 +4718,12 @@ a different Object in the same Subgroup on another stream makes the track
 Malformed ({{malformed-tracks}}).
 
 When `STATUS` is 0, there is no explicit length field for the `Object Payload`;
-all bytes on the stream following the header until `FIN` form the payload. If
-an `OBJECT_STREAM` is reset before `FIN`, the receiver MUST discard the
-incomplete Object and MUST NOT treat the Object or `END_OF_GROUP` as received.
+all bytes on the stream following the header until `FIN` form the payload. When
+`STATUS` is 1, the stream MUST end with `FIN` immediately after `Object Status`;
+if additional bytes follow, the endpoint MUST close the session with
+`MALFORMED_OBJECT`. If an `OBJECT_STREAM` is reset before `FIN`, the receiver
+MUST discard the incomplete Object and MUST NOT treat the Object or
+`END_OF_GROUP` as received.
 
 ### Subgroup Header {#subgroup-header}
 
