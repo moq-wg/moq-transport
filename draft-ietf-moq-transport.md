@@ -968,39 +968,40 @@ advances past the end of the current Location Filter.
 ### Range Filters {#range-filters}
 
 Range Filters are parameters in SUBSCRIBE, FETCH, or SUBSCRIBE_TRACKS that
-tell a publisher to filter tracks (via TRACK PROPERTY FILTER) and objects
-according to subscriber-provided criteria.  Range filters are specified as
+tell a publisher to filter tracks (via TRACK_PROPERTY_FILTER) and objects
+according to subscriber-provided criteria.  Range Filters are specified as
 ranges of integer values in Track and Object Properties and other
 Object header fields (Subgroup ID, Object ID, and Publisher Priority).
 There are five Range Filter parameter types, 0x25-0x29.  They share the
 encoding specified in {{range-filter-structure}}.
 
-An object matches the filter if its value falls within any Range (i.e., Ranges
-are OR'd within a filter parameter).
+A Track or Object matches a Range Filter parameter if its value falls within
+any Range in that parameter (i.e., Ranges are OR'd within a single filter
+parameter).
 
-Each Range Filter parameter carries a SetID, which identifies the set of
-filters it belongs to.  Filter parameters with the same SetID are AND'd;
-distinct SetIDs are OR'd.  The final result is SetID=0 OR SetID=1 OR
-... SetID=255, where each SetID=i is the AND of all filter parameters
-carrying that SetID.
+One or more Range Filters can be grouped into a FilterSet, and a Track or
+Object passes the Range Filters if it passes any FilterSet.  For details on
+FilterSets and how Range Filters are updated, see {{filter-sets}} and
+{{updating-range-filters}}.
 
-The Track Property filter parameter MAY appear multiple times in a
-SUBSCRIBE_TRACKS message or REQUEST_UPDATE for it.
-All other filter parameters MAY appear multiple times in a FETCH, SUBSCRIBE,
-SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the subscriber only)
-message.  If the same combination of Parameter Type, SetID, and Property Type
-(only in the Track and Object Property Filters) repeat in any message,
-an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+The Track Property Filter parameter MAY appear multiple times in a
+SUBSCRIBE_TRACKS message or a REQUEST_UPDATE for it.
+All other Range Filter parameters MAY appear multiple times in a FETCH,
+SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
+subscriber only) message.  If a Range Filter parameter has a Length of 0 and
+another instance of the same Parameter Type appears in the same message, or if
+the same combination of Parameter Type, SetID, and Property Type (for Track
+and Object Property Filters) appears more than once in a message, an endpoint
+MUST reject the request with REQUEST_ERROR with error code INVALID_FILTER.
 
-In REQUEST_UPDATE, Length of 0 removes the filter; non-zero replaces it
-entirely.  If a filter parameter is omitted from REQUEST_UPDATE, it is
-unchanged.  If omitted from other messages, the default is no filter.
+If a Range Filter parameter is omitted from a SUBSCRIBE, FETCH, or
+SUBSCRIBE_TRACKS message, the default is no filter for that Parameter Type.
 
 Range Filters are only allowed if the setup option MAX_FILTER_RANGES
-is non-zero, which limits the total number of Ranges allowed
-in all Range Filter parameters for a given subscription or fetch.
-If this limit is exceeded, an endpoint MUST reject this with REQUEST_ERROR
-with error code INVALID_FILTER.
+is non-zero, which limits the total number of Ranges allowed concurrently
+across all active Range Filter parameters for a given subscription, fetch, or
+SUBSCRIBE_TRACKS request.  If this limit is exceeded, an endpoint MUST reject
+the request with REQUEST_ERROR with error code INVALID_FILTER.
 
 The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
 messages with required Track Property types and values.  PUBLISH messages
@@ -1010,6 +1011,109 @@ will not be forwarded nor will any Objects.
 The Object Property Filter can be used to filter Objects with required
 Object Property types and values.  It only filters Object Properties,
 and does not evaluate Track Properties in PUBLISH messages.
+
+#### FilterSets {#filter-sets}
+
+FilterSets allow Range Filters to match boolean combinations of Track
+Properties (via TRACK_PROPERTY_FILTER) or boolean combinations of Object
+Properties and Object header fields (via SUBGROUP_FILTER, OBJECTID_FILTER,
+PRIORITY_FILTER, and OBJECT_PROPERTY_FILTER).  Because TRACK_PROPERTY_FILTER
+evaluates Tracks on a SUBSCRIBE_TRACKS request while the other Range Filters
+evaluate Objects on resulting Subscriptions ({{parameters-on-subscribe-tracks}}),
+SetIDs are scoped independently between TRACK_PROPERTY_FILTER and Object Range
+Filters; a TRACK_PROPERTY_FILTER and an Object Range Filter carrying the same
+SetID in a SUBSCRIBE_TRACKS message are not combined into the same FilterSet.
+
+Each non-empty Range Filter parameter carries an 8-bit SetID (0-255) that
+identifies the FilterSet it belongs to.  A single SetID suffices when all
+filter conditions must hold simultaneously; multiple SetIDs express an OR of
+distinct conjunctions that OR'd Ranges within a single parameter cannot (for
+example, when a relay aggregates downstream subscriptions with different
+filter criteria onto a single upstream subscription).
+
+Within a given scope (Track or Object), the evaluation rules are:
+
+* Ranges within a single Range Filter parameter are combined with logical OR.
+* Range Filter parameters carrying the same SetID are combined with logical
+  AND to form a FilterSet.
+* Distinct populated FilterSets (SetIDs that have at least one active Range
+  Filter parameter) are combined with logical OR.
+
+Only populated FilterSets participate in evaluation; SetIDs with no active
+Range Filter parameters do not match.  If there are no active Range Filter
+parameters in a scope (zero populated FilterSets), no Range Filtering is
+applied and all Tracks or Objects pass.  When at least one FilterSet is
+populated, the overall match condition is an OR of ANDs across all populated
+SetIDs, and a Track or Object passes if any one populated FilterSet matches.
+
+#### Updating Range Filters {#updating-range-filters}
+
+Range Filters on a subscription or SUBSCRIBE_TRACKS request can be added,
+modified, or removed by the subscriber in a REQUEST_UPDATE message
+({{message-request-update}}).  Updates apply per Range Filter Parameter Type
+rather than per SetID or per Property Type:
+
+* If a Range Filter Parameter Type is omitted from REQUEST_UPDATE, all
+  existing filters of that Parameter Type (across all FilterSets and Property
+  Types) remain unchanged.
+* Including one or more instances of a Range Filter Parameter Type with
+  non-zero Length replaces all previously configured filters of that Parameter
+  Type across all FilterSets and (for Track and Object Property Filters) all
+  Property Types.  Any previously configured SetID or Property Type for that
+  Parameter Type not included in the REQUEST_UPDATE is removed.
+* Including a Range Filter Parameter Type with Length of 0 removes all
+  previously configured filters of that Parameter Type across all FilterSets
+  and Property Types.
+
+The MAX_FILTER_RANGES limit applies to the resulting total number of active
+Ranges after applying the REQUEST_UPDATE; if exceeded, the endpoint MUST
+reject the REQUEST_UPDATE with REQUEST_ERROR with error code INVALID_FILTER.
+
+Because each Parameter Type is replaced across all FilterSets, removing a
+FilterSet requires updating every Parameter Type that belonged to that
+FilterSet: resending all remaining FilterSets for any Parameter Type still in
+use, and sending Length of 0 for any Parameter Type used only by the removed
+FilterSet.  Omitting a Parameter Type that belonged to the removed FilterSet
+leaves those parameters active for its SetID, widening that FilterSet rather
+than removing it.  Removing all remaining Range Filter parameters across all
+Parameter Types leaves the request unfiltered.
+
+For example, suppose a subscription starts with FilterSet 0 matching Subgroup
+1 and application-defined Object Property 0x78 equal to 0:
+
+~~~
+SUBGROUP_FILTER         SetID=0  Range=1
+OBJECT_PROPERTY_FILTER  SetID=0  Property=0x78  Range=0
+~~~
+
+To add a second FilterSet (SetID=1) matching Subgroup 4 and Publisher Priority
+200..255, the subscriber includes both SetIDs for SUBGROUP_FILTER (so SetID=0
+is retained) and adds PRIORITY_FILTER, while omitting OBJECT_PROPERTY_FILTER
+(unchanged):
+
+~~~
+SUBGROUP_FILTER  SetID=0  Range=1
+SUBGROUP_FILTER  SetID=1  Range=4
+PRIORITY_FILTER  SetID=1  Range=200..255
+~~~
+
+To update SetID=0's Object Property 0x78 filter to match 0..1, the subscriber
+sends the updated OBJECT_PROPERTY_FILTER (if any other FilterSet or Property
+Type also used OBJECT_PROPERTY_FILTER, it would need to be re-included as
+well):
+
+~~~
+OBJECT_PROPERTY_FILTER  SetID=0  Property=0x78  Range=0..1
+~~~
+
+To remove FilterSet 1 while keeping FilterSet 0, the subscriber re-sends
+SUBGROUP_FILTER with SetID=0 only, sends PRIORITY_FILTER with Length=0 (since
+no remaining FilterSet uses it), and omits OBJECT_PROPERTY_FILTER:
+
+~~~
+SUBGROUP_FILTER  SetID=0  Range=1
+PRIORITY_FILTER  Length=0
+~~~
 
 ### Combining Filters
 
@@ -2555,8 +2659,12 @@ Range {
 ~~~
 
 Length (vi64) is the byte count of all fields after itself.  When Length
-is 0, there is no filter and no further fields are present.  This can be
-used in REQUEST_UPDATE to remove a filter.
+is 0, no further fields are present; in REQUEST_UPDATE (see
+{{updating-range-filters}}) and FILL_PARAMETERS (see {{fill-parameters}}),
+this removes all filters of that Parameter Type, and in other messages it
+specifies no filter.  When Length is non-zero, at least one Range MUST be
+present; otherwise, the endpoint MUST reject the request with REQUEST_ERROR
+with error code INVALID_FILTER.
 
 Each Range is an inclusive Start/End pair.  End is optional in the last
 pair; if omitted it indicates the last Range is open-ended.
@@ -2986,9 +3094,10 @@ undermines the usefulness of implementation identification for debugging.
 ### MAX FILTER RANGES
 
 The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Ranges
-(Start/End pairs) allowed concurrently in all Range filter {{range-filters}}
-parameters for a given subscription or fetch.  The default value is 0, so if not
-specified, the peer MUST NOT send any such filter parameters.  If this limit is
+(Start/End pairs) allowed concurrently in all Range Filter {{range-filters}}
+parameters for a given subscription, fetch, or SUBSCRIBE_TRACKS request.  The
+default value is 0, so if not specified, the peer MUST NOT send any such filter
+parameters.  If this limit is
 exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
 
 ### MAX_REQUEST_UPDATES {#max-request-updates}
@@ -4172,7 +4281,10 @@ independent of the subscription's own Location filter.
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
 subscription, except GROUP_ORDER (see {{group-order}}); FILL_PARAMETERS
-therefore carries only the settings that differ. An endpoint that receives a
+therefore carries only the settings that differ.  Range Filter parameters inside
+FILL_PARAMETERS override the subscription's Range Filters per Parameter Type
+using the same replacement and zero-length removal rules as REQUEST_UPDATE (see
+{{updating-range-filters}}).  An endpoint that receives a
 parameter inside FILL_PARAMETERS that is not
 listed above MUST close the session with `INVALID_PARAMETER`.
 
