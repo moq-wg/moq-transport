@@ -1300,7 +1300,10 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-filter-sets" class="internal xref">Filter Sets</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.4">
-                    <p id="section-toc.1-1.3.2.3.2.4.1"><a href="#section-3.3.4" class="auto internal xref">3.3.4</a>.  <a href="#name-combining-filters" class="internal xref">Combining Filters</a></p>
+                    <p id="section-toc.1-1.3.2.3.2.4.1"><a href="#section-3.3.4" class="auto internal xref">3.3.4</a>.  <a href="#name-updating-range-filters" class="internal xref">Updating Range Filters</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.5">
+                    <p id="section-toc.1-1.3.2.3.2.5.1"><a href="#section-3.3.5" class="auto internal xref">3.3.5</a>.  <a href="#name-combining-filters" class="internal xref">Combining Filters</a></p>
 </li>
                 </ul>
 </li>
@@ -3095,7 +3098,7 @@ and does not evaluate Track Properties in PUBLISH messages.<a href="#section-3.3
 <p id="section-3.3.3-1">FilterSets allow Range Filters to match boolean combinations of Track
 properties or combinations of Object properties and Object header
 fields using filter sets.  SetIDs are not shared between Object Property
-Filters and Range Filters on Objects. Each Range
+fields using FilterSets. SetIDs are not shared between Object Property
 Filter parameter carries an 8-bit SetID (0-255) that identifies the set
 it belongs to.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3.3-2">The evaluation rules are:<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
@@ -3115,66 +3118,92 @@ logical OR.<a href="#section-3.3.3-3.3.1" class="pilcrow">¶</a></p>
 <code>(set 0) OR (set 1) OR ... OR (set 255)</code>, where each <code>set i</code> is the AND
 of every filter parameter tagged with SetID=i.  An Object matches the
 request if any one filter set matches.<a href="#section-3.3.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.3-5">A single SetID suffices when all conditions must hold; multiple SetIDs
+<p id="section-3.3.3-5">it belongs to.<a href="#section-3.3.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-6">A single SetID suffices when all conditions must hold; express an OR of distinct conjunctions that OR'd Ranges on a single field cannot.<a href="#section-3.3.3-6" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-7">The evaluation rules are:<a href="#section-3.3.3-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3.3-8.1">
+              <p id="section-3.3.3-8.1.1">Ranges within a single filter parameter are combined with logical OR.<a href="#section-3.3.3-8.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.3.3-8.2">
+              <p id="section-3.3.3-8.2.1">Filter parameters carrying the same SetID are combined with logical AND.<a href="#section-3.3.3-8.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.3.3-8.3">
+              <p id="section-3.3.3-8.3.1">Filter sets (parameters carrying different SetIDs) are combined with logical OR.<a href="#section-3.3.3-8.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3.3.3-9">The overall match condition for a request is therefore an OR of ANDs:
+<code>(set 0) OR (set 1) OR ... OR (set 255)</code>, where each <code>set i</code> is the AND of every filter parameter tagged with SetID=i. An Object matches the request if any one filter set matches.
 express an OR of distinct conjunctions that OR'd Ranges on a single
-field cannot.<a href="#section-3.3.3-5" class="pilcrow">¶</a></p>
-<p id="section-3.3.3-6">Examples use the wire encoding from <a href="#range-filter-structure" class="auto internal xref">Section 8.6</a> and
+field cannot.<a href="#section-3.3.3-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="updating-range-filters">
+<section id="section-3.3.4">
+          <h4 id="name-updating-range-filters">
+<a href="#section-3.3.4" class="section-number selfRef">3.3.4. </a><a href="#name-updating-range-filters" class="section-name selfRef">Updating Range Filters</a>
+          </h4>
+<p id="section-3.3.4-1">Range Filters can be added, modified, or removed in a <code>REQUEST_UPDATE</code> message.<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.4-2">When updating Range Filters:
+* Including a Range Filter parameter with a given SetID in a <code>REQUEST_UPDATE</code> message replaces the existing filter parameter with that SetID.
+* Setting the Length of a Range Filter parameter to 0 in <code>REQUEST_UPDATE</code> removes that filter parameter.
+* Unmodified SetIDs continue to be evaluated as previously defined.
 Range Filter parameters from <a href="#message-params" class="auto internal xref">Section 9.19</a>.  Assume Track Property
 <code>codec</code> and Object Property <code>layer</code> have even Property Types known to
-both endpoints.<a href="#section-3.3.3-6" class="pilcrow">¶</a></p>
-<p id="section-3.3.3-7">Subgroup ID 1 AND Publisher Priority 0..10: match Objects in Subgroup 1
-with priority at most 10.<a href="#section-3.3.3-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3.3-8">
+both endpoints.<a href="#section-3.3.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.4-3">Subgroup ID 1 AND Publisher Priority 0..10: match Objects in Subgroup 1
+with priority at most 10.<a href="#section-3.3.4-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3.4-4">
 <pre>
 SUBGROUP_FILTER  SetID=0  Range=1
 PRIORITY_FILTER  SetID=0  Range=0..10
-</pre><a href="#section-3.3.3-8" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.4-4" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.3-9">Publisher Priority 0..10 OR 200..255: match Objects at the highest or
-lowest priority bands.<a href="#section-3.3.3-9" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3.3-10">
+<p id="section-3.3.4-5">Publisher Priority 0..10 OR 200..255: match Objects at the highest or
+lowest priority bands.<a href="#section-3.3.4-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3.4-6">
 <pre>
 PRIORITY_FILTER  SetID=0  Range=0..10, Range=200..255
-</pre><a href="#section-3.3.3-10" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.4-6" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.3-11">(codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match codec 1 with
-its base layer only, or codec 2 with its first two layers.<a href="#section-3.3.3-11" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3.3-12">
+<p id="section-3.3.4-7">(codec=1 AND layer=0) OR (codec=2 AND layer 0..1): match codec 1 with
+its base layer only, or codec 2 with its first two layers.<a href="#section-3.3.4-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3.4-8">
 <pre>
 TRACK_PROPERTY_FILTER   SetID=0  Property=codec  Range=1
 OBJECT_PROPERTY_FILTER  SetID=0  Property=layer  Range=0
 TRACK_PROPERTY_FILTER   SetID=1  Property=codec  Range=2
 OBJECT_PROPERTY_FILTER  SetID=1  Property=layer  Range=0..1
-</pre><a href="#section-3.3.3-12" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.4-8" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.3-13">A relay aggregating two downstream subscriptions (subscriber A: Subgroup
+<p id="section-3.3.4-9">A relay aggregating two downstream subscriptions (subscriber A: Subgroup
 1, Priority 0..10; subscriber B: Subgroup 4, Priority 200..255) onto a
-single upstream, one set per downstream.<a href="#section-3.3.3-13" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3.3-14">
+single upstream, one set per downstream.<a href="#section-3.3.4-9" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3.4-10">
 <pre>
 SUBGROUP_FILTER  SetID=0  Range=1        # subscriber A
 PRIORITY_FILTER  SetID=0  Range=0..10
 SUBGROUP_FILTER  SetID=1  Range=4        # subscriber B
 PRIORITY_FILTER  SetID=1  Range=200..255
-</pre><a href="#section-3.3.3-14" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.4-10" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="combining-filters">
-<section id="section-3.3.4">
+<section id="section-3.3.5">
           <h4 id="name-combining-filters">
-<a href="#section-3.3.4" class="section-number selfRef">3.3.4. </a><a href="#name-combining-filters" class="section-name selfRef">Combining Filters</a>
+<a href="#section-3.3.5" class="section-number selfRef">3.3.5. </a><a href="#name-combining-filters" class="section-name selfRef">Combining Filters</a>
           </h4>
-<p id="section-3.3.4-1">All filter types are combined using logical "AND" operations
+<p id="section-3.3.5-1">All filter types are combined using logical "AND" operations
 to further restrict which tracks and objects pass all filter criteria.
 This includes all Range Filters <a href="#range-filters" class="auto internal xref">Section 3.3.2</a> and Location
 Filters <a href="#location-filters" class="auto internal xref">Section 3.3.1</a>, which can be evaluated in any order.
 The Paused parameter is also a type of filter.  The publisher <span class="bcp14">MUST</span>
-forward only objects that pass all filters.<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3.4-2">
+forward only objects that pass all filters.<a href="#section-3.3.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3.5-2">
 <pre>
 Pass = (NOT Paused) AND Location Filters AND Range Filters
-</pre><a href="#section-3.3.4-2" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.5-2" class="pilcrow">¶</a>
 </div>
 </section>
 </div>

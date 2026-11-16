@@ -113,7 +113,8 @@ Table of Contents
        3.3.1.  Location Filters
        3.3.2.  Range Filters
        3.3.3.  Filter Sets
-       3.3.4.  Combining Filters
+       3.3.4.  Updating Range Filters
+       3.3.5.  Combining Filters
      3.4.  Fill Semantics
        3.4.1.  Opening and Closing Fill Fetch Streams
      3.5.  Joining an Ongoing Track
@@ -1318,9 +1319,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    FilterSets allow Range Filters to match boolean combinations of Track
    properties or combinations of Object properties and Object header
    fields using filter sets.  SetIDs are not shared between Object
-   Property Filters and Range Filters on Objects.  Each Range Filter
-   parameter carries an 8-bit SetID (0-255) that identifies the set it
-   belongs to.
+   Property fields using FilterSets.  SetIDs are not shared between
+   Object Property Filter parameter carries an 8-bit SetID (0-255) that
+   identifies the set it belongs to.
 
    The evaluation rules are:
 
@@ -1338,13 +1339,41 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    of every filter parameter tagged with SetID=i.  An Object matches the
    request if any one filter set matches.
 
-   A single SetID suffices when all conditions must hold; multiple
-   SetIDs express an OR of distinct conjunctions that OR'd Ranges on a
-   single field cannot.
+   it belongs to.
 
-   Examples use the wire encoding from Section 8.6 and Range Filter
-   parameters from Section 9.19.  Assume Track Property codec and Object
-   Property layer have even Property Types known to both endpoints.
+   A single SetID suffices when all conditions must hold; express an OR
+   of distinct conjunctions that OR'd Ranges on a single field cannot.
+
+   The evaluation rules are:
+
+   *  Ranges within a single filter parameter are combined with logical
+      OR.
+
+   *  Filter parameters carrying the same SetID are combined with
+      logical AND.
+
+   *  Filter sets (parameters carrying different SetIDs) are combined
+      with logical OR.
+
+   The overall match condition for a request is therefore an OR of ANDs:
+   (set 0) OR (set 1) OR ... OR (set 255), where each set i is the AND
+   of every filter parameter tagged with SetID=i.  An Object matches the
+   request if any one filter set matches. express an OR of distinct
+   conjunctions that OR'd Ranges on a single field cannot.
+
+3.3.4.  Updating Range Filters
+
+   Range Filters can be added, modified, or removed in a REQUEST_UPDATE
+   message.
+
+   When updating Range Filters: * Including a Range Filter parameter
+   with a given SetID in a REQUEST_UPDATE message replaces the existing
+   filter parameter with that SetID. * Setting the Length of a Range
+   Filter parameter to 0 in REQUEST_UPDATE removes that filter
+   parameter. * Unmodified SetIDs continue to be evaluated as previously
+   defined.  Range Filter parameters from Section 9.19.  Assume Track
+   Property codec and Object Property layer have even Property Types
+   known to both endpoints.
 
    Subgroup ID 1 AND Publisher Priority 0..10: match Objects in Subgroup
    1 with priority at most 10.
@@ -1374,7 +1403,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SUBGROUP_FILTER  SetID=1  Range=4        # subscriber B
    PRIORITY_FILTER  SetID=1  Range=200..255
 
-3.3.4.  Combining Filters
+3.3.5.  Combining Filters
 
    All filter types are combined using logical "AND" operations to
    further restrict which tracks and objects pass all filter criteria.
