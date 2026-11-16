@@ -3268,8 +3268,8 @@ it for Groups &gt; M, and sends PUBLISH_STATE_NOTIFY reporting the updated
 LOCATION_FILTER or PAUSED=1.<a href="#section-3.6-5.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-3.6-6">If the publisher cannot complete the switch (for example, the tracks are not
-aligned or bandwidth is insufficient), it leaves the old subscription
+<p id="section-3.6-6">If the publisher cannot complete the switch (for example, the new Track is not
+available or bandwidth is insufficient), it leaves the old subscription
 unmodified, resets any streams opened for the new subscription, and pauses the
 new subscription by sending PUBLISH_STATE_NOTIFY with PAUSED=1. If SWITCH_FROM
 does not identify an active subscription, the publisher proceeds with the new
