@@ -4107,11 +4107,11 @@ the type of the stream.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
                 <td class="text-left" rowspan="1" colspan="1">FETCH_HEADER  (<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>)</td>
               </tr>
               <tr>
-                <td class="text-right" rowspan="1" colspan="1">0b0XX1XXXX</td>
+                <td class="text-right" rowspan="1" colspan="1">0b00X1XXXX</td>
                 <td class="text-left" rowspan="1" colspan="1">SUBGROUP_HEADER  (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>)</td>
               </tr>
               <tr>
-                <td class="text-right" rowspan="1" colspan="1">0b01X0XXXX</td>
+                <td class="text-right" rowspan="1" colspan="1">0b01XXXXXX</td>
                 <td class="text-left" rowspan="1" colspan="1">OBJECT_STREAM (<a href="#object-stream" class="auto internal xref">Section 11.3.1</a>)</td>
               </tr>
               <tr>
@@ -4322,11 +4322,9 @@ relay does not cache Unknown or timed out ranges.<a href="#section-7.1-5" class=
 <p id="section-7.1-6">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 2.1.1</a>,
 with the exception of any Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
 that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7">An Object received with its payload omitted (see <a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>)
-<span class="bcp14">MUST NOT</span> be cached as a complete Object or overwrite a cached Object's payload.
-A relay <span class="bcp14">MAY</span> cache the Object's metadata and payload length to serve requests
-with <code>INCLUDE_PAYLOAD</code> set to 0, but <span class="bcp14">MUST NOT</span> use it to satisfy requests with
-<code>INCLUDE_PAYLOAD</code> set to 1.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+<p id="section-7.1-7">An Object with an omitted payload (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>) <span class="bcp14">MUST NOT</span> be
+cached as complete or overwrite a cached payload; a relay <span class="bcp14">MAY</span> cache its
+metadata and payload length only to serve <code>INCLUDE_PAYLOAD</code> = 0 requests.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="paused-subscription-handling">
@@ -7338,44 +7336,25 @@ session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.22-1" class="
           <h4 id="name-include_payload-parameter">
 <a href="#section-9.19.23" class="section-number selfRef">9.19.23. </a><a href="#name-include_payload-parameter" class="section-name selfRef">INCLUDE_PAYLOAD Parameter</a>
           </h4>
-<p id="section-9.19.23-1">The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8. It <span class="bcp14">MAY</span> appear
-in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, or REQUEST_UPDATE (for a
-subscription), or inside a FILL_PARAMETERS parameter (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>).
-It specifies whether the Publisher delivers Object Payloads. The allowed values
-are 0 (omit Payloads) or 1 (include Payloads). If an endpoint receives a value
-outside this range, it <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.23-1" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-2">If the parameter is omitted from REQUEST_UPDATE, the value for the subscription
-remains unchanged. If omitted from FILL_PARAMETERS, it takes the value for the
-subscription. If omitted from any other message, the default value is 1.<a href="#section-9.19.23-2" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-3">When INCLUDE_PAYLOAD is 0, the Publisher <span class="bcp14">MUST NOT</span> deliver Object Payloads:<a href="#section-9.19.23-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-9.19.23-4.1">
-              <p id="section-9.19.23-4.1.1">For Normal Objects delivered on a Subscription, the Publisher sets the
-<code>OMIT_PAYLOAD</code> (0x10) bit in <code>SUBGROUP_HEADER</code> Object Flags
-(<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>) or <code>OBJECT_DATAGRAM</code> Type Flags (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>),
-encodes the length in bytes of the omitted payload in <code>Object Payload Length</code>,
-and omits <code>Object Payload</code>. Subgroup Objects with omitted payloads <span class="bcp14">MUST</span> be
-sent using <code>SUBGROUP_HEADER</code> rather than <code>OBJECT_STREAM</code>.<a href="#section-9.19.23-4.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.19.23-4.2">
-              <p id="section-9.19.23-4.2.1">For Objects delivered on a FETCH or fill fetch stream (<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>), the
-Publisher encodes the length in bytes of the omitted payload in <code>Object
-Payload Length</code> and omits <code>Object Payload</code>.<a href="#section-9.19.23-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-9.19.23-5">A Publisher <span class="bcp14">MUST NOT</span> set <code>OMIT_PAYLOAD</code> unless <code>INCLUDE_PAYLOAD</code> is 0 for the
-subscription. Updating <code>INCLUDE_PAYLOAD</code> via <code>REQUEST_UPDATE</code> applies to
-subsequent Objects delivered on the subscription (including on open Subgroup
-streams) and does not affect already-opened fill fetch streams. While a
-<code>REQUEST_UPDATE</code> changing <code>INCLUDE_PAYLOAD</code> is in flight, a subscriber can
-still receive Objects using the previous setting.<a href="#section-9.19.23-5" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-6">Relay Handling:<a href="#section-9.19.23-6" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-7">If one or more downstream subscribers to a Track have <code>INCLUDE_PAYLOAD</code> set to
-1, the relay <span class="bcp14">MUST</span> use <code>INCLUDE_PAYLOAD</code> set to 1 on its upstream subscription.
-When all downstream subscribers have <code>INCLUDE_PAYLOAD</code> set to 0, the relay <span class="bcp14">MAY</span>
-use <code>INCLUDE_PAYLOAD</code> set to 0 upstream. A relay <span class="bcp14">MAY</span> serve a downstream request
-with <code>INCLUDE_PAYLOAD</code> set to 0 from a cached complete Object by omitting the
-payload and encoding its length in <code>Object Payload Length</code>.<a href="#section-9.19.23-7" class="pilcrow">¶</a></p>
+<p id="section-9.19.23-1">The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that <span class="bcp14">MAY</span> appear
+in SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, REQUEST_UPDATE (for a
+subscription), or FILL_PARAMETERS (<a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>). Allowed values are 0
+(omit Object Payloads) and 1 (include Object Payloads); an endpoint receiving
+any other value <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>. Omitting it
+leaves the value unchanged in REQUEST_UPDATE, inherits the subscription's value
+in FILL_PARAMETERS, and defaults to 1 otherwise.<a href="#section-9.19.23-1" class="pilcrow">¶</a></p>
+<p id="section-9.19.23-2">When 0, the Publisher omits <code>Object Payload</code> while encoding its byte length in
+<code>Object Payload Length</code> (<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>): Normal subscription Objects set
+<code>OMIT_PAYLOAD</code> (0x10) in <code>SUBGROUP_HEADER</code> (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>),
+<code>OBJECT_DATAGRAM</code> (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>), or <code>OBJECT_STREAM</code>
+(<a href="#object-stream" class="auto internal xref">Section 11.3.1</a>). A Publisher <span class="bcp14">MUST NOT</span> set <code>OMIT_PAYLOAD</code> unless
+<code>INCLUDE_PAYLOAD</code> is 0. Updating <code>INCLUDE_PAYLOAD</code> via <code>REQUEST_UPDATE</code> applies
+to subsequent subscription Objects (in-flight Objects can use the previous
+setting) and does not affect open fill fetch streams.<a href="#section-9.19.23-2" class="pilcrow">¶</a></p>
+<p id="section-9.19.23-3">Relay Handling: A relay <span class="bcp14">MUST</span> use <code>INCLUDE_PAYLOAD</code> = 1 upstream if any
+downstream subscriber has it set to 1, and <span class="bcp14">MAY</span> use 0 otherwise. A relay <span class="bcp14">MAY</span>
+serve <code>INCLUDE_PAYLOAD</code> = 0 from cached complete Objects by omitting the
+payload.<a href="#section-9.19.23-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7769,73 +7748,64 @@ OBJECT_DATAGRAM {
 </div>
 <p id="section-11.2.1-3">The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
-single-byte encoding (values less than 128). If a received value has an invalid
-combination of bits, or has a bit set whose meaning is not specified, the
-endpoint <span class="bcp14">MUST</span> close the session with <code>INVALID_STREAM_HEADER</code>.<a href="#section-11.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-11.2.1-4">The six low-order bits of the Type Flags field determine which fields are
-present in the datagram:<a href="#section-11.2.1-4" class="pilcrow">¶</a></p>
+single-byte encoding (values less than 128). The six low-order bits determine
+which fields are present in the datagram:<a href="#section-11.2.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.2.1-5.1">
-              <p id="section-11.2.1-5.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
+<li class="normal" id="section-11.2.1-4.1">
+              <p id="section-11.2.1-4.1.1">The <strong>PROPERTIES</strong> bit (0x01) indicates when the Properties field is
 present. When set to 1, the Object Properties structure defined in
 <a href="#object-properties" class="auto internal xref">Section 11.1.2</a> is present. When set to 0, the field is absent.
 If an endpoint receives a datagram with the PROPERTIES bit set and an
 Properties Length of 0, it <span class="bcp14">MUST</span> close the session with
-<code>MALFORMED_OBJECT</code>.<a href="#section-11.2.1-5.1.1" class="pilcrow">¶</a></p>
+<code>MALFORMED_OBJECT</code>.<a href="#section-11.2.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-5.2">
-              <p id="section-11.2.1-5.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1 on a
+            <li class="normal" id="section-11.2.1-4.2">
+              <p id="section-11.2.1-4.2.1">The <strong>END_OF_GROUP</strong> bit (0x02) indicates End of Group. When set to 1 on a
 Normal Object, this indicates that no Object with the same Group ID and an
 Object ID greater than the Object ID in this datagram exists; when set to 1
-with Object Status Gone (0x2), those Objects are Gone.<a href="#section-11.2.1-5.2.1" class="pilcrow">¶</a></p>
+with Object Status Gone (0x2), those Objects are Gone.<a href="#section-11.2.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-5.3">
-              <p id="section-11.2.1-5.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
+            <li class="normal" id="section-11.2.1-4.3">
+              <p id="section-11.2.1-4.3.1">The <strong>ZERO_OBJECT_ID</strong> bit (0x04) indicates when the Object ID field is
 present.  When set to 1, the Object ID field is omitted and the Object ID
-is 0. When set to 0, the Object ID field is present.<a href="#section-11.2.1-5.3.1" class="pilcrow">¶</a></p>
+is 0. When set to 0, the Object ID field is present.<a href="#section-11.2.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-5.4">
-              <p id="section-11.2.1-5.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x08) indicates when the Priority field is
+            <li class="normal" id="section-11.2.1-4.4">
+              <p id="section-11.2.1-4.4.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x08) indicates when the Priority field is
 present. When set to 1, the Priority field is omitted and this Object inherits
 the Publisher Priority specified in the control message that established the
-subscription. When set to 0, the Priority field is present.<a href="#section-11.2.1-5.4.1" class="pilcrow">¶</a></p>
+subscription. When set to 0, the Priority field is present.<a href="#section-11.2.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-5.5">
-              <p id="section-11.2.1-5.5.1">The <strong>OMIT_PAYLOAD</strong> bit (0x10) indicates that the Object is a Normal Object
-whose payload has been omitted (see <a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>). When set to 1,
-the Object Payload Length field is present and carries the length in bytes of
-the omitted payload, and the Object Status and Object Payload fields are
-omitted. The datagram <span class="bcp14">MUST</span> end immediately after Object Payload Length; if
-additional bytes follow, the endpoint <span class="bcp14">MUST</span> close the session with
-<code>MALFORMED_OBJECT</code>.<a href="#section-11.2.1-5.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.2.1-4.5">
+              <p id="section-11.2.1-4.5.1">The <strong>OMIT_PAYLOAD</strong> bit (0x10) indicates a Normal Object with its payload
+omitted (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>). When 1, Object Payload Length carries the
+omitted payload's byte length and Object Status and Object Payload are
+omitted; if trailing bytes follow, the endpoint <span class="bcp14">MUST</span> close the session with
+<code>MALFORMED_OBJECT</code>.<a href="#section-11.2.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-5.6">
-              <p id="section-11.2.1-5.6.1">The <strong>STATUS</strong> bit (0x20) indicates whether the datagram contains an Object
-Status. When set to 1, the Object Status field is present and the Object
-Payload Length and Object Payload fields are omitted. When both STATUS and
-OMIT_PAYLOAD are 0, the Object Payload is present and the Object Payload
-Length and Object Status fields are omitted; there is no explicit length field
-for the Object Payload, and the entirety of the transport datagram following
-the Object header contains the payload.<a href="#section-11.2.1-5.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.2.1-4.6">
+              <p id="section-11.2.1-4.6.1">The <strong>STATUS</strong> bit (0x20): When 1, Object Status is present and Object Payload
+Length and Object Payload are omitted. When both STATUS and OMIT_PAYLOAD are
+0, the remaining datagram bytes form Object Payload (no length field).<a href="#section-11.2.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.2.1-6">The following Type Flags values are invalid. If an endpoint receives a datagram
+<p id="section-11.2.1-5">The following Type Flags values are invalid. If an endpoint receives a datagram
 with any of these values, it <span class="bcp14">MUST</span> close the session with
-<code>INVALID_STREAM_HEADER</code>:<a href="#section-11.2.1-6" class="pilcrow">¶</a></p>
+<code>INVALID_STREAM_HEADER</code>:<a href="#section-11.2.1-5" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-11.2.1-7.1">
-              <p id="section-11.2.1-7.1.1">Values with both STATUS (0x20) and OMIT_PAYLOAD (0x10) set.<a href="#section-11.2.1-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.2.1-6.1">
+              <p id="section-11.2.1-6.1.1">Values with both STATUS (0x20) and OMIT_PAYLOAD (0x10) set.<a href="#section-11.2.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-11.2.1-7.2">
-              <p id="section-11.2.1-7.2.1">Values with a bit set whose meaning is not specified.<a href="#section-11.2.1-7.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-11.2.1-6.2">
+              <p id="section-11.2.1-6.2.1">Values with a bit set whose meaning is not specified.<a href="#section-11.2.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.2.1-8">If an Object Datagram has both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
+<p id="section-11.2.1-7">If an Object Datagram has both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
 set when the Object Status is not Gone (0x2), the endpoint <span class="bcp14">MUST</span> close the
 session with <code>MALFORMED_OBJECT</code>. If an Object Datagram includes both the STATUS
 bit and PROPERTIES bit, and the Object Status is not Normal (0x0), the endpoint
 <span class="bcp14">MUST</span> close the session with <code>INVALID_OBJECT_STATUS</code>, because only Normal Objects
-can have Properties.<a href="#section-11.2.1-8" class="pilcrow">¶</a></p>
+can have Properties.<a href="#section-11.2.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7861,9 +7831,7 @@ Alias, Group ID, and Subgroup ID.<a href="#section-11.3-2" class="pilcrow">¶</a
 <p id="section-11.3.1-1">An <code>OBJECT_STREAM</code> carries a single Subgroup Object on a unidirectional stream.
 It uses the same fields, <code>Type Flags</code> bits, and error handling as
 <code>OBJECT_DATAGRAM</code> (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>), except bit 6 (<code>0x40</code>) of <code>Type Flags</code>
-is always 1, and <code>OMIT_PAYLOAD</code> (<code>0x10</code>) and <code>Object Payload Length</code> are not
-used (bit 4 set to 1 identifies a <code>SUBGROUP_HEADER</code>; Subgroup Objects with
-omitted payloads are sent using <code>SUBGROUP_HEADER</code>):<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
+is always 1:<a href="#section-11.3.1-1" class="pilcrow">¶</a></p>
 <span id="name-moqt-object_stream"></span><div id="object-stream-format">
 <figure id="figure-26">
             <div class="alignLeft art-text artwork" id="section-11.3.1-2.1">
@@ -7875,6 +7843,7 @@ OBJECT_STREAM {
   [Object ID (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
+  [Object Payload Length (vi64),]
   [Object Status (vi64),]
   [Object Payload (..),]
 }
@@ -7888,13 +7857,13 @@ OBJECT_STREAM {
 <code>Object ID</code>, and <span class="bcp14">MUST</span> be the first and only Object in its Subgroup. Receiving
 a different Object in the same Subgroup on another stream makes the track
 Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</a>).<a href="#section-11.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-11.3.1-4">When <code>STATUS</code> is 0, there is no explicit length field for the <code>Object Payload</code>;
-all bytes on the stream following the header until <code>FIN</code> form the payload. When
-<code>STATUS</code> is 1, the stream <span class="bcp14">MUST</span> end with <code>FIN</code> immediately after <code>Object Status</code>;
-if additional bytes follow, the endpoint <span class="bcp14">MUST</span> close the session with
-<code>MALFORMED_OBJECT</code>. If an <code>OBJECT_STREAM</code> is reset before <code>FIN</code>, the receiver
-<span class="bcp14">MUST</span> discard the incomplete Object and <span class="bcp14">MUST NOT</span> treat the Object or
-<code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-11.3.1-4">When both <code>STATUS</code> and <code>OMIT_PAYLOAD</code> are 0, all bytes following the header
+until <code>FIN</code> form <code>Object Payload</code> (no length field). When <code>OMIT_PAYLOAD</code> or
+<code>STATUS</code> is 1, the stream <span class="bcp14">MUST</span> end with <code>FIN</code> immediately after <code>Object Payload
+Length</code> or <code>Object Status</code>; if trailing bytes follow, the endpoint <span class="bcp14">MUST</span> close
+the session with <code>MALFORMED_OBJECT</code>. If an <code>OBJECT_STREAM</code> is reset before
+<code>FIN</code>, the receiver <span class="bcp14">MUST</span> discard the incomplete Object and <span class="bcp14">MUST NOT</span> treat the
+Object or <code>END_OF_GROUP</code> as received.<a href="#section-11.3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subgroup-header">
@@ -7929,7 +7898,8 @@ SUBGROUP_HEADER {
 <p id="section-11.3.2-5">The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
 single-byte encoding (values less than 128).<a href="#section-11.3.2-5" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-6">Bit 4 is always set to 1. Bits 1-2 and bits 5-6 are defined as follows:<a href="#section-11.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-6">Bit 4 is always set to 1 and bit 6 is always 0. Bits 1-3 and bit 5 are defined
+as follows:<a href="#section-11.3.2-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11.3.2-7.1">
               <p id="section-11.3.2-7.1.1">The <strong>SUBGROUP_ID_MODE</strong> field (bits 1-2, mask 0x06) is a two-bit field that
@@ -7952,15 +7922,16 @@ of the first Object transmitted in this Subgroup.<a href="#section-11.3.2-7.1.2.
               </ul>
 </li>
             <li class="normal" id="section-11.3.2-7.2">
-              <p id="section-11.3.2-7.2.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
+              <p id="section-11.3.2-7.2.1">The <strong>FIRST_OBJECT</strong> bit (0x08) indicates that the first object in this
+subgroup stream is the first object published in the subgroup by the original
+publisher.<a href="#section-11.3.2-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-11.3.2-7.3">
+              <p id="section-11.3.2-7.3.1">The <strong>DEFAULT_PRIORITY</strong> bit (0x20) indicates when the Priority field is
 present. When set to 1, the Priority field is omitted and this Subgroup
 inherits the Publisher Priority specified in the control message that
 established the subscription. When set to 0, the Priority field is present in
-the Subgroup header.<a href="#section-11.3.2-7.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11.3.2-7.3">
-              <p id="section-11.3.2-7.3.1">The <strong>FIRST_OBJECT</strong> bit (0x40) indicates that the first object in this
-subgroup stream is the first object published in the subgroup by the original publisher.<a href="#section-11.3.2-7.3.1" class="pilcrow">¶</a></p>
+the Subgroup header.<a href="#section-11.3.2-7.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-11.3.2-8">The following Type Flags values are invalid. If an endpoint receives a stream
@@ -8026,30 +7997,37 @@ Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</
               </ul>
 </li>
             <li class="normal" id="section-11.3.2-13.4">
-              <p id="section-11.3.2-13.4.1"><strong>OMIT_PAYLOAD</strong> (0x10): When 1, the Object is a Normal Object whose payload
-has been omitted (see <a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>). Object Payload Length is
-present and carries the length in bytes of the omitted payload, while Object
-Payload and Object Status are omitted.<a href="#section-11.3.2-13.4.1" class="pilcrow">¶</a></p>
+              <p id="section-11.3.2-13.4.1"><strong>OMIT_PAYLOAD</strong> (0x10): When 1, the Object is a Normal Object with its
+payload omitted (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>); Object Payload Length carries the
+omitted payload's byte length and Object Payload and Object Status are
+omitted.<a href="#section-11.3.2-13.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11.3.2-13.5">
               <p id="section-11.3.2-13.5.1"><strong>STATUS</strong> (0x20): When 1, Object Status is present and Object Payload Length
-and Object Payload are omitted. When 0, Object Payload Length is present,
-Object Status is omitted, and Object Payload is present unless OMIT_PAYLOAD
-is 1.<a href="#section-11.3.2-13.5.1" class="pilcrow">¶</a></p>
+and Object Payload are omitted. When 0, Object Payload Length is present and
+Object Payload follows unless OMIT_PAYLOAD is 1.<a href="#section-11.3.2-13.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-11.3.2-14">If an Object has Object Flags with both STATUS (0x20) and OMIT_PAYLOAD (0x10)
-set, both STATUS (0x20) and END_OF_GROUP (0x02) set when Object Status is not
-Gone (0x2), or any unspecified bit set (including values &gt;= 128), the endpoint
-<span class="bcp14">MUST</span> close the session with <code>MALFORMED_OBJECT</code>. If both STATUS and PROPERTIES
-are set and Object Status is not Normal (0x0), the endpoint <span class="bcp14">MUST</span> close the
-session with <code>INVALID_OBJECT_STATUS</code>.<a href="#section-11.3.2-14" class="pilcrow">¶</a></p>
-<p id="section-11.3.2-15">The Object ID is the decoded delta for the first Object in the stream, and the
+<p id="section-11.3.2-14">An endpoint <span class="bcp14">MUST</span> close the session with <code>MALFORMED_OBJECT</code> if Object Flags has:<a href="#section-11.3.2-14" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-11.3.2-15.1">
+              <p id="section-11.3.2-15.1.1">any unspecified bit set (including values &gt;= 128),<a href="#section-11.3.2-15.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-11.3.2-15.2">
+              <p id="section-11.3.2-15.2.1">both STATUS and OMIT_PAYLOAD set, or<a href="#section-11.3.2-15.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-11.3.2-15.3">
+              <p id="section-11.3.2-15.3.1">STATUS and END_OF_GROUP set with a status other than Gone (0x2).<a href="#section-11.3.2-15.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-11.3.2-16">If PROPERTIES is set with a non-Normal status, the endpoint <span class="bcp14">MUST</span> close the
+session with <code>INVALID_OBJECT_STATUS</code>.<a href="#section-11.3.2-16" class="pilcrow">¶</a></p>
+<p id="section-11.3.2-17">The Object ID is the decoded delta for the first Object in the stream, and the
 previous Object ID + decoded delta + 1 for subsequent Objects; if it would
 exceed 2^64 - 1, the endpoint <span class="bcp14">MUST</span> close the session with
 <code>DELTA_ENCODING_OVERFLOW</code>. A consumer cannot infer whether Objects exist between
 non-consecutive Object IDs unless a Prior Object ID Gap property
-(<a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>) is present.<a href="#section-11.3.2-15" class="pilcrow">¶</a></p>
+(<a href="#prior-object-id-gap" class="auto internal xref">Section 10.9</a>) is present.<a href="#section-11.3.2-17" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="closing-subgroup-streams">
@@ -8345,10 +8323,8 @@ prior Object's ID plus one, regardless of which group it belongs to. If the comp
 would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with
 <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-7" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-11.4.1.1-8" class="pilcrow">¶</a></p>
-<p id="section-11.4.1.1-9">When the FETCH or fill fetch stream was requested with <code>INCLUDE_PAYLOAD</code> set to
-0 (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>), <code>Object Payload Length</code> carries the length in
-bytes of the omitted payload and <code>Object Payload</code> is omitted. Otherwise,
-<code>Object Payload</code> contains <code>Object Payload Length</code> bytes.<a href="#section-11.4.1.1-9" class="pilcrow">¶</a></p>
+<p id="section-11.4.1.1-9">When <code>INCLUDE_PAYLOAD</code> is 0 (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>), <code>Object Payload Length</code>
+carries the omitted payload's byte length and <code>Object Payload</code> is omitted.<a href="#section-11.4.1.1-9" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-10">When encoding an Object with a Delivery Mode of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
 When 0x40 is set, it <span class="bcp14">SHOULD</span> set the two least significant bits to zero and the subscriber

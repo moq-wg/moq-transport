@@ -2261,9 +2261,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
              +============+==================================+
              |       0x05 | FETCH_HEADER (Section 11.4.1)    |
              +------------+----------------------------------+
-             | 0b0XX1XXXX | SUBGROUP_HEADER (Section 11.3.2) |
+             | 0b00X1XXXX | SUBGROUP_HEADER (Section 11.3.2) |
              +------------+----------------------------------+
-             | 0b01X0XXXX | OBJECT_STREAM (Section 11.3.1)   |
+             | 0b01XXXXXX | OBJECT_STREAM (Section 11.3.1)   |
              +------------+----------------------------------+
              |     0x2F00 | SETUP (Section 9.1)              |
              +------------+----------------------------------+
@@ -2468,11 +2468,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    with the exception of any Object Properties (Section 11.1.2) that
    specify otherwise.
 
-   An Object received with its payload omitted (see Section 9.19.23)
-   MUST NOT be cached as a complete Object or overwrite a cached
-   Object's payload.  A relay MAY cache the Object's metadata and
-   payload length to serve requests with INCLUDE_PAYLOAD set to 0, but
-   MUST NOT use it to satisfy requests with INCLUDE_PAYLOAD set to 1.
+   An Object with an omitted payload (Section 9.19.23) MUST NOT be
+   cached as complete or overwrite a cached payload; a relay MAY cache
+   its metadata and payload length only to serve INCLUDE_PAYLOAD = 0
+   requests.
 
 7.2.  Paused Subscription Handling
 
@@ -4881,51 +4880,28 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 9.19.23.  INCLUDE_PAYLOAD Parameter
 
-   The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8.  It
-   MAY appear in a SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, or
-   REQUEST_UPDATE (for a subscription), or inside a FILL_PARAMETERS
-   parameter (see Section 9.19.15).  It specifies whether the Publisher
-   delivers Object Payloads.  The allowed values are 0 (omit Payloads)
-   or 1 (include Payloads).  If an endpoint receives a value outside
-   this range, it MUST close the session with INVALID_PARAMETER.
+   The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that
+   MAY appear in SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH,
+   REQUEST_UPDATE (for a subscription), or FILL_PARAMETERS
+   (Section 9.19.15).  Allowed values are 0 (omit Object Payloads) and 1
+   (include Object Payloads); an endpoint receiving any other value MUST
+   close the session with INVALID_PARAMETER.  Omitting it leaves the
+   value unchanged in REQUEST_UPDATE, inherits the subscription's value
+   in FILL_PARAMETERS, and defaults to 1 otherwise.
 
-   If the parameter is omitted from REQUEST_UPDATE, the value for the
-   subscription remains unchanged.  If omitted from FILL_PARAMETERS, it
-   takes the value for the subscription.  If omitted from any other
-   message, the default value is 1.
+   When 0, the Publisher omits Object Payload while encoding its byte
+   length in Object Payload Length (Section 11.4.1): Normal subscription
+   Objects set OMIT_PAYLOAD (0x10) in SUBGROUP_HEADER (Section 11.3.2),
+   OBJECT_DATAGRAM (Section 11.2.1), or OBJECT_STREAM (Section 11.3.1).
+   A Publisher MUST NOT set OMIT_PAYLOAD unless INCLUDE_PAYLOAD is 0.
+   Updating INCLUDE_PAYLOAD via REQUEST_UPDATE applies to subsequent
+   subscription Objects (in-flight Objects can use the previous setting)
+   and does not affect open fill fetch streams.
 
-   When INCLUDE_PAYLOAD is 0, the Publisher MUST NOT deliver Object
-   Payloads:
-
-   *  For Normal Objects delivered on a Subscription, the Publisher sets
-      the OMIT_PAYLOAD (0x10) bit in SUBGROUP_HEADER Object Flags
-      (Section 11.3.2) or OBJECT_DATAGRAM Type Flags (Section 11.2.1),
-      encodes the length in bytes of the omitted payload in Object
-      Payload Length, and omits Object Payload.  Subgroup Objects with
-      omitted payloads MUST be sent using SUBGROUP_HEADER rather than
-      OBJECT_STREAM.
-
-   *  For Objects delivered on a FETCH or fill fetch stream
-      (Section 11.4.1), the Publisher encodes the length in bytes of the
-      omitted payload in Object Payload Length and omits Object Payload.
-
-   A Publisher MUST NOT set OMIT_PAYLOAD unless INCLUDE_PAYLOAD is 0 for
-   the subscription.  Updating INCLUDE_PAYLOAD via REQUEST_UPDATE
-   applies to subsequent Objects delivered on the subscription
-   (including on open Subgroup streams) and does not affect already-
-   opened fill fetch streams.  While a REQUEST_UPDATE changing
-   INCLUDE_PAYLOAD is in flight, a subscriber can still receive Objects
-   using the previous setting.
-
-   Relay Handling:
-
-   If one or more downstream subscribers to a Track have INCLUDE_PAYLOAD
-   set to 1, the relay MUST use INCLUDE_PAYLOAD set to 1 on its upstream
-   subscription.  When all downstream subscribers have INCLUDE_PAYLOAD
-   set to 0, the relay MAY use INCLUDE_PAYLOAD set to 0 upstream.  A
-   relay MAY serve a downstream request with INCLUDE_PAYLOAD set to 0
-   from a cached complete Object by omitting the payload and encoding
-   its length in Object Payload Length.
+   Relay Handling: A relay MUST use INCLUDE_PAYLOAD = 1 upstream if any
+   downstream subscriber has it set to 1, and MAY use 0 otherwise.  A
+   relay MAY serve INCLUDE_PAYLOAD = 0 from cached complete Objects by
+   omitting the payload.
 
 10.  MOQT Properties
 
@@ -5269,12 +5245,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    The Type Flags field in the OBJECT_DATAGRAM is a variable-length
    integer that encodes a set of flags.  All values defined in this
    specification fit in a single-byte encoding (values less than 128).
-   If a received value has an invalid combination of bits, or has a bit
-   set whose meaning is not specified, the endpoint MUST close the
-   session with INVALID_STREAM_HEADER.
-
-   The six low-order bits of the Type Flags field determine which fields
-   are present in the datagram:
+   The six low-order bits determine which fields are present in the
+   datagram:
 
    *  The *PROPERTIES* bit (0x01) indicates when the Properties field is
       present.  When set to 1, the Object Properties structure defined
@@ -5299,23 +5271,16 @@ EXT 1 and EXT N can be modified or removed by Relays
       control message that established the subscription.  When set to 0,
       the Priority field is present.
 
-   *  The *OMIT_PAYLOAD* bit (0x10) indicates that the Object is a
-      Normal Object whose payload has been omitted (see
-      Section 9.19.23).  When set to 1, the Object Payload Length field
-      is present and carries the length in bytes of the omitted payload,
-      and the Object Status and Object Payload fields are omitted.  The
-      datagram MUST end immediately after Object Payload Length; if
-      additional bytes follow, the endpoint MUST close the session with
-      MALFORMED_OBJECT.
+   *  The *OMIT_PAYLOAD* bit (0x10) indicates a Normal Object with its
+      payload omitted (Section 9.19.23).  When 1, Object Payload Length
+      carries the omitted payload's byte length and Object Status and
+      Object Payload are omitted; if trailing bytes follow, the endpoint
+      MUST close the session with MALFORMED_OBJECT.
 
-   *  The *STATUS* bit (0x20) indicates whether the datagram contains an
-      Object Status.  When set to 1, the Object Status field is present
-      and the Object Payload Length and Object Payload fields are
-      omitted.  When both STATUS and OMIT_PAYLOAD are 0, the Object
-      Payload is present and the Object Payload Length and Object Status
-      fields are omitted; there is no explicit length field for the
-      Object Payload, and the entirety of the transport datagram
-      following the Object header contains the payload.
+   *  The *STATUS* bit (0x20): When 1, Object Status is present and
+      Object Payload Length and Object Payload are omitted.  When both
+      STATUS and OMIT_PAYLOAD are 0, the remaining datagram bytes form
+      Object Payload (no length field).
 
    The following Type Flags values are invalid.  If an endpoint receives
    a datagram with any of these values, it MUST close the session with
@@ -5350,9 +5315,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    An OBJECT_STREAM carries a single Subgroup Object on a unidirectional
    stream.  It uses the same fields, Type Flags bits, and error handling
    as OBJECT_DATAGRAM (Section 11.2.1), except bit 6 (0x40) of Type
-   Flags is always 1, and OMIT_PAYLOAD (0x10) and Object Payload Length
-   are not used (bit 4 set to 1 identifies a SUBGROUP_HEADER; Subgroup
-   Objects with omitted payloads are sent using SUBGROUP_HEADER):
+   Flags is always 1:
 
    OBJECT_STREAM {
      Type Flags (vi64),
@@ -5361,6 +5324,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      [Object ID (vi64),]
      [Publisher Priority (8),]
      [Properties (..),]
+     [Object Payload Length (vi64),]
      [Object Status (vi64),]
      [Object Payload (..),]
    }
@@ -5372,14 +5336,14 @@ EXT 1 and EXT N can be modified or removed by Relays
    Receiving a different Object in the same Subgroup on another stream
    makes the track Malformed (Section 12.1).
 
-   When STATUS is 0, there is no explicit length field for the Object
-   Payload; all bytes on the stream following the header until FIN form
-   the payload.  When STATUS is 1, the stream MUST end with FIN
-   immediately after Object Status; if additional bytes follow, the
-   endpoint MUST close the session with MALFORMED_OBJECT.  If an
-   OBJECT_STREAM is reset before FIN, the receiver MUST discard the
-   incomplete Object and MUST NOT treat the Object or END_OF_GROUP as
-   received.
+   When both STATUS and OMIT_PAYLOAD are 0, all bytes following the
+   header until FIN form Object Payload (no length field).  When
+   OMIT_PAYLOAD or STATUS is 1, the stream MUST end with FIN immediately
+   after Object Payload Length or Object Status; if trailing bytes
+   follow, the endpoint MUST close the session with MALFORMED_OBJECT.
+   If an OBJECT_STREAM is reset before FIN, the receiver MUST discard
+   the incomplete Object and MUST NOT treat the Object or END_OF_GROUP
+   as received.
 
 11.3.2.  Subgroup Header
 
@@ -5407,8 +5371,8 @@ EXT 1 and EXT N can be modified or removed by Relays
    integer that encodes a set of flags.  All values defined in this
    specification fit in a single-byte encoding (values less than 128).
 
-   Bit 4 is always set to 1.  Bits 1-2 and bits 5-6 are defined as
-   follows:
+   Bit 4 is always set to 1 and bit 6 is always 0.  Bits 1-3 and bit 5
+   are defined as follows:
 
    *  The *SUBGROUP_ID_MODE* field (bits 1-2, mask 0x06) is a two-bit
       field that determines the encoding of the Subgroup ID.  To extract
@@ -5424,15 +5388,15 @@ EXT 1 and EXT N can be modified or removed by Relays
 
       -  0b11: Reserved for future use.
 
+   *  The *FIRST_OBJECT* bit (0x08) indicates that the first object in
+      this subgroup stream is the first object published in the subgroup
+      by the original publisher.
+
    *  The *DEFAULT_PRIORITY* bit (0x20) indicates when the Priority
       field is present.  When set to 1, the Priority field is omitted
       and this Subgroup inherits the Publisher Priority specified in the
       control message that established the subscription.  When set to 0,
       the Priority field is present in the Subgroup header.
-
-   *  The *FIRST_OBJECT* bit (0x40) indicates that the first object in
-      this subgroup stream is the first object published in the subgroup
-      by the original publisher.
 
    The following Type Flags values are invalid.  If an endpoint receives
    a stream header with any of these values, it MUST close the session
@@ -5483,23 +5447,27 @@ EXT 1 and EXT N can be modified or removed by Relays
       -  0b11: Object ID Delta is present and the delta is Object ID
          Delta + 3.
 
-   *  *OMIT_PAYLOAD* (0x10): When 1, the Object is a Normal Object whose
-      payload has been omitted (see Section 9.19.23).  Object Payload
-      Length is present and carries the length in bytes of the omitted
-      payload, while Object Payload and Object Status are omitted.
+   *  *OMIT_PAYLOAD* (0x10): When 1, the Object is a Normal Object with
+      its payload omitted (Section 9.19.23); Object Payload Length
+      carries the omitted payload's byte length and Object Payload and
+      Object Status are omitted.
 
    *  *STATUS* (0x20): When 1, Object Status is present and Object
       Payload Length and Object Payload are omitted.  When 0, Object
-      Payload Length is present, Object Status is omitted, and Object
-      Payload is present unless OMIT_PAYLOAD is 1.
+      Payload Length is present and Object Payload follows unless
+      OMIT_PAYLOAD is 1.
 
-   If an Object has Object Flags with both STATUS (0x20) and
-   OMIT_PAYLOAD (0x10) set, both STATUS (0x20) and END_OF_GROUP (0x02)
-   set when Object Status is not Gone (0x2), or any unspecified bit set
-   (including values >= 128), the endpoint MUST close the session with
-   MALFORMED_OBJECT.  If both STATUS and PROPERTIES are set and Object
-   Status is not Normal (0x0), the endpoint MUST close the session with
-   INVALID_OBJECT_STATUS.
+   An endpoint MUST close the session with MALFORMED_OBJECT if Object
+   Flags has:
+
+   *  any unspecified bit set (including values >= 128),
+
+   *  both STATUS and OMIT_PAYLOAD set, or
+
+   *  STATUS and END_OF_GROUP set with a status other than Gone (0x2).
+
+   If PROPERTIES is set with a non-Normal status, the endpoint MUST
+   close the session with INVALID_OBJECT_STATUS.
 
    The Object ID is the decoded delta for the first Object in the
    stream, and the previous Object ID + decoded delta + 1 for subsequent
@@ -5755,11 +5723,9 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The Object Properties structure is defined in Section 11.1.2.
 
-   When the FETCH or fill fetch stream was requested with
-   INCLUDE_PAYLOAD set to 0 (Section 9.19.23), Object Payload Length
-   carries the length in bytes of the omitted payload and Object Payload
-   is omitted.  Otherwise, Object Payload contains Object Payload Length
-   bytes.
+   When INCLUDE_PAYLOAD is 0 (Section 9.19.23), Object Payload Length
+   carries the omitted payload's byte length and Object Payload is
+   omitted.
 
    When encoding an Object with a Delivery Mode of "Datagram" (see
    Section 11.1.2), the object has no Subgroup ID.  The publisher MUST
