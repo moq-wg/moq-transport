@@ -2057,7 +2057,8 @@ Properties can be added, removed or updated, subject to the constraints of the
 specific property.
 
 An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Mode, Subgroup ID, Priority, Payload Length or Payload MUST treat the track as
+Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -2072,6 +2073,10 @@ relay does not cache Unknown or timed out ranges.
 A cache MUST store all fields of an Object defined in {{object-header}},
 with the exception of any Object Properties ({{object-properties}})
 that specify otherwise.
+
+An Object with an omitted payload ({{omit-payload-param}}) MUST NOT be
+cached as complete or overwrite a cached payload; a relay MAY cache its
+metadata and payload length only to serve `OMIT_PAYLOAD` = 1 requests.
 
 ## Paused Subscription Handling
 
@@ -3295,7 +3300,7 @@ REQUEST_UPDATE Message {
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
     SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
     FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST, OMIT_PAYLOAD
   * FETCH: AUTHORIZATION_PAYLOAD, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_PAYLOAD
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_PAYLOAD, TRACK_NAMESPACE_PREFIX
@@ -3382,7 +3387,7 @@ SUBSCRIBE Message {
   AUTHORIZATION_PAYLOAD, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -3448,9 +3453,9 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS
-  and SUBSCRIBE_TRACKS_ID.  Those governing delivery, such as PAUSED,
-  GROUP_ORDER, SUBSCRIBER_PRIORITY,
+  PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
+  SUBSCRIBE_TRACKS_ID and OMIT_PAYLOAD.  Those governing delivery, such as
+  PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
   If the PUBLISH is the result of a SUBSCRIBE_TRACKS, the parameters are handled
@@ -3625,8 +3630,8 @@ FETCH Message {
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
   that can appear in a FETCH are AUTHORIZATION_PAYLOAD, FILL_TIMEOUT,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
-  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER and
-  INCLUDE_PROPERTIES.
+  OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
+  INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
 ## TRACK_STATUS {#message-track-status}
 
@@ -3786,7 +3791,7 @@ SUBSCRIBE_TRACKS Message {
   OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT,
   PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
   SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  TRACK_PROPERTY_FILTER and INCLUDE_PROPERTIES.
+  TRACK_PROPERTY_FILTER, INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
 ## PUBLISH_SKIPPED {#message-publish-skipped}
 
@@ -4169,6 +4174,7 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 | 0x26 | OBJECTID_FILTER | {{range-filters}} |
 | 0x27 | PRIORITY_FILTER | {{range-filters}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
+| 0x37 | OMIT_PAYLOAD | {{omit-payload-param}} |
 
 The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
 evaluated using the rules for a Fetch (see {{location-filter}}); it is
@@ -4314,6 +4320,29 @@ is 0, the Track Properties are still present in the message, but they SHOULD be 
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `INVALID_PARAMETER`.
+
+### OMIT_PAYLOAD Parameter {#omit-payload-param}
+
+The OMIT_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that MAY appear in
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, REQUEST_UPDATE (for a
+subscription), or FILL_PARAMETERS ({{fill-parameters}}). Allowed values are 0
+(include Object Payloads) and 1 (omit Object Payloads); an endpoint receiving
+any other value MUST close the session with `INVALID_PARAMETER`. Omitting it
+leaves the value unchanged in REQUEST_UPDATE, inherits the subscription's value
+in FILL_PARAMETERS, and defaults to 0 otherwise.
+
+When 1, the Publisher omits `Object Payload` while encoding its byte length in
+`Object Payload Length` ({{fetch-header}}): Normal subscription Objects set the
+`OMIT_PAYLOAD` (0x10) bit in `SUBGROUP_HEADER` ({{subgroup-header}}),
+`OBJECT_DATAGRAM` ({{object-datagram}}), or `OBJECT_STREAM`
+({{object-stream}}). A Publisher MUST NOT set the `OMIT_PAYLOAD` bit unless
+`OMIT_PAYLOAD` is 1. Updating `OMIT_PAYLOAD` via `REQUEST_UPDATE` applies to
+subsequent subscription Objects (in-flight Objects can use the previous
+setting) and does not affect open fill fetch streams.
+
+Relay Handling: A relay MUST use `OMIT_PAYLOAD` = 0 upstream if any downstream
+subscriber has it set to 0, and MAY use 1 otherwise. A relay MAY serve
+`OMIT_PAYLOAD` = 1 from cached complete Objects by omitting the payload.
 
 # MOQT Properties {#moqt-properties}
 
@@ -4631,6 +4660,7 @@ OBJECT_DATAGRAM {
   [Object ID (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
+  [Object Payload Length (vi64),]
   [Object Status (vi64),]
   [Object Payload (..),]
 }
@@ -4639,12 +4669,8 @@ OBJECT_DATAGRAM {
 
 The Type Flags field in the OBJECT_DATAGRAM is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
-single-byte encoding (values less than 128). If a received value has bit 4 set,
-or has a bit set whose meaning is not specified, the endpoint MUST close the
-session with `INVALID_STREAM_HEADER`.
-
-The four low-order bits and bit 5 of the Type Flags field determine which fields
-are present in the datagram:
+single-byte encoding (values less than 128). The six low-order bits determine
+which fields are present in the datagram:
 
 * The **PROPERTIES** bit (0x01) indicates when the Properties field is
   present. When set to 1, the Object Properties structure defined in
@@ -4667,18 +4693,21 @@ are present in the datagram:
   the Publisher Priority specified in the control message that established the
   subscription. When set to 0, the Priority field is present.
 
-* The **STATUS** bit (0x20) indicates whether the datagram contains an Object
-  Status or Object Payload. When set to 1, the Object Status field is present
-  and there is no Object Payload. When set to 0, the Object Payload is present
-  and the Object Status field is omitted. There is no explicit length field for
-  the Object Payload; the entirety of the transport datagram following the
-  Object header contains the payload.
+* The **OMIT_PAYLOAD** bit (0x10) indicates a Normal Object with its payload
+  omitted ({{omit-payload-param}}). When 1, Object Payload Length carries the
+  omitted payload's byte length and Object Status and Object Payload are
+  omitted; if trailing bytes follow, the endpoint MUST close the session with
+  `MALFORMED_OBJECT`.
+
+* The **STATUS** bit (0x20): When 1, Object Status is present and Object Payload
+  Length and Object Payload are omitted. When both STATUS and OMIT_PAYLOAD are
+  0, the remaining datagram bytes form Object Payload (no length field).
 
 The following Type Flags values are invalid. If an endpoint receives a datagram
 with any of these values, it MUST close the session with
 `INVALID_STREAM_HEADER`:
 
-* Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
+* Values with both STATUS (0x20) and OMIT_PAYLOAD (0x10) set.
 
 * Values with a bit set whose meaning is not specified.
 
@@ -4716,6 +4745,7 @@ OBJECT_STREAM {
   [Object ID (vi64),]
   [Publisher Priority (8),]
   [Properties (..),]
+  [Object Payload Length (vi64),]
   [Object Status (vi64),]
   [Object Payload (..),]
 }
@@ -4727,13 +4757,13 @@ The Object has `Delivery Mode` = `Subgroup` and `Subgroup ID` equal to its
 a different Object in the same Subgroup on another stream makes the track
 Malformed ({{malformed-tracks}}).
 
-When `STATUS` is 0, there is no explicit length field for the `Object Payload`;
-all bytes on the stream following the header until `FIN` form the payload. When
-`STATUS` is 1, the stream MUST end with `FIN` immediately after `Object Status`;
-if additional bytes follow, the endpoint MUST close the session with
-`MALFORMED_OBJECT`. If an `OBJECT_STREAM` is reset before `FIN`, the receiver
-MUST discard the incomplete Object and MUST NOT treat the Object or
-`END_OF_GROUP` as received.
+When both `STATUS` and `OMIT_PAYLOAD` are 0, all bytes following the header
+until `FIN` form `Object Payload` (no length field). When `OMIT_PAYLOAD` or
+`STATUS` is 1, the stream MUST end with `FIN` immediately after `Object Payload
+Length` or `Object Status`; if trailing bytes follow, the endpoint MUST close
+the session with `MALFORMED_OBJECT`. If an `OBJECT_STREAM` is reset before
+`FIN`, the receiver MUST discard the incomplete Object and MUST NOT treat the
+Object or `END_OF_GROUP` as received.
 
 ### Subgroup Header {#subgroup-header}
 
@@ -4814,7 +4844,7 @@ following fields:
 ~~~
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
 
-The four low-order bits and bit 5 of Object Flags encode per-Object metadata:
+The six low-order bits of Object Flags encode per-Object metadata:
 
 * **PROPERTIES** (0x01): When 1, Properties ({{object-properties}}) are present;
   if Properties Length is 0, the endpoint MUST close the session with
@@ -4826,15 +4856,22 @@ The four low-order bits and bit 5 of Object Flags encode per-Object metadata:
 * **DELTA_MODE** (bits 2-3, mask 0x0C): Determines the Object ID delta:
   * 0b00, 0b01, 0b10: Object ID Delta is omitted and the delta is 0, 1, or 2.
   * 0b11: Object ID Delta is present and the delta is Object ID Delta + 3.
+* **OMIT_PAYLOAD** (0x10): When 1, the Object is a Normal Object with its
+  payload omitted ({{omit-payload-param}}); Object Payload Length carries the
+  omitted payload's byte length and Object Payload and Object Status are
+  omitted.
 * **STATUS** (0x20): When 1, Object Status is present and Object Payload Length
-  and Object Payload are omitted. When 0, Object Payload Length and Object
-  Payload are present and Object Status is omitted.
+  and Object Payload are omitted. When 0, Object Payload Length is present and
+  Object Payload follows unless OMIT_PAYLOAD is 1.
 
-If an Object has Object Flags with both STATUS (0x20) and END_OF_GROUP (0x02)
-set when Object Status is not Gone (0x2), or any unspecified bit set (including
-values >= 128), the endpoint MUST close the session with `MALFORMED_OBJECT`. If
-both STATUS and PROPERTIES are set and Object Status is not Normal (0x0), the
-endpoint MUST close the session with `INVALID_OBJECT_STATUS`.
+An endpoint MUST close the session with `MALFORMED_OBJECT` if Object Flags has:
+
+* any unspecified bit set (including values >= 128),
+* both STATUS and OMIT_PAYLOAD set, or
+* STATUS and END_OF_GROUP set with a status other than Gone (0x2).
+
+If PROPERTIES is set with a non-Normal status, the endpoint MUST close the
+session with `INVALID_OBJECT_STATUS`.
 
 The Object ID is the decoded delta for the first Object in the stream, and the
 previous Object ID + decoded delta + 1 for subsequent Objects; if it would
@@ -5042,6 +5079,9 @@ would be greater than 2^64-1, the Subscriber MUST close the Session with
 
 The Object Properties structure is defined in {{object-properties}}.
 
+When `OMIT_PAYLOAD` is 1 ({{omit-payload-param}}), `Object Payload Length`
+carries the omitted payload's byte length and `Object Payload` is omitted.
+
 When encoding an Object with a Delivery Mode of "Datagram" (see
 {{object-properties}}), the object has no Subgroup ID. The publisher MUST SET bit 0x40 to '1'.
 When 0x40 is set, it SHOULD set the two least significant bits to zero and the subscriber
@@ -5164,8 +5204,8 @@ include:
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK.
-6. The same Object is received more than once with different Payload or
-   other immutable properties.
+6. The same Object is received more than once with different Payload, Payload
+   Length, or other immutable properties.
 7. An Object is received with a different Delivery Mode than previously
    observed.
 8. A supported Property is received outside its scope, such as a Track-only
@@ -6016,6 +6056,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x34 | TRACK_NAMESPACE_PREFIX | {{track-namespace-prefix-param}} |
 | 0x35 | INCLUDE_PROPERTIES | {{include-properties-param}} |
 | 0x36 | SUBSCRIBE_TRACKS_ID | {{subscribe-tracks-id}} |
+| 0x37 | OMIT_PAYLOAD | {{omit-payload-param}} |
 
 * Message Parameters - List which params can be repeated in the table.
 
