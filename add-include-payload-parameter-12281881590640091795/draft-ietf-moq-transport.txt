@@ -226,7 +226,7 @@ Table of Contents
        9.19.20. TRACK_NAMESPACE_PREFIX Parameter
        9.19.21. SUBSCRIBE_TRACKS_ID Parameter
        9.19.22. INCLUDE_PROPERTIES Parameter
-       9.19.23. INCLUDE_PAYLOAD Parameter
+       9.19.23. OMIT_PAYLOAD Parameter
    10. MOQT Properties
      10.1.  SUBGROUP_DELIVERY_TIMEOUT
      10.2.  OBJECT_DELIVERY_TIMEOUT
@@ -2470,7 +2470,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    An Object with an omitted payload (Section 9.19.23) MUST NOT be
    cached as complete or overwrite a cached payload; a relay MAY cache
-   its metadata and payload length only to serve INCLUDE_PAYLOAD = 0
+   its metadata and payload length only to serve OMIT_PAYLOAD = 1
    requests.
 
 7.2.  Paused Subscription Handling
@@ -3778,7 +3778,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
          SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY,
          LOCATION_FILTER, FILL_PARAMETERS, SUBGROUP_FILTER,
          OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-         NEW_GROUP_REQUEST, INCLUDE_PAYLOAD
+         NEW_GROUP_REQUEST, OMIT_PAYLOAD
 
       -  FETCH: AUTHORIZATION_PAYLOAD, SUBSCRIBER_PRIORITY
 
@@ -3877,7 +3877,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER,
       PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST,
-      INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
+      INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
    On successful subscription, the publisher MUST reply with a
    SUBSCRIBE_OK, allowing the subscriber to determine the start group/
@@ -3945,7 +3945,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
       SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT, PAUSED,
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
-      FILL_PARAMETERS, SUBSCRIBE_TRACKS_ID and INCLUDE_PAYLOAD.  Those
+      FILL_PARAMETERS, SUBSCRIBE_TRACKS_ID and OMIT_PAYLOAD.  Those
       governing delivery, such as PAUSED, GROUP_ORDER,
       SUBSCRIBER_PRIORITY, SUBGROUP_DELIVERY_TIMEOUT,
       OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER, inform the Subscriber
@@ -4132,7 +4132,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       parameters that can appear in a FETCH are AUTHORIZATION_PAYLOAD,
       FILL_TIMEOUT, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-      OBJECT_PROPERTY_FILTER, INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
+      OBJECT_PROPERTY_FILTER, INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
 9.12.  TRACK_STATUS
 
@@ -4293,7 +4293,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
       SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER,
       FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER,
       PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, TRACK_PROPERTY_FILTER,
-      INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.
+      INCLUDE_PROPERTIES and OMIT_PAYLOAD.
 
 9.18.  PUBLISH_SKIPPED
 
@@ -4717,7 +4717,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
        +----------------+------------------------+-----------------+
        | 0x28           | OBJECT_PROPERTY_FILTER | Section 3.3.2   |
        +----------------+------------------------+-----------------+
-       | 0x37           | INCLUDE_PAYLOAD        | Section 9.19.23 |
+       | 0x37           | OMIT_PAYLOAD           | Section 9.19.23 |
        +----------------+------------------------+-----------------+
 
                                   Table 7
@@ -4878,29 +4878,29 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    receives a value outside this range, it MUST close the session with
    INVALID_PARAMETER.
 
-9.19.23.  INCLUDE_PAYLOAD Parameter
+9.19.23.  OMIT_PAYLOAD Parameter
 
-   The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that
-   MAY appear in SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH,
-   REQUEST_UPDATE (for a subscription), or FILL_PARAMETERS
-   (Section 9.19.15).  Allowed values are 0 (omit Object Payloads) and 1
-   (include Object Payloads); an endpoint receiving any other value MUST
-   close the session with INVALID_PARAMETER.  Omitting it leaves the
-   value unchanged in REQUEST_UPDATE, inherits the subscription's value
-   in FILL_PARAMETERS, and defaults to 1 otherwise.
+   The OMIT_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that MAY
+   appear in SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, REQUEST_UPDATE
+   (for a subscription), or FILL_PARAMETERS (Section 9.19.15).  Allowed
+   values are 0 (include Object Payloads) and 1 (omit Object Payloads);
+   an endpoint receiving any other value MUST close the session with
+   INVALID_PARAMETER.  Omitting it leaves the value unchanged in
+   REQUEST_UPDATE, inherits the subscription's value in FILL_PARAMETERS,
+   and defaults to 0 otherwise.
 
-   When 0, the Publisher omits Object Payload while encoding its byte
+   When 1, the Publisher omits Object Payload while encoding its byte
    length in Object Payload Length (Section 11.4.1): Normal subscription
-   Objects set OMIT_PAYLOAD (0x10) in SUBGROUP_HEADER (Section 11.3.2),
-   OBJECT_DATAGRAM (Section 11.2.1), or OBJECT_STREAM (Section 11.3.1).
-   A Publisher MUST NOT set OMIT_PAYLOAD unless INCLUDE_PAYLOAD is 0.
-   Updating INCLUDE_PAYLOAD via REQUEST_UPDATE applies to subsequent
-   subscription Objects (in-flight Objects can use the previous setting)
-   and does not affect open fill fetch streams.
+   Objects set the OMIT_PAYLOAD (0x10) bit in SUBGROUP_HEADER
+   (Section 11.3.2), OBJECT_DATAGRAM (Section 11.2.1), or OBJECT_STREAM
+   (Section 11.3.1).  A Publisher MUST NOT set the OMIT_PAYLOAD bit
+   unless OMIT_PAYLOAD is 1.  Updating OMIT_PAYLOAD via REQUEST_UPDATE
+   applies to subsequent subscription Objects (in-flight Objects can use
+   the previous setting) and does not affect open fill fetch streams.
 
-   Relay Handling: A relay MUST use INCLUDE_PAYLOAD = 1 upstream if any
-   downstream subscriber has it set to 1, and MAY use 0 otherwise.  A
-   relay MAY serve INCLUDE_PAYLOAD = 0 from cached complete Objects by
+   Relay Handling: A relay MUST use OMIT_PAYLOAD = 0 upstream if any
+   downstream subscriber has it set to 0, and MAY use 1 otherwise.  A
+   relay MAY serve OMIT_PAYLOAD = 1 from cached complete Objects by
    omitting the payload.
 
 10.  MOQT Properties
@@ -5723,7 +5723,7 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    The Object Properties structure is defined in Section 11.1.2.
 
-   When INCLUDE_PAYLOAD is 0 (Section 9.19.23), Object Payload Length
+   When OMIT_PAYLOAD is 1 (Section 9.19.23), Object Payload Length
    carries the omitted payload's byte length and Object Payload is
    omitted.
 
@@ -6771,7 +6771,7 @@ EXT 1 and EXT N can be modified or removed by Relays
      +----------------+---------------------------+-----------------+
      | 0x36           | SUBSCRIBE_TRACKS_ID       | Section 9.19.21 |
      +----------------+---------------------------+-----------------+
-     | 0x37           | INCLUDE_PAYLOAD           | Section 9.19.23 |
+     | 0x37           | OMIT_PAYLOAD              | Section 9.19.23 |
      +----------------+---------------------------+-----------------+
 
                                  Table 14

@@ -1683,7 +1683,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
                     <p id="section-toc.1-1.9.2.19.2.22.1"><a href="#section-9.19.22" class="auto internal xref">9.19.22</a>. <a href="#name-include_properties-paramete" class="internal xref">INCLUDE_PROPERTIES Parameter</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.19.2.23">
-                    <p id="section-toc.1-1.9.2.19.2.23.1"><a href="#section-9.19.23" class="auto internal xref">9.19.23</a>. <a href="#name-include_payload-parameter" class="internal xref">INCLUDE_PAYLOAD Parameter</a></p>
+                    <p id="section-toc.1-1.9.2.19.2.23.1"><a href="#section-9.19.23" class="auto internal xref">9.19.23</a>. <a href="#name-omit_payload-parameter" class="internal xref">OMIT_PAYLOAD Parameter</a></p>
 </li>
                 </ul>
 </li>
@@ -4322,9 +4322,9 @@ relay does not cache Unknown or timed out ranges.<a href="#section-7.1-5" class=
 <p id="section-7.1-6">A cache <span class="bcp14">MUST</span> store all fields of an Object defined in <a href="#object-header" class="auto internal xref">Section 2.1.1</a>,
 with the exception of any Object Properties (<a href="#object-properties" class="auto internal xref">Section 11.1.2</a>)
 that specify otherwise.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
-<p id="section-7.1-7">An Object with an omitted payload (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>) <span class="bcp14">MUST NOT</span> be
+<p id="section-7.1-7">An Object with an omitted payload (<a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>) <span class="bcp14">MUST NOT</span> be
 cached as complete or overwrite a cached payload; a relay <span class="bcp14">MAY</span> cache its
-metadata and payload length only to serve <code>INCLUDE_PAYLOAD</code> = 0 requests.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+metadata and payload length only to serve <code>OMIT_PAYLOAD</code> = 1 requests.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="paused-subscription-handling">
@@ -5938,7 +5938,7 @@ parameters that can appear depend on the request being updated:<a href="#section
                 <p id="section-9.5-10.2.2.1.1">Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
 SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
 FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST, INCLUDE_PAYLOAD<a href="#section-9.5-10.2.2.1.1" class="pilcrow">¶</a></p>
+OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST, OMIT_PAYLOAD<a href="#section-9.5-10.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-9.5-10.2.2.2">
                 <p id="section-9.5-10.2.2.2.1">FETCH: AUTHORIZATION_PAYLOAD, SUBSCRIBER_PRIORITY<a href="#section-9.5-10.2.2.2.1" class="pilcrow">¶</a></p>
@@ -6055,7 +6055,7 @@ that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_PAYLOAD, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
 SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
 SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.<a href="#section-9.6-4.4.1" class="pilcrow">¶</a></p>
+NEW_GROUP_REQUEST, INCLUDE_PROPERTIES and OMIT_PAYLOAD.<a href="#section-9.6-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.6-5">On successful subscription, the publisher <span class="bcp14">MUST</span> reply with a SUBSCRIBE_OK,
@@ -6153,7 +6153,7 @@ PUBLISH Message {
 that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
 AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
 PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
-SUBSCRIBE_TRACKS_ID and INCLUDE_PAYLOAD.  Those governing delivery, such as
+SUBSCRIBE_TRACKS_ID and OMIT_PAYLOAD.  Those governing delivery, such as
 PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,
 SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
 inform the Subscriber of the initial Subscription parameters.
@@ -6357,7 +6357,7 @@ FETCH Message {
 that can appear in a FETCH are AUTHORIZATION_PAYLOAD, FILL_TIMEOUT,
 SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, SUBGROUP_FILTER,
 OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.<a href="#section-9.11-4.4.1" class="pilcrow">¶</a></p>
+INCLUDE_PROPERTIES and OMIT_PAYLOAD.<a href="#section-9.11-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6590,7 +6590,7 @@ below.  The parameters that can appear in a SUBSCRIBE_TRACKS are
 OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT,
 PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
 SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-TRACK_PROPERTY_FILTER, INCLUDE_PROPERTIES and INCLUDE_PAYLOAD.<a href="#section-9.17-3.3.1" class="pilcrow">¶</a></p>
+TRACK_PROPERTY_FILTER, INCLUDE_PROPERTIES and OMIT_PAYLOAD.<a href="#section-9.17-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -7161,9 +7161,9 @@ is opened only when FILL_PARAMETERS is present.<a href="#section-9.19.15-1" clas
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">0x37</td>
-                <td class="text-left" rowspan="1" colspan="1">INCLUDE_PAYLOAD</td>
+                <td class="text-left" rowspan="1" colspan="1">OMIT_PAYLOAD</td>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>
+                  <a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>
 </td>
               </tr>
             </tbody>
@@ -7331,30 +7331,29 @@ default is 1. If an endpoint receives a value outside this range, it <span class
 session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.22-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="include-payload-param">
+<div id="omit-payload-param">
 <section id="section-9.19.23">
-          <h4 id="name-include_payload-parameter">
-<a href="#section-9.19.23" class="section-number selfRef">9.19.23. </a><a href="#name-include_payload-parameter" class="section-name selfRef">INCLUDE_PAYLOAD Parameter</a>
+          <h4 id="name-omit_payload-parameter">
+<a href="#section-9.19.23" class="section-number selfRef">9.19.23. </a><a href="#name-omit_payload-parameter" class="section-name selfRef">OMIT_PAYLOAD Parameter</a>
           </h4>
-<p id="section-9.19.23-1">The INCLUDE_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that <span class="bcp14">MAY</span> appear
-in SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, REQUEST_UPDATE (for a
+<p id="section-9.19.23-1">The OMIT_PAYLOAD parameter (Parameter Type 0x37) is a uint8 that <span class="bcp14">MAY</span> appear in
+SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, FETCH, REQUEST_UPDATE (for a
 subscription), or FILL_PARAMETERS (<a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>). Allowed values are 0
-(omit Object Payloads) and 1 (include Object Payloads); an endpoint receiving
+(include Object Payloads) and 1 (omit Object Payloads); an endpoint receiving
 any other value <span class="bcp14">MUST</span> close the session with <code>INVALID_PARAMETER</code>. Omitting it
 leaves the value unchanged in REQUEST_UPDATE, inherits the subscription's value
-in FILL_PARAMETERS, and defaults to 1 otherwise.<a href="#section-9.19.23-1" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-2">When 0, the Publisher omits <code>Object Payload</code> while encoding its byte length in
-<code>Object Payload Length</code> (<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>): Normal subscription Objects set
-<code>OMIT_PAYLOAD</code> (0x10) in <code>SUBGROUP_HEADER</code> (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>),
+in FILL_PARAMETERS, and defaults to 0 otherwise.<a href="#section-9.19.23-1" class="pilcrow">¶</a></p>
+<p id="section-9.19.23-2">When 1, the Publisher omits <code>Object Payload</code> while encoding its byte length in
+<code>Object Payload Length</code> (<a href="#fetch-header" class="auto internal xref">Section 11.4.1</a>): Normal subscription Objects set the
+<code>OMIT_PAYLOAD</code> (0x10) bit in <code>SUBGROUP_HEADER</code> (<a href="#subgroup-header" class="auto internal xref">Section 11.3.2</a>),
 <code>OBJECT_DATAGRAM</code> (<a href="#object-datagram" class="auto internal xref">Section 11.2.1</a>), or <code>OBJECT_STREAM</code>
-(<a href="#object-stream" class="auto internal xref">Section 11.3.1</a>). A Publisher <span class="bcp14">MUST NOT</span> set <code>OMIT_PAYLOAD</code> unless
-<code>INCLUDE_PAYLOAD</code> is 0. Updating <code>INCLUDE_PAYLOAD</code> via <code>REQUEST_UPDATE</code> applies
-to subsequent subscription Objects (in-flight Objects can use the previous
+(<a href="#object-stream" class="auto internal xref">Section 11.3.1</a>). A Publisher <span class="bcp14">MUST NOT</span> set the <code>OMIT_PAYLOAD</code> bit unless
+<code>OMIT_PAYLOAD</code> is 1. Updating <code>OMIT_PAYLOAD</code> via <code>REQUEST_UPDATE</code> applies to
+subsequent subscription Objects (in-flight Objects can use the previous
 setting) and does not affect open fill fetch streams.<a href="#section-9.19.23-2" class="pilcrow">¶</a></p>
-<p id="section-9.19.23-3">Relay Handling: A relay <span class="bcp14">MUST</span> use <code>INCLUDE_PAYLOAD</code> = 1 upstream if any
-downstream subscriber has it set to 1, and <span class="bcp14">MAY</span> use 0 otherwise. A relay <span class="bcp14">MAY</span>
-serve <code>INCLUDE_PAYLOAD</code> = 0 from cached complete Objects by omitting the
-payload.<a href="#section-9.19.23-3" class="pilcrow">¶</a></p>
+<p id="section-9.19.23-3">Relay Handling: A relay <span class="bcp14">MUST</span> use <code>OMIT_PAYLOAD</code> = 0 upstream if any downstream
+subscriber has it set to 0, and <span class="bcp14">MAY</span> use 1 otherwise. A relay <span class="bcp14">MAY</span> serve
+<code>OMIT_PAYLOAD</code> = 1 from cached complete Objects by omitting the payload.<a href="#section-9.19.23-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -7778,7 +7777,7 @@ subscription. When set to 0, the Priority field is present.<a href="#section-11.
 </li>
             <li class="normal" id="section-11.2.1-4.5">
               <p id="section-11.2.1-4.5.1">The <strong>OMIT_PAYLOAD</strong> bit (0x10) indicates a Normal Object with its payload
-omitted (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>). When 1, Object Payload Length carries the
+omitted (<a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>). When 1, Object Payload Length carries the
 omitted payload's byte length and Object Status and Object Payload are
 omitted; if trailing bytes follow, the endpoint <span class="bcp14">MUST</span> close the session with
 <code>MALFORMED_OBJECT</code>.<a href="#section-11.2.1-4.5.1" class="pilcrow">¶</a></p>
@@ -7998,7 +7997,7 @@ Malformed (<a href="#malformed-tracks" class="auto internal xref">Section 12.1</
 </li>
             <li class="normal" id="section-11.3.2-13.4">
               <p id="section-11.3.2-13.4.1"><strong>OMIT_PAYLOAD</strong> (0x10): When 1, the Object is a Normal Object with its
-payload omitted (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>); Object Payload Length carries the
+payload omitted (<a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>); Object Payload Length carries the
 omitted payload's byte length and Object Payload and Object Status are
 omitted.<a href="#section-11.3.2-13.4.1" class="pilcrow">¶</a></p>
 </li>
@@ -8323,7 +8322,7 @@ prior Object's ID plus one, regardless of which group it belongs to. If the comp
 would be greater than 2^64-1, the Subscriber <span class="bcp14">MUST</span> close the Session with
 <code>DELTA_ENCODING_OVERFLOW</code>.<a href="#section-11.4.1.1-7" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-8">The Object Properties structure is defined in <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>.<a href="#section-11.4.1.1-8" class="pilcrow">¶</a></p>
-<p id="section-11.4.1.1-9">When <code>INCLUDE_PAYLOAD</code> is 0 (<a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>), <code>Object Payload Length</code>
+<p id="section-11.4.1.1-9">When <code>OMIT_PAYLOAD</code> is 1 (<a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>), <code>Object Payload Length</code>
 carries the omitted payload's byte length and <code>Object Payload</code> is omitted.<a href="#section-11.4.1.1-9" class="pilcrow">¶</a></p>
 <p id="section-11.4.1.1-10">When encoding an Object with a Delivery Mode of "Datagram" (see
 <a href="#object-properties" class="auto internal xref">Section 11.1.2</a>), the object has no Subgroup ID. The publisher <span class="bcp14">MUST</span> SET bit 0x40 to '1'.
@@ -9912,9 +9911,9 @@ Setup Options <span class="bcp14">SHOULD</span> request a provisional registrati
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x37</td>
-              <td class="text-left" rowspan="1" colspan="1">INCLUDE_PAYLOAD</td>
+              <td class="text-left" rowspan="1" colspan="1">OMIT_PAYLOAD</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#include-payload-param" class="auto internal xref">Section 9.19.23</a>
+                <a href="#omit-payload-param" class="auto internal xref">Section 9.19.23</a>
 </td>
             </tr>
           </tbody>
