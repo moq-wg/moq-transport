@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 19 May 2027                                       I. Swett, Ed.
+Expires: 20 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        15 November 2026
+                                                        16 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 May 2027.
+   This Internet-Draft will expire on 20 May 2027.
 
 Copyright Notice
 
@@ -5263,7 +5263,7 @@ EXT 1 and EXT N can be modified or removed by Relays
    session with TRUNCATED_OBJECT.
 
    A publisher SHOULD NOT open more than one stream at a time with the
-   same Subgroup Header field values.
+   same Track Alias, Group ID, and Subgroup ID.
 
 11.3.1.  Object Stream
 
@@ -5292,9 +5292,12 @@ EXT 1 and EXT N can be modified or removed by Relays
 
    When STATUS is 0, there is no explicit length field for the Object
    Payload; all bytes on the stream following the header until FIN form
-   the payload.  If an OBJECT_STREAM is reset before FIN, the receiver
-   MUST discard the incomplete Object and MUST NOT treat the Object or
-   END_OF_GROUP as received.
+   the payload.  When STATUS is 1, the stream MUST end with FIN
+   immediately after Object Status; if additional bytes follow, the
+   endpoint MUST close the session with MALFORMED_OBJECT.  If an
+   OBJECT_STREAM is reset before FIN, the receiver MUST discard the
+   incomplete Object and MUST NOT treat the Object or END_OF_GROUP as
+   received.
 
 11.3.2.  Subgroup Header
 
