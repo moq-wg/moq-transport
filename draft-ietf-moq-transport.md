@@ -1014,82 +1014,53 @@ and does not evaluate Track Properties in PUBLISH messages.
 
 #### FilterSets {#filter-sets}
 
-FilterSets allow Range Filters to match boolean combinations of Track
-Properties (via TRACK_PROPERTY_FILTER) or boolean combinations of Object
-Properties and Object header fields (via SUBGROUP_FILTER, OBJECTID_FILTER,
-PRIORITY_FILTER, and OBJECT_PROPERTY_FILTER).  Because TRACK_PROPERTY_FILTER
-evaluates Tracks on a SUBSCRIBE_TRACKS request while the other Range Filters
-evaluate Objects on resulting Subscriptions ({{parameters-on-subscribe-tracks}}),
+FilterSets group Range Filters into boolean combinations of Track Properties
+(via TRACK_PROPERTY_FILTER) or of Object Properties and Object header fields.
 SetIDs are scoped independently between TRACK_PROPERTY_FILTER and Object Range
-Filters; a TRACK_PROPERTY_FILTER and an Object Range Filter carrying the same
-SetID in a SUBSCRIBE_TRACKS message are not combined into the same FilterSet.
+Filters; carrying the same SetID in a SUBSCRIBE_TRACKS message does not combine
+them.
 
-Each non-empty Range Filter parameter carries an 8-bit SetID (0-255) that
-identifies the FilterSet it belongs to.  A single SetID suffices when all
-filter conditions must hold simultaneously; multiple SetIDs express an OR of
-distinct conjunctions that OR'd Ranges within a single parameter cannot (for
-example, when a relay aggregates downstream subscriptions with different
-filter criteria onto a single upstream subscription).
+Each non-empty Range Filter carries an 8-bit SetID (0-255) identifying its
+FilterSet.  Multiple SetIDs express an OR of distinct conjunctions (for
+example, when a relay aggregates subscribers with different filters onto one
+upstream subscription).
 
-Within a given scope (Track or Object), the evaluation rules are:
+Within each scope (Track or Object):
 
-* Ranges within a single Range Filter parameter are combined with logical OR.
-* Range Filter parameters carrying the same SetID are combined with logical
-  AND to form a FilterSet.
-* Distinct populated FilterSets (SetIDs that have at least one active Range
-  Filter parameter) are combined with logical OR.
+* Ranges within a single Range Filter parameter are OR'd.
+* Range Filter parameters with the same SetID are AND'd to form a FilterSet.
+* Non-empty FilterSets (SetIDs with at least one active Range Filter) are OR'd.
 
-Only populated FilterSets participate in evaluation; SetIDs with no active
-Range Filter parameters do not match.  If there are no active Range Filter
-parameters in a scope (zero populated FilterSets), no Range Filtering is
-applied and all Tracks or Objects pass.  When at least one FilterSet is
-populated, the overall match condition is an OR of ANDs across all populated
-SetIDs, and a Track or Object passes if any one populated FilterSet matches.
+Empty SetIDs do not match; if no Range Filters are active in a scope, all
+Tracks or Objects pass.
 
 #### Updating Range Filters {#updating-range-filters}
 
-Range Filters on a subscription or SUBSCRIBE_TRACKS request can be added,
-modified, or removed by the subscriber in a REQUEST_UPDATE message
-({{message-request-update}}).  Updates apply per Range Filter Parameter Type
-rather than per SetID or per Property Type:
+A subscriber can add, modify, or remove Range Filters on a subscription or
+SUBSCRIBE_TRACKS request via REQUEST_UPDATE ({{message-request-update}}).
+Updates apply per Parameter Type across all FilterSets and Property Types:
 
-* If a Range Filter Parameter Type is omitted from REQUEST_UPDATE, all
-  existing filters of that Parameter Type (across all FilterSets and Property
-  Types) remain unchanged.
-* Including one or more instances of a Range Filter Parameter Type with
-  non-zero Length replaces all previously configured filters of that Parameter
-  Type across all FilterSets and (for Track and Object Property Filters) all
-  Property Types.  Any previously configured SetID or Property Type for that
-  Parameter Type not included in the REQUEST_UPDATE is removed.
-* Including a Range Filter Parameter Type with Length of 0 removes all
-  previously configured filters of that Parameter Type across all FilterSets
-  and Property Types.
+* Omitting a Parameter Type leaves its existing filters unchanged.
+* Including one or more non-zero Length instances replaces all existing
+  filters of that Parameter Type; omitted SetIDs and Property Types are
+  removed.
+* Including a Length of 0 removes all filters of that Parameter Type.
 
-The MAX_FILTER_RANGES limit applies to the resulting total number of active
-Ranges after applying the REQUEST_UPDATE; if exceeded, the endpoint MUST
-reject the REQUEST_UPDATE with REQUEST_ERROR with error code INVALID_FILTER.
+MAX_FILTER_RANGES applies to the resulting active Ranges after the update.
+To remove a FilterSet, the subscriber must update every Parameter Type it used
+(resending remaining FilterSets for shared types and sending Length=0 for types
+used only by that FilterSet); otherwise, the omitted Parameter Types leave that
+SetID active with a wider match.
 
-Because each Parameter Type is replaced across all FilterSets, removing a
-FilterSet requires updating every Parameter Type that belonged to that
-FilterSet: resending all remaining FilterSets for any Parameter Type still in
-use, and sending Length of 0 for any Parameter Type used only by the removed
-FilterSet.  Omitting a Parameter Type that belonged to the removed FilterSet
-leaves those parameters active for its SetID, widening that FilterSet rather
-than removing it.  Removing all remaining Range Filter parameters across all
-Parameter Types leaves the request unfiltered.
-
-For example, suppose a subscription starts with FilterSet 0 matching Subgroup
-1 and application-defined Object Property 0x78 equal to 0:
+For example, starting from FilterSet 0 (Subgroup 1 AND Object Property 0x78=0):
 
 ~~~
 SUBGROUP_FILTER         SetID=0  Range=1
 OBJECT_PROPERTY_FILTER  SetID=0  Property=0x78  Range=0
 ~~~
 
-To add a second FilterSet (SetID=1) matching Subgroup 4 and Publisher Priority
-200..255, the subscriber includes both SetIDs for SUBGROUP_FILTER (so SetID=0
-is retained) and adds PRIORITY_FILTER, while omitting OBJECT_PROPERTY_FILTER
-(unchanged):
+Add FilterSet 1 (Subgroup 4 AND Priority 200..255), retaining SetID=0's
+SUBGROUP_FILTER and leaving OBJECT_PROPERTY_FILTER unchanged:
 
 ~~~
 SUBGROUP_FILTER  SetID=0  Range=1
@@ -1097,18 +1068,15 @@ SUBGROUP_FILTER  SetID=1  Range=4
 PRIORITY_FILTER  SetID=1  Range=200..255
 ~~~
 
-To update SetID=0's Object Property 0x78 filter to match 0..1, the subscriber
-sends the updated OBJECT_PROPERTY_FILTER (if any other FilterSet or Property
-Type also used OBJECT_PROPERTY_FILTER, it would need to be re-included as
-well):
+Update SetID=0's Property 0x78 filter to 0..1 (any other active
+OBJECT_PROPERTY_FILTER would also need to be re-included):
 
 ~~~
 OBJECT_PROPERTY_FILTER  SetID=0  Property=0x78  Range=0..1
 ~~~
 
-To remove FilterSet 1 while keeping FilterSet 0, the subscriber re-sends
-SUBGROUP_FILTER with SetID=0 only, sends PRIORITY_FILTER with Length=0 (since
-no remaining FilterSet uses it), and omits OBJECT_PROPERTY_FILTER:
+Remove FilterSet 1 by resending SUBGROUP_FILTER without SetID=1 and clearing
+PRIORITY_FILTER:
 
 ~~~
 SUBGROUP_FILTER  SetID=0  Range=1
