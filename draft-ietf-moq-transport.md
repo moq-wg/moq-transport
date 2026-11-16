@@ -408,10 +408,10 @@ A publisher MUST NOT signal that an Object does not exist unless it knows the
 Object has never existed and never will; otherwise it signals that the Object is
 Gone or Unknown.  For example, a publisher that restarts without state and
 resumes a Track at a new Group, or that retains only recent history, signals
-earlier Objects as Gone in FETCH responses.  Only the original publisher
-originates Gone (see {{relay-fetch-handling}}).  Because another source can
-still hold a Gone Object, receiving an Object that was recorded as Gone or
-Unknown is not an error.
+earlier Objects as Gone in subscriptions ({{object-status}}) or FETCH responses
+({{end-of-range}}).  Only the original publisher originates Gone (see
+{{relay-fetch-handling}}).  Because another source can still hold a Gone Object,
+receiving an Object that was recorded as Gone or Unknown is not an error.
 
 Whenever the publisher communicates that certain objects do not exist, this
 fact is expressed as a contiguous range of non-existent objects and
@@ -1880,9 +1880,9 @@ the type of the stream.
 |------------:|:------------------------------------------------|
 | 0x05        | FETCH_HEADER  ({{fetch-header}})                |
 |-------------|-------------------------------------------------|
-| 0b0XX1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
+| 0b00X1XXXX  | SUBGROUP_HEADER  ({{subgroup-header}})          |
 |-------------|-------------------------------------------------|
-| 0b01X0XXXX  | OBJECT_STREAM ({{object-stream}})               |
+| 0b01XXXXXX  | OBJECT_STREAM ({{object-stream}})               |
 |-------------|-------------------------------------------------|
 | 0x2F00      | SETUP ({{message-setup}})                       |
 |-------------|-------------------------------------------------|
@@ -4535,12 +4535,20 @@ cache, and forward it.  Objects are sent by publishers.
 The Object Status is a field that is only present in objects that are delivered
 via a SUBSCRIPTION, and is absent in Objects delivered via a FETCH.  It allows
 the publisher to explicitly communicate that a specific range of objects does
-not exist.
+not exist or is Gone (see {{object-states}}).
 
 `Status` can have the following values:
 
 * 0x0 := Normal object. This status is implicit when the Object Status field is
          omitted, and can also be explicitly encoded for zero-length objects.
+
+* 0x2 := Indicates Gone (see {{object-states}}). In a Datagram or OBJECT_STREAM,
+         indicates that the specified Object is Gone. In a SUBGROUP_HEADER
+         stream, indicates that the specified Object is Gone, along with any
+         skipped Objects in the Subgroup after the previous Object on the stream
+         (or from Object ID 0 through the specified Object ID if FIRST_OBJECT is
+         set). When the END_OF_GROUP bit is also set, all Objects in the Group
+         with an Object ID greater than the specified Object ID are also Gone.
 
 * 0x3 := Indicates End of Group. Indicates that no objects with the specified
          Group ID and the Object ID that is greater than or equal to the one
@@ -4645,9 +4653,10 @@ are present in the datagram:
   Properties Length of 0, it MUST close the session with
   `MALFORMED_OBJECT`.
 
-* The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1, this
-  indicates that no Object with the same Group ID and an Object ID greater than
-  the Object ID in this datagram exists.
+* The **END_OF_GROUP** bit (0x02) indicates End of Group. When set to 1 on a
+  Normal Object, this indicates that no Object with the same Group ID and an
+  Object ID greater than the Object ID in this datagram exists; when set to 1
+  with Object Status Gone (0x2), those Objects are Gone.
 
 * The **ZERO_OBJECT_ID** bit (0x04) indicates when the Object ID field is
   present.  When set to 1, the Object ID field is omitted and the Object ID
@@ -4669,15 +4678,16 @@ The following Type Flags values are invalid. If an endpoint receives a datagram
 with any of these values, it MUST close the session with
 `INVALID_STREAM_HEADER`:
 
-* Values with both the STATUS bit (0x20) and END_OF_GROUP bit (0x02) set.
-
 * Values with bit 4 (0x10) set. This bit is reserved and MUST be zero.
 
 * Values with a bit set whose meaning is not specified.
 
-If an Object Datagram includes both the STATUS bit and PROPERTIES bit, and the
-Object Status is not Normal (0x0), the endpoint MUST close the session with
-`INVALID_OBJECT_STATUS`, because only Normal Objects can have Properties.
+If an Object Datagram has both the STATUS bit (0x20) and END_OF_GROUP bit (0x02)
+set when the Object Status is not Gone (0x2), the endpoint MUST close the
+session with `MALFORMED_OBJECT`. If an Object Datagram includes both the STATUS
+bit and PROPERTIES bit, and the Object Status is not Normal (0x0), the endpoint
+MUST close the session with `INVALID_OBJECT_STATUS`, because only Normal Objects
+can have Properties.
 
 ## Subgroup Streams
 
@@ -4752,16 +4762,8 @@ The Type Flags field in the SUBGROUP_HEADER is a variable-length integer that
 encodes a set of flags. All values defined in this specification fit in a
 single-byte encoding (values less than 128).
 
-Bit 4 is always set to 1. Bits 0-2 and bits 5-6 determine which fields are
-present in the header:
-
-* The **PROPERTIES** bit (0x01) indicates when the Properties field is present
-  in all Objects in this Subgroup. When set to 1, the Object Properties structure
-  defined in {{object-properties}} is present in all Objects; Objects with no
-  properties or non-Normal status set Properties Length to 0. When set to 0, the
-  field is never present in this Subgroup. Because the value applies to every
-  Object in the Subgroup, a sender that might include Properties in any later
-  Object, including a relay that might add or forward them, sets this bit to 1.
+Bit 4 is always set to 1 and bit 6 is always 0. Bits 1-3 and bit 5 are defined
+as follows:
 
 * The **SUBGROUP_ID_MODE** field (bits 1-2, mask 0x06) is a two-bit field that
   determines the encoding of the Subgroup ID. To extract this value, perform a
@@ -4773,14 +4775,15 @@ present in the header:
   * 0b10: The Subgroup ID field is present in the header.
   * 0b11: Reserved for future use.
 
+* The **FIRST_OBJECT** bit (0x08) indicates that the first object in this
+  subgroup stream is the first object published in the subgroup by the original
+  publisher.
+
 * The **DEFAULT_PRIORITY** bit (0x20) indicates when the Priority field is
   present. When set to 1, the Priority field is omitted and this Subgroup
   inherits the Publisher Priority specified in the control message that
   established the subscription. When set to 0, the Priority field is present in
   the Subgroup header.
-
-* The **FIRST_OBJECT** bit (0x40) indicates that the first object in this
-subgroup stream is the first object published in the subgroup by the original publisher.
 
 The following Type Flags values are invalid. If an endpoint receives a stream
 header with any of these values, it MUST close the session with
@@ -4797,31 +4800,48 @@ header with any of these values, it MUST close the session with
 To send an Object with `Delivery Mode` = `Subgroup`, find the open
 stream that is associated with the subscription, `Group ID` and `Subgroup ID`,
 or open a new one and send the `SUBGROUP_HEADER`. Then serialize the
-following fields.
-
-The Object Status field is only sent if the Object Payload Length is zero.
-
-The Object ID Delta + 1 is added to the previous Object ID in the Subgroup
-stream if there was one.  The Object ID is the Object ID Delta if it's the first
-Object in the Subgroup stream. If the resulting Object ID would be greater
-than 2^64 - 1, the endpoint MUST close the session with
-`DELTA_ENCODING_OVERFLOW`. For example, a Subgroup of sequential Object IDs
-starting at 0 will have 0 for all Object ID Delta values. A consumer cannot
-infer information about the existence of Objects between the current and
-previous Object ID in the Subgroup (e.g. when Object ID Delta is non-zero)
-unless there is a Prior Object ID Gap property (see
-{{prior-object-id-gap}}).
+following fields:
 
 ~~~
 {
-  Object ID Delta (vi64),
+  Object Flags (vi64),
+  [Object ID Delta (vi64),]
   [Properties (..),]
-  Object Payload Length (vi64),
+  [Object Payload Length (vi64),]
   [Object Status (vi64),]
   [Object Payload (..),]
 }
 ~~~
 {: #object-subgroup-format title="MOQT Subgroup Object Fields"}
+
+The four low-order bits and bit 5 of Object Flags encode per-Object metadata:
+
+* **PROPERTIES** (0x01): When 1, Properties ({{object-properties}}) are present;
+  if Properties Length is 0, the endpoint MUST close the session with
+  `MALFORMED_OBJECT`.
+* **END_OF_GROUP** (0x02): When 1 on a Normal Object, no Object with the same
+  Group ID and a larger Object ID exists (or with Object Status Gone, those
+  Objects are Gone); any subsequent Object on the stream makes the track
+  Malformed ({{malformed-tracks}}).
+* **DELTA_MODE** (bits 2-3, mask 0x0C): Determines the Object ID delta:
+  * 0b00, 0b01, 0b10: Object ID Delta is omitted and the delta is 0, 1, or 2.
+  * 0b11: Object ID Delta is present and the delta is Object ID Delta + 3.
+* **STATUS** (0x20): When 1, Object Status is present and Object Payload Length
+  and Object Payload are omitted. When 0, Object Payload Length and Object
+  Payload are present and Object Status is omitted.
+
+If an Object has Object Flags with both STATUS (0x20) and END_OF_GROUP (0x02)
+set when Object Status is not Gone (0x2), or any unspecified bit set (including
+values >= 128), the endpoint MUST close the session with `MALFORMED_OBJECT`. If
+both STATUS and PROPERTIES are set and Object Status is not Normal (0x0), the
+endpoint MUST close the session with `INVALID_OBJECT_STATUS`.
+
+The Object ID is the decoded delta for the first Object in the stream, and the
+previous Object ID + decoded delta + 1 for subsequent Objects; if it would
+exceed 2^64 - 1, the endpoint MUST close the session with
+`DELTA_ENCODING_OVERFLOW`. A consumer cannot infer whether Objects exist between
+non-consecutive Object IDs unless a Prior Object ID Gap property
+({{prior-object-id-gap}}) is present.
 
 
 ### Closing Subgroup Streams {#closing-subgroup-streams}
@@ -4890,13 +4910,14 @@ Group boundaries to avoid doing so.
 An MOQT implementation that processes a stream FIN is assured it has received
 all objects in a subgroup from the start of the subscription. If a relay, it
 can forward stream FINs to its own subscribers once those objects have been
-sent. A relay MAY treat receipt of End of Group or End of Track objects as a
-signal to close corresponding streams even if the FIN has not arrived, as
-further objects on the stream would be a protocol violation.
+sent. A relay MAY treat receipt of an Object with the END_OF_GROUP bit or End
+of Group or End of Track status as a signal to close corresponding streams even
+if the FIN has not arrived, as further objects would make the track malformed.
 
-Similarly, an Object with the END_OF_GROUP bit or End of Group status indicates
-the maximum Object ID in the Group, so if all Objects in the Group have been
-received, a FIN can be sent on any stream where the entire subgroup has been sent.
+Similarly, an Object with the END_OF_GROUP bit on a Normal Object or End of
+Group status indicates the maximum Object ID in the Group, so if all Objects in
+the Group have been received, a FIN can be sent on any stream where the entire
+subgroup has been sent.
 
 Processing a reset means that there might be other
 objects in the Subgroup beyond the last one received. A relay might immediately
@@ -5136,10 +5157,10 @@ include:
 3. A Subgroup is received over multiple transport streams terminated by FIN with
    different final Objects.
 4. An Object is received in a Group whose Object ID is larger than the final
-   Object in the Group.  The final Object in a Group is the Object with Status
-   END_OF_GROUP, or the Object in an OBJECT_STREAM or OBJECT_DATAGRAM which has
-   the END_OF_GROUP bit set.  If the end of a Group is implicitly determined via
-   a gap in a FETCH response, the final Object in the Group remains unknown.
+   Object in the Group.  The final Object in a Group is indicated by the
+   END_OF_GROUP bit on a Normal Object, Object Status END_OF_GROUP, or End of
+   Group in a FETCH response.  If the end of a Group is implicitly determined
+   via a gap in a FETCH response, the final Object in the Group remains unknown.
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK.
@@ -5261,8 +5282,8 @@ INVALID_STREAM_HEADER (0x200):
 : A data stream or datagram has an unknown type or invalid Type Flags.
 
 MALFORMED_OBJECT (0x201):
-: The serialization of an Object on a data stream or in a datagram cannot be
-  decoded, for example a flag references a prior Object that does not exist.
+: The serialization of an Object on a data stream or in a datagram is invalid or
+  cannot be decoded, e.g., a flag references a nonexistent prior Object.
 
 INVALID_OBJECT_STATUS (0x202):
 : An Object has an invalid Object Status, or has Properties when its status is
@@ -6059,6 +6080,7 @@ status is permitted to carry a non-empty payload.
 | Code | Name | Payload | Specification |
 |-----:|:-----|:--------|:--------------|
 | 0x0 | Normal | Yes | {{object-status}} |
+| 0x2 | Gone | No | {{object-status}} |
 | 0x3 | End of Group | No | {{object-status}} |
 | 0x4 | End of Track | No | {{object-status}} |
 
