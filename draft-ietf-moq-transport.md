@@ -1015,7 +1015,7 @@ and does not evaluate Track Properties in PUBLISH messages.
 FilterSets allow Range Filters to match boolean combinations of Track
 properties or combinations of Object properties and Object header
 fields using filter sets.  SetIDs are not shared between Object Property
-Filters and Range Filters on Objects. Each Range
+fields using FilterSets. SetIDs are not shared between Object Property
 Filter parameter carries an 8-bit SetID (0-255) that identifies the set
 it belongs to.
 
@@ -1031,11 +1031,29 @@ The overall match condition for a request is therefore an OR of ANDs:
 of every filter parameter tagged with SetID=i.  An Object matches the
 request if any one filter set matches.
 
-A single SetID suffices when all conditions must hold; multiple SetIDs
+it belongs to.
+
+A single SetID suffices when all conditions must hold; express an OR of distinct conjunctions that OR'd Ranges on a single field cannot.
+
+The evaluation rules are:
+
+* Ranges within a single filter parameter are combined with logical OR.
+* Filter parameters carrying the same SetID are combined with logical AND.
+* Filter sets (parameters carrying different SetIDs) are combined with logical OR.
+
+The overall match condition for a request is therefore an OR of ANDs:
+`(set 0) OR (set 1) OR ... OR (set 255)`, where each `set i` is the AND of every filter parameter tagged with SetID=i. An Object matches the request if any one filter set matches.
 express an OR of distinct conjunctions that OR'd Ranges on a single
 field cannot.
 
-Examples use the wire encoding from {{range-filter-structure}} and
+### Updating Range Filters {#updating-range-filters}
+
+Range Filters can be added, modified, or removed in a `REQUEST_UPDATE` message.
+
+When updating Range Filters:
+* Including a Range Filter parameter with a given SetID in a `REQUEST_UPDATE` message replaces the existing filter parameter with that SetID.
+* Setting the Length of a Range Filter parameter to 0 in `REQUEST_UPDATE` removes that filter parameter.
+* Unmodified SetIDs continue to be evaluated as previously defined.
 Range Filter parameters from {{message-params}}.  Assume Track Property
 `codec` and Object Property `layer` have even Property Types known to
 both endpoints.
