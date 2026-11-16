@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 29 April 2027                                     I. Swett, Ed.
+Expires: 20 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         26 October 2026
+                                                        16 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 April 2027.
+   This Internet-Draft will expire on 20 May 2027.
 
 Copyright Notice
 
@@ -4479,7 +4479,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    The Largest Object used in the computation is the value of the
    parameter in the SUBSCRIBE_OK, FETCH_OK, or REQUEST_UPDATE_OK in
-   response to the message that contains the LARGEST_OBJECT parameter.
+   response to the message that contains the LOCATION_FILTER parameter.
    If LOCATION_FILTER is provided in PUBLISH_STATE_NOTIFY, the filter
    anchors off the LARGEST_OBJECT included in the same message.  If
    LARGEST_OBJECT is omitted, all objects will have a location larger
@@ -6876,9 +6876,9 @@ Normative References
    [I-D.ietf-webtrans-overview]
               Kinnear, E. and V. Vasiliev, "The WebTransport Protocol
               Framework", Work in Progress, Internet-Draft, draft-ietf-
-              webtrans-overview-13, 6 July 2026,
+              webtrans-overview-14, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-overview-13>.
+              webtrans-overview-14>.
 
    [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
               Multiplexed and Secure Transport", RFC 9000,
@@ -6935,18 +6935,18 @@ Normative References
    [WebTransport]
               Frindell, A., Kinnear, E., and V. Vasiliev, "WebTransport
               over HTTP/3", Work in Progress, Internet-Draft, draft-
-              ietf-webtrans-http3-16, 6 July 2026,
+              ietf-webtrans-http3-17, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-
-              webtrans-http3-16>.
+              webtrans-http3-17>.
 
 Informative References
 
-   [CAT]      Law, W., Lemmons, C., Simon, G., and S. Nandakumar,
+   [CAT]      Lemmons, C., Simon, G., Nandakumar, S., and W. Law,
               "Authorization scheme for MOQT using Common Access
               Tokens", Work in Progress, Internet-Draft, draft-ietf-moq-
-              c4m-01, 18 June 2026,
+              c4m-02, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-c4m-
-              01>.
+              02>.
 
    [I-D.draft-jennings-moq-quicr-proto]
               Jennings, C. F., Nandakumar, S., and C. Huitema, "QuicR -
@@ -6981,23 +6981,23 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-09, 24 September 2026,
+              draft-ietf-scone-protocol-10, 28 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-09>.
+              protocol-10>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
               Vasiliev, V., and W. Xie, "WebTransport over HTTP/2", Work
-              in Progress, Internet-Draft, draft-ietf-webtrans-http2-15,
-              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
-              ietf-webtrans-http2-15>.
+              in Progress, Internet-Draft, draft-ietf-webtrans-http2-16,
+              2 November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-webtrans-http2-16>.
 
    [PPA]      Nandakumar, S., Jennings, C. F., and T. Meunier, "Privacy
               Pass Authentication for Media over QUIC (MoQ)", Work in
               Progress, Internet-Draft, draft-ietf-moq-privacy-pass-
-              auth-03, 6 July 2026,
+              auth-04, 1 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              privacy-pass-auth-03>.
+              privacy-pass-auth-04>.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
