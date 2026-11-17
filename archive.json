@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-15T05:33:19.765333+00:00",
+  "timestamp": "2026-11-17T07:10:31.421859+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -54004,7 +54004,7 @@
       ],
       "body": "MOQT has Track and Object property scopes but nothing \"in between\", i.e. no general way to attach metadata to a Subgroup or a Group.\n\nSubgroup scope is being emulated for SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT which, \"as an Object Property on the first object in a subgroup, [override] the Track-level value for that subgroup\". And the scope for object property PRIOR_GROUP_ID_GAP is weird, but definitely not scoped to a given object.\n\nUsing object properties as emulation for wider than object scope has a number of problems.\n1. Mid-group join may miss them\n2. A fetch range may be mid-group\n\nboth of those existed for long time, but reading group without the beginning could be considered transient state, but \n\n3. Filters may exclude this metadata even in \"steady-state\". \n\nFrom general extensibility standpoint, I am missing this metadata when trying to build application on top of MOQT, and first-object as group emulation is, at minimum, hacky. I feel this is a missing extension point and should be there given that object model is the foundation of moqt. \n\nIt seems relatively easy to add subgroup properties, given that subgroup headers exist, but the single-byte bit-field compressed type is practically full.\nTrue group-level would require more significant changes in the data plane. As would some other generic data-plane metadata carrier. But both of those could bring more resilient mechanism to add metadata. \n\nI understand that this may be quite heavy change, possibly past-deadline, but I feel this should have a dedicated general discussion.\n\nDo people think we should have an additional extension point for metadata in data-plane? Which/where/how? \n",
       "createdAt": "2026-08-24T17:11:49Z",
-      "updatedAt": "2026-10-30T18:36:33Z",
+      "updatedAt": "2026-11-16T17:07:28Z",
       "closedAt": null,
       "comments": [
         {
@@ -54146,6 +54146,20 @@
           "body": "@michalhosna I was thinking we would carve out property ranges that indicate which are subgroup properties.",
           "createdAt": "2026-10-30T18:36:33Z",
           "updatedAt": "2026-10-30T18:36:33Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If the main issue is available bits, then #2068 solves that problem and #2067 builds on it.  Are there other issues?",
+          "createdAt": "2026-11-16T03:22:22Z",
+          "updatedAt": "2026-11-16T03:22:22Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> [@michalhosna](https://github.com/michalhosna) I was thinking we would carve out property ranges that indicate which are subgroup properties.\n\nThis feels janky, to re-use my previous term.  I would prefer to not do that.",
+          "createdAt": "2026-11-16T17:07:28Z",
+          "updatedAt": "2026-11-16T17:07:28Z"
         }
       ]
     },
@@ -56469,7 +56483,7 @@
       ],
       "body": "In Fetch-Fill, it's possible that while delivering some of the Objects, others become permanently unavailable.\n\nIf those Objects are past the initial Largest Object, there's no way to indicate that they're unavailable in the same way Fetch can.\n\nFor example, if one does a Fetch-Fill to join 20 seconds behind the latest Object and has enough bandwidth to catch up, but it takes time (ie: 10s), then if the Objects the Fetch-Fill said would be delivered via Subscribe are permanently unavailable, it's unclear what to do.",
       "createdAt": "2026-10-22T01:55:37Z",
-      "updatedAt": "2026-11-14T04:24:01Z",
+      "updatedAt": "2026-11-17T05:24:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -56513,6 +56527,20 @@
           "body": "I'm not sure there's anything actionable in this issue?",
           "createdAt": "2026-11-14T04:24:01Z",
           "updatedAt": "2026-11-14T04:24:01Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Discussed offline with @ianswett \n\n> If those Objects are past the initial Largest Object, there's no way to indicate that they're unavailable in the same way Fetch can.\n\nThe publisher can deal with this more elegantly than reporting \"gone\" and at least in my stack, it's now handled just fine:\n\nThe fetch objects are queued into the moq stack more or less immediately.  Live objects are queued there as they are produced.  Priorities and the underlying transport sort out delivering them.  As long as delivery timeout is sufficiently large, nothing needs to be dropped or marked gone.",
+          "createdAt": "2026-11-17T05:20:09Z",
+          "updatedAt": "2026-11-17T05:20:09Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "However, if the core issue is \"fetch can't express the same range of states as subscriptions\" -- that's true, and it's fine, because \"Gone\" and \"fill Timeout\" don't really apply to subscription objects so long as they are live only.  If you want to serve subscriptions in the past and express all the states. there's a few ways to spell that.\n\nMaybe I would change the GAP properties to be a tuple of {gap, state}, or add a property which is the gap state (defaults to DNE, can also be Gone / Timeout), but it isn't a problem in the draft _today_.",
+          "createdAt": "2026-11-17T05:24:26Z",
+          "updatedAt": "2026-11-17T05:24:26Z"
         }
       ]
     },
@@ -221884,7 +221912,7 @@
       "id": "PR_kwDOG2Ho4M8AAAABBr7_MA",
       "title": "RFC: Make Track Alias a Parameter returned in SUBSCRIBE_OK",
       "url": "https://github.com/moq-wg/moq-transport/pull/1876",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -221894,14 +221922,14 @@
       ],
       "body": "Create a new PR that makes Track Alias a Parameter returned in SUBSCRIBE_OK instead of a required field. When Track Alias isn't returned, the Request ID is used to associate Objects with the correct Subscription.\r\n\r\nThis adds `TRACK_ALIAS` to the IANA Message Parameters table, updates `SUBSCRIBE_OK`, adds a parity rule for `Track Alias`, and renames `Track Alias` to `Track Alias or Request ID` in the object headers.\r\n\r\nFixes #1875 \r\n\r\n---\r\n*PR created automatically by Jules for task [13571905536436668031](https://jules.google.com/task/13571905536436668031) started by @ianswett*",
       "createdAt": "2026-09-01T02:32:09Z",
-      "updatedAt": "2026-10-26T16:23:24Z",
+      "updatedAt": "2026-11-16T02:39:47Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "make-track-alias-parameter-13571905536436668031",
       "headRefOid": "2abe74c147e2dfe81d9e524edf0116823e7abb4c",
-      "closedAt": null,
+      "closedAt": "2026-11-16T02:39:47Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -221912,6 +221940,13 @@
           "body": "I like the idea, but this seems to be contingent on request IDs and track aliases not conflicting, which is slightly challenging since both are effectively arbitrary, but request IDs are at least always picked by the publisher.",
           "createdAt": "2026-09-01T18:15:27Z",
           "updatedAt": "2026-09-01T18:15:27Z"
+        },
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "This PR has bit-rotten, so closing it.",
+          "createdAt": "2026-11-16T02:39:47Z",
+          "updatedAt": "2026-11-16T02:39:47Z"
         }
       ],
       "reviews": [
@@ -223810,13 +223845,13 @@
       ],
       "body": "Extracts the SetID evaluation rules into a dedicated Filter Sets subsection under Range Filters and adds worked examples of AND, OR, mixed conjunctions, and relay aggregation.]\r\n\r\nPart of #1810",
       "createdAt": "2026-09-01T21:26:41Z",
-      "updatedAt": "2026-11-12T20:11:54Z",
+      "updatedAt": "2026-11-16T16:28:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "047c629ff3753dc33b935dbd9d0d0564da87fb63",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "range-set-id",
-      "headRefOid": "c6a5772ca8276f831e2bc03e036d0ab012c7a756",
+      "headRefOid": "76d4ff98e0e30a054dac7d34a1872adc180e8d6e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -228150,7 +228185,7 @@
     {
       "number": 1955,
       "id": "PR_kwDOG2Ho4M8AAAABFKIRZQ",
-      "title": "Add INCLUDE_PAYLOAD parameter",
+      "title": "Add OMIT_PAYLOAD parameter",
       "url": "https://github.com/moq-wg/moq-transport/pull/1955",
       "state": "OPEN",
       "author": "ianswett",
@@ -228160,15 +228195,15 @@
         "Needs Discussion",
         "Design"
       ],
-      "body": "Fixes #1933\r\n\r\nAdds a `INCLUDE_PAYLOAD` parameter (0x36) for `SUBSCRIBE`, `FETCH`, and `SUBSCRIBE_TRACKS` messages to allow subscribers to request only object headers and metadata without payloads.\r\n\r\nIt also introduces the `Object Payload Omitted` (0x1) `Object Status` code, allowing publishers to explicitly specify that a payload was omitted due to the `INCLUDE_PAYLOAD` parameter, preserving metadata capabilities for Relays.\r\n\r\n---\r\n*PR created automatically by Jules for task [12281881590640091795](https://jules.google.com/task/12281881590640091795) started by @ianswett*",
+      "body": "Fixes #1933\n\nStacked on #2067 (`main` -> #2068 -> #2067 -> #1955).\n\nAdds the `OMIT_PAYLOAD` message parameter (`0x37`, `uint8`, default `0`) and matching `OMIT_PAYLOAD` (`0x10`) wire flag bit so subscribers can request Object metadata and accurate payload lengths without receiving Object Payloads (analogous to HTTP `HEAD` returning `Content-Length`).\n\nUsing `OMIT_PAYLOAD` (default `0`, `1` = omit) for both the parameter and the flag bit avoids boolean polarity inversion between control parameters and wire flags and aligns with `PAUSED` (`0x11`).\n\n### Summary of changes\n* **`OMIT_PAYLOAD` parameter (`0x37`)**: Allowed in `SUBSCRIBE`, `PUBLISH`, `SUBSCRIBE_TRACKS`, `FETCH`, `REQUEST_UPDATE` (for a subscription), and inside `FILL_PARAMETERS`. Values `0` (include payloads, default) or `1` (omit payloads); invalid values close the session with `INVALID_PARAMETER`.\n* **Consistent `OMIT_PAYLOAD` (`0x10`) flag bit across all subscription formats**:\n  * Claimed as bit 4 (`0x10`) in `SUBGROUP_HEADER` `Object Flags` (#2067), `OBJECT_DATAGRAM` `Type Flags`, and `OBJECT_STREAM` `Type Flags` (which inherits `OBJECT_DATAGRAM` flags via `0b01XXXXXX` after #2067 relocates `FIRST_OBJECT` to `0x08`). All shared flag bits align (`0x01 PROPERTIES`, `0x02 END_OF_GROUP`, `0x10 OMIT_PAYLOAD`, `0x20 STATUS`).\n  * When `OMIT_PAYLOAD` is set, the Object remains a Normal Object (`STATUS = 0`), so `Properties` and `END_OF_GROUP` work natively, `Object Payload Length` carries the exact byte length of the omitted payload, and `Object Payload` is omitted. No new `Object Status` code is needed.\n  * `STATUS (0x20) | OMIT_PAYLOAD (0x10)` is invalid (`INVALID_STREAM_HEADER` in `OBJECT_DATAGRAM` / `OBJECT_STREAM`; `MALFORMED_OBJECT` in `SUBGROUP_HEADER` `Object Flags`). Trailing bytes after `Object Payload Length` in an `OBJECT_DATAGRAM` or `OBJECT_STREAM` with `OMIT_PAYLOAD` set close the session with `MALFORMED_OBJECT`.\n* **`FETCH` and fill fetch streams**: When requested with `OMIT_PAYLOAD = 1`, `Object Payload Length` carries the omitted payload's length and `Object Payload` is omitted. Updating `OMIT_PAYLOAD` via `REQUEST_UPDATE` applies to subsequent subscription Objects (race-free via per-Object `OMIT_PAYLOAD`) and does not affect open fill fetch streams.\n* **Relays, caching, and malformed tracks**:\n  * Relays MUST use `OMIT_PAYLOAD = 0` upstream if any downstream subscriber has `OMIT_PAYLOAD = 0`, and MAY use `1` otherwise.\n  * Omitted-payload Objects MUST NOT be cached as complete, overwrite a cached payload, or satisfy `OMIT_PAYLOAD = 0` requests.\n  * Duplicate Objects with mismatched `Payload Length` make the Track Malformed.\n",
       "createdAt": "2026-09-25T18:05:36Z",
-      "updatedAt": "2026-10-26T16:22:39Z",
+      "updatedAt": "2026-11-16T19:25:58Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "main",
-      "baseRefOid": "eba3302cf2430f88ca1566da32b832020441ab1d",
+      "baseRefName": "ianswett-subgroup-object-flags",
+      "baseRefOid": "b0ee13fc34ddd064299596d757fcfb56a9097754",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "add-include-payload-parameter-12281881590640091795",
-      "headRefOid": "8ef59458ea9f1108f0b44cb3880c3bec7fc091ee",
+      "headRefOid": "ca387413e7cd99e4144fac466afef00b11a66f07",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -228220,6 +228255,26 @@
               "body": "Ah I missed that you were spelling this with Object Status, but I'd still like to see the length in there.  I think there's no length when status is not normal.  We could either change that rule to length is not present for EOG/EOT, or we could use sg header bits.\r\nFor datagrams, there is never a length field, it goes to the end of the datagram. This would need a different spelling.",
               "createdAt": "2026-10-02T20:33:16Z",
               "updatedAt": "2026-10-02T20:33:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYRzg5Q",
+          "commit": {
+            "abbreviatedOid": "833da0c"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T17:16:12Z",
+          "updatedAt": "2026-11-16T17:16:12Z",
+          "comments": [
+            {
+              "originalPosition": 50,
+              "body": "```suggestion\n  PAUSED, GROUP_ORDER, SUBSCRIBER_PRIORITY,\n```",
+              "createdAt": "2026-11-16T17:16:12Z",
+              "updatedAt": "2026-11-16T17:16:12Z"
             }
           ]
         }
@@ -229550,7 +229605,7 @@
       ],
       "body": "This proposes a way have a common framework for extensions like Top-N, SSTS and unifies with Switch From. \r\n\r\nSome slides that help explain this are at \r\nhttps://cisco.app.box.com/s/q48fxo9zeibkvonlf42uncc16m9z891j\r\n\r\n",
       "createdAt": "2026-10-12T18:47:14Z",
-      "updatedAt": "2026-11-09T11:49:47Z",
+      "updatedAt": "2026-11-17T06:44:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
@@ -229575,6 +229630,13 @@
           "body": "@fluffy @wilaw @mzanaty \r\n\r\nSee the slides: https://docs.google.com/presentation/d/1kgl6MIxr6Q0jG2lFWQltD792HGBMnxwbIEE7-FqJMsU/edit?usp=sharing\r\n\r\n\r\nTried to help and bring together the current options and approaches for Top-N, SSTS, and conditional range filters into a unified overview or conceptual model for discussion and design.\r\n\r\n",
           "createdAt": "2026-11-09T11:46:24Z",
           "updatedAt": "2026-11-09T11:49:47Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "It might help to define a parameter like SELECTED=0/1, which can be sent in PSN when tracks enter and leave the selected state.  All subscriptions have this property.  If the subscriber sends SUBSCRIBE, or receives a PUBLISH, SELECTED is implicitly 1.  Then the object forwarding logic can be `selected && !paused && all-filters-pass`.  This handles the top-tracks \"pinned\" concept when a subscriber explicitly subscribes to a track in a more generic way.",
+          "createdAt": "2026-11-17T06:44:40Z",
+          "updatedAt": "2026-11-17T06:44:40Z"
         }
       ],
       "reviews": [
@@ -233488,15 +233550,15 @@
         "Subscribe",
         "Design"
       ],
-      "body": "When a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery.  Designed to build on #2069 though it can be landed separately.\r\n\r\n* Subscribe-style delivery starts at `FIRST_SUBSCRIBE_GROUP` and prior Groups in the fill range are delivered on the Fill-Fetch stream.\r\n* Clarifies cache-completeness criteria, Range Filter respect, Datagram guidance (`SHOULD NOT`), fill stream end location (`{FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}`), and `INVALID_PARAMETER` bounds.\r\n* Works alongside #2069 (which removes `LOCATION_FILTER` from `FILL_PARAMETERS`); note that if both land, the fill-delivery partition sentence in `#2069` should exclude Groups `>= FIRST_SUBSCRIBE_GROUP`.\r\n\r\nFixes #1358",
+      "body": "Stacked on #2069 (base branch `ianswett-single-fill-location`); this diff shows only the `FIRST_SUBSCRIBE_GROUP` changes.\n\nWhen a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery:\n\n* Subscribe-style delivery starts at `FIRST_SUBSCRIBE_GROUP` (`0x0C`) and prior Groups in the fill range are delivered on the Fill-Fetch stream.\n* Updates `#2069`'s fill-delivery partition rule to exclude Groups `>= FIRST_SUBSCRIBE_GROUP`.\n* Clarifies cache-completeness criteria, Range Filter respect, Datagram guidance (`SHOULD NOT`), fill stream end location (`{FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}`), coalesced `REQUEST_UPDATE_OK` handling, and `INVALID_PARAMETER` bounds.\n\nFixes #1358",
       "createdAt": "2026-10-21T05:13:56Z",
-      "updatedAt": "2026-11-15T04:03:47Z",
+      "updatedAt": "2026-11-16T02:43:27Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "main",
-      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "baseRefName": "ianswett-single-fill-location",
+      "baseRefOid": "e37a2615e511833d500767f92b644c7113082c10",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-style-fill",
-      "headRefOid": "de5ffc1a3281b254dd56d0c5cf94934d13deb5c0",
+      "headRefOid": "b55dfa6ce984519bd00d99315b7a2a8669e3bfad",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -233581,13 +233643,13 @@
       ],
       "body": "Purely editorial. I wasn't able to implement this until asking questions of the editors.",
       "createdAt": "2026-10-22T22:35:36Z",
-      "updatedAt": "2026-10-26T19:41:27Z",
+      "updatedAt": "2026-11-16T07:06:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "e404b9c72f23889f13b0389211e08465230d8502",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "largest-object",
-      "headRefOid": "4326fe1cba5ad603e9941d77429636808e2442f1",
+      "headRefOid": "a4d4d9b870e45bb2431306df49e6403beb9ebe02",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -233731,6 +233793,26 @@
               "body": "we chatted offline, will update.",
               "createdAt": "2026-10-26T19:21:43Z",
               "updatedAt": "2026-10-26T19:21:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYKHFyw",
+          "commit": {
+            "abbreviatedOid": "4326fe1"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T07:05:53Z",
+          "updatedAt": "2026-11-16T07:05:53Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "```suggestion\ncontains the LOCATION_FILTER parameter. If LOCATION_FILTER is provided in\n```",
+              "createdAt": "2026-11-16T07:05:53Z",
+              "updatedAt": "2026-11-16T07:05:53Z"
             }
           ]
         }
@@ -235722,15 +235804,15 @@
       "labels": [
         "Wire Format"
       ],
-      "body": "Replace the per-Subgroup `PROPERTIES` and `END_OF_GROUP` bits in `SUBGROUP_HEADER` with a single-byte `Object Flags (vi64)` field on each Subgroup Object, aligned with `OBJECT_DATAGRAM`:\r\n\r\n- **`PROPERTIES` (`0x01`):** Per-Object Properties presence, avoiding a 1-byte `Properties Length = 0` on property-less Objects in mixed or relayed Subgroups.\r\n- **`END_OF_GROUP` (`0x02`):** Per-Object End of Group signal for both single-Object and multi-Object Subgroups without stream-open prediction hazards when filters change mid-stream.\r\n- **`DELTA_MODE` (`0x0C`):** 2-bit inline Object ID delta (`0`, `1`, `2` inline; `0b11` encodes `delta - 3` in `Object ID Delta`), keeping sequential and 2\u20133 interleaved Subgroups the exact same wire size as before.\r\n- **`STATUS` (`0x20`):** Omits `Object Payload Length` when `Object Status` is present, shrinking standalone status Objects from 3\u20134 bytes to 2 bytes while allowing zero-length `Normal` Objects (`STATUS = 0`, `Object Payload Length = 0`) to carry `END_OF_GROUP`.\r\n\r\nAlso frees bits `0x01` and `0x08` in `SUBGROUP_HEADER` `Type Flags`. (See #2023)\r\n\r\nFixes #2032\r\nAn alternative to #2058 \r\nA cleaner and less error prone fix for #1073",
+      "body": "Stacked on #2068 (base branch `ianswett-object-stream`); this diff shows only the per-Object `Object Flags`, `Gone` status, and `FIRST_OBJECT` bit relocation changes.\n\nReplace the per-Subgroup `PROPERTIES` bit in `SUBGROUP_HEADER` (complementing #2068's removal of `END_OF_GROUP`) with a single-byte `Object Flags (vi64)` field on each `SUBGROUP_HEADER` Object, aligned with `OBJECT_DATAGRAM` and `OBJECT_STREAM`:\n\n- **`PROPERTIES` (`0x01`):** Per-Object Properties presence, avoiding a 1-byte `Properties Length = 0` on property-less Objects in mixed or relayed Subgroups.\n- **`END_OF_GROUP` (`0x02`):** Per-Object End of Group signal for multi-Object Subgroups without stream-open prediction hazards when filters change mid-stream.\n- **`DELTA_MODE` (`0x0C`):** 2-bit inline Object ID delta (`0`, `1`, `2` inline; `0b11` encodes `delta - 3` in `Object ID Delta`), keeping sequential and 2\u20133 interleaved Subgroups the exact same wire size as before.\n- **`STATUS` (`0x20`):** Omits `Object Payload Length` when `Object Status` is present, shrinking standalone status Objects from 3\u20134 bytes to 2 bytes while allowing zero-length `Normal` Objects (`STATUS = 0`, `Object Payload Length = 0`) to carry `END_OF_GROUP`.\n- **`Gone` (`0x2`) Object Status:** Signals `Gone` Objects (or ranges within a `SUBGROUP_HEADER` stream, respecting `FIRST_OBJECT`, and across the remainder of a Group when combined with `END_OF_GROUP`).\n- **`FIRST_OBJECT` (`0x08`) & stream-type alignment:** Moves `FIRST_OBJECT` from bit 6 (`0x40`) into freed bit 3 (`0x08`) so `SUBGROUP_HEADER` occupies `0b00X1XXXX` (bit 6 always 0, bit 0 still free) and `OBJECT_STREAM` occupies all of `0b01XXXXXX` (`0x40 | OBJECT_DATAGRAM Type Flags`) (see #2023).\n\nFixes #2032\nFixes #2034\nAn alternative to #2058\nA cleaner and less error prone fix for #1073",
       "createdAt": "2026-11-12T22:49:14Z",
-      "updatedAt": "2026-11-14T23:50:34Z",
+      "updatedAt": "2026-11-16T17:48:18Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "main",
-      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "baseRefName": "ianswett-object-stream",
+      "baseRefOid": "917f72871ea6e8a877cc6afc66bf153aafc38bd2",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subgroup-object-flags",
-      "headRefOid": "e384e6ac275126abd104cbacdd62fc53784abafb",
+      "headRefOid": "b0ee13fc34ddd064299596d757fcfb56a9097754",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -235744,7 +235826,64 @@
           "updatedAt": "2026-11-13T16:06:17Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYRt9bw",
+          "commit": {
+            "abbreviatedOid": "ed21663"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "I was skeptical at first, but I warmed up to this idea.  Not having a way to have different per-object fields was kind of a mistake, and this solution is wire efficient for a lot of cases.  It does cost an extra byte if Object IDs in a subgroup skip by 3 or more, but I am ok with that tradeoff.\r\n\r\nIt's unclear to me why lumped Gone in here, and it makes it quite a bit messier than it would be otherwise.  If the goal is equivalence between the subscribe and fetch planes, then we'd need stuff like timeout and or more sophistication in the gap headers?",
+          "createdAt": "2026-11-16T17:10:11Z",
+          "updatedAt": "2026-11-16T17:35:37Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "Adding Gone to Object Status is maybe not a bad idea, but seems off the thesis of this PR.",
+              "createdAt": "2026-11-16T17:10:12Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "The Gone range in a subgroup is useful in some track designs but not all (eg starting at non-zero, arbitrary DNE gaps, objects spread out over multiple subgroups). I also find the text here pretty hard to understand.",
+              "createdAt": "2026-11-16T17:12:53Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "Something seems off here.  Maybe the name would need to change if you want to do this.  When this bit is on a Gone status, it's not really signaling EOG anymore in the traditional sense, it's a Gone marker.",
+              "createdAt": "2026-11-16T17:18:01Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 66,
+              "body": "I don't love this carve out.",
+              "createdAt": "2026-11-16T17:19:36Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 137,
+              "body": "0 and 1 seem useful, 2 seems questionable, but we need 2 bits because we need an option to present it.\r\n\r\nWe could leave 0b10 undefined, or we could only use a single bit (for 0 or present).  If you are already on 2 subgroups, maybe the extra byte per object isn't meaningful.  But IETF'ers never choose simplicity over compression.  Never.",
+              "createdAt": "2026-11-16T17:25:59Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 148,
+              "body": "\"decoded delta\" might read better if you name the explicit field, or add a formula that names this as a variable.\r\n\r\nIf the first object in the stream is 0, 1 or 2, I assume I have to use the bits to encode that?",
+              "createdAt": "2026-11-16T17:28:09Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            },
+            {
+              "originalPosition": 190,
+              "body": "This text was already there, but why isn't the final Object in the group known in the fetch case?",
+              "createdAt": "2026-11-16T17:30:54Z",
+              "updatedAt": "2026-11-16T17:35:37Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 2068,
@@ -235758,15 +235897,15 @@
       "labels": [
         "Wire Format"
       ],
-      "body": "Remove `END_OF_GROUP` (`0x08`) from `SUBGROUP_HEADER` and introduce `OBJECT_STREAM` (`0b01X0XXXX`) for single-Object Subgroups, using the same `0x01`, `0x02`, `0x04`, `0x08`, and `0x20` Type Flags and field layout as `OBJECT_DATAGRAM`:\r\n\r\n- **Solves #2032 without `SUBGROUP_HEADER` edge cases:** `OBJECT_STREAM` carries a single Object (`Delivery Mode = Subgroup`, `Subgroup ID = Object ID`, `FIRST_OBJECT = 1`) whose payload runs to `FIN`, and resets before `FIN` discard the incomplete Object without inferring `END_OF_GROUP`.\r\n- **Smaller single-Object Subgroups:** Omits `Object Payload Length` and uses `ZERO_OBJECT_ID` (`0x04`), matching `OBJECT_DATAGRAM` wire overhead (3 B for `Object ID = 0`, 4 B for `Object ID = 1..127` \u2014 1\u20132 B smaller than `main`).\r\n- **Frees `SUBGROUP_HEADER` bit `0x08`:** Useful for Subgroup Properties (#2023).\r\n\r\nFixes #2032\r\nAn alternative to #2058 and #2067\r\n\r\nIt's not clear to me what we need Object Status for on this or Datagram, but I kept it for consistency.",
+      "body": "Remove `END_OF_GROUP` (`0x08`) from `SUBGROUP_HEADER` and introduce `OBJECT_STREAM` (`0b01X0XXXX`) for single-Object Subgroups, using the same `0x01`, `0x02`, `0x04`, `0x08`, and `0x20` Type Flags and field layout as `OBJECT_DATAGRAM`:\n\n- **Solves #2032 without `SUBGROUP_HEADER` edge cases:** `OBJECT_STREAM` carries a single Object (`Delivery Mode = Subgroup`, `Subgroup ID = Object ID`, `FIRST_OBJECT = 1`) whose payload runs to `FIN` (or ends immediately after `Object Status` when `STATUS = 1`), and resets before `FIN` discard the incomplete Object without inferring `END_OF_GROUP`.\n- **Smaller single-Object Subgroups:** Omits `Object Payload Length` and uses `ZERO_OBJECT_ID` (`0x04`), matching `OBJECT_DATAGRAM` wire overhead (3 B for `Object ID = 0`, 4 B for `Object ID = 1..127` \u2014 1\u20132 B smaller than `main`, offsetting explicit 1-byte `Publisher Priority` when non-default; see #1270 / #1957).\n- **Frees `SUBGROUP_HEADER` bit `0x08`:** Useful for Subgroup Properties (#2023).\n\nFixes #2032\nAn alternative to #2058; complements #2067 (which moves `PROPERTIES` and `END_OF_GROUP` onto per-Object `Object Flags` for multi-Object Subgroups and adds `Gone` status).\n\nIt's not clear to me what we need Object Status for on this or Datagram, but I kept it for consistency.",
       "createdAt": "2026-11-14T15:21:04Z",
-      "updatedAt": "2026-11-15T02:30:46Z",
+      "updatedAt": "2026-11-16T17:49:57Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-object-stream",
-      "headRefOid": "83824021f7576f43e83e189f913cf0471f0d0f6c",
+      "headRefOid": "917f72871ea6e8a877cc6afc66bf153aafc38bd2",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -235792,6 +235931,38 @@
               "updatedAt": "2026-11-15T00:30:48Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYSGlBA",
+          "commit": {
+            "abbreviatedOid": "917f728"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "We should acknowledge there's a subtle break here which is that since d06 all objects have the length up-front, and the API surfaces have baked around that.\r\n\r\nSee #355 \r\n\r\nI don't know that by itself it warrants the churn?  We already had this discussion and removed this, and decided if we wanted it, it could be an extension:\r\n\r\n(2024-02-08): \"In meeting we decided add a length to everything. We can add extension later to have no length if we need.\"",
+          "createdAt": "2026-11-16T17:37:43Z",
+          "updatedAt": "2026-11-16T17:49:57Z",
+          "comments": [
+            {
+              "originalPosition": 49,
+              "body": "lower case may!",
+              "createdAt": "2026-11-16T17:37:43Z",
+              "updatedAt": "2026-11-16T17:49:57Z"
+            },
+            {
+              "originalPosition": 94,
+              "body": "I'm confused if this is a subgroup or not.  If it is, maybe we should include SUBGROUP in the name?",
+              "createdAt": "2026-11-16T17:39:30Z",
+              "updatedAt": "2026-11-16T17:49:57Z"
+            },
+            {
+              "originalPosition": 133,
+              "body": "the return of draft 0-3 concepts",
+              "createdAt": "2026-11-16T17:42:44Z",
+              "updatedAt": "2026-11-16T17:49:57Z"
+            }
+          ]
         }
       ]
     },
@@ -235808,15 +235979,215 @@
         "Needs Discussion",
         "Design"
       ],
-      "body": "Simplify Fill-Fetch semantics and prevent extra Objects from being sent when seeking or updating a subscription:\n\n* Remove `LOCATION_FILTER` from `FILL_PARAMETERS`; the fill range is always determined by the subscription's `LOCATION_FILTER` up to `Largest Object` (and does not open a fill fetch stream if no Objects have been published yet, the range is empty, or it starts after `Largest Object`).\n* Specify that once processing a fill range begins, Objects in the fill range are delivered on the fill fetch stream instead of being subscription-delivered (unless skipped as a Timed-Out gap on the fill fetch stream), preventing duplicate delivery without needing two separate Location Filters or retroactive tracking across prior subscription delivery.\n* Limit a subscription to at most one open fill fetch stream at a time: cancelling or pausing a subscription (`PAUSED=1`, consistent with subgroup resets), or sending a `REQUEST_UPDATE` containing `LOCATION_FILTER` or `FILL_PARAMETERS`, resets any open fill fetch stream for that subscription before opening a new one.\n* Allow coalescing `REQUEST_UPDATE` messages that contain `FILL_PARAMETERS`, opening at most one fill fetch stream for the last surviving `FILL_PARAMETERS` without opening streams for superseded updates (publishers can still reject excessive update churn with `EXCESSIVE_LOAD`).\n\nThis also simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035 and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n\nFixes #2048\nFixes #1992",
+      "body": "Simplify Fill-Fetch semantics and prevent extra Objects from being sent when seeking or updating a subscription:\n\n* Remove `LOCATION_FILTER` from `FILL_PARAMETERS`; the fill range is always determined by the subscription's `LOCATION_FILTER` up to `Largest Object` (and does not open a fill fetch stream if no Objects have been published yet, the range is empty, or it starts after `Largest Object`).\n* Clarify that the fill fetch stream inherits the subscription's parameters in effect when the fill begins (subsequent `REQUEST_UPDATE`s do not retroactively update an open fill fetch stream's priority or parameters).\n* Specify that once processing a fill range begins, Objects in the fill range are delivered on the fill fetch stream instead of being subscription-delivered (unless skipped as a Timed-Out gap on the fill fetch stream), preventing duplicate delivery without needing two separate Location Filters or retroactive tracking across prior subscription delivery.\n* Limit a subscription to at most one open fill fetch stream at a time: cancelling or pausing a subscription (`PAUSED=1`, consistent with subgroup resets), or sending a `REQUEST_UPDATE` containing `LOCATION_FILTER` or `FILL_PARAMETERS`, resets any open fill fetch stream for that subscription with `CANCELLED` before opening a new one.\n* Allow coalescing `REQUEST_UPDATE` messages that contain `FILL_PARAMETERS`, opening at most one fill fetch stream for the last surviving `FILL_PARAMETERS` without opening streams for superseded updates (publishers can still reject excessive update churn with `EXCESSIVE_LOAD`).\n\nThis also simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035, #2063, and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n\nFixes #2048\nFixes #2066",
       "createdAt": "2026-11-15T02:44:52Z",
-      "updatedAt": "2026-11-15T05:06:36Z",
+      "updatedAt": "2026-11-16T19:38:45Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-single-fill-location",
-      "headRefOid": "222d9926a872fa7f5c40320a119e6b9e257e252b",
+      "headRefOid": "e37a2615e511833d500767f92b644c7113082c10",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYSUcNg",
+          "commit": {
+            "abbreviatedOid": "e37a261"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "This is two concepts in one and I think it would be clearer if we split it in two:\r\n\r\n1. Limit to one Fill Fetch at a time\r\n2. Remove independent location filter between subscribe and fetch.",
+          "createdAt": "2026-11-16T17:54:03Z",
+          "updatedAt": "2026-11-16T18:13:59Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "This was the original design in #1642 - only the subscription gets a range - but the working group preferred to keep the ranges independent.  I recall @vasilvv in particular felt strongly about this?",
+              "createdAt": "2026-11-16T17:54:03Z",
+              "updatedAt": "2026-11-16T18:13:59Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "when the fill begins - this could be a subtle change - are you attempting to include e.g. request updates to the subscription before the fill stream opens?",
+              "createdAt": "2026-11-16T17:56:01Z",
+              "updatedAt": "2026-11-16T18:13:59Z"
+            },
+            {
+              "originalPosition": 56,
+              "body": "These rules are complex.  I need to track which objects I have / haven't delivered via the fill stream before forwarding them to a particular subscriber.",
+              "createdAt": "2026-11-16T17:59:55Z",
+              "updatedAt": "2026-11-16T18:13:59Z"
+            },
+            {
+              "originalPosition": 68,
+              "body": "Why cancel fill when paused?  Again I think maybe the original design did that, but the wg wanted more legos.",
+              "createdAt": "2026-11-16T18:00:43Z",
+              "updatedAt": "2026-11-16T18:13:59Z"
+            },
+            {
+              "originalPosition": 133,
+              "body": "If the publisher unilaterally coalesces fills, does the subscriber always know whether or not it's going to get a fill fetch stream?  I guess once it sends out a second fill it stops expecting the first one.  It might still show up though, so it needs to have enough state to reject it and/or not blow up the connection.\r\n",
+              "createdAt": "2026-11-16T18:13:11Z",
+              "updatedAt": "2026-11-16T18:13:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYTwy1g",
+          "commit": {
+            "abbreviatedOid": "e37a261"
+          },
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T19:38:44Z",
+          "updatedAt": "2026-11-16T19:38:45Z",
+          "comments": [
+            {
+              "originalPosition": 56,
+              "body": "I agree. This complicates the implementation. ",
+              "createdAt": "2026-11-16T19:38:45Z",
+              "updatedAt": "2026-11-16T19:38:45Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2070,
+      "id": "PR_kwDOG2Ho4M8AAAABPRdTow",
+      "title": "Best-effort SWITCH_FROM for aligned tracks",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2070",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Stacked on #2069 (base branch `ianswett-single-fill-location`); this diff shows only the `SWITCH_FROM` changes.\r\n\r\nAlternative to / simplification of #1674 that scopes `SWITCH_FROM` (`0x24`) to a best-effort hand-off between aligned tracks:\r\n\r\n* **Single-varint wire format:** `SWITCH_FROM` (`0x24`) is a single `varint` containing the Request ID of the old subscription to switch from (dropping the `Mode` registry, `Publish Done` bit, `SWITCHED_AWAY`, and `INVALID_SWITCH`).\r\n* **Publisher/Relay selects the aligned transition Group:** Instead of deriving the switch point mechanically from a subscriber-specified `LOCATION_FILTER` on the new track, the publisher/relay selects the aligned transition Group `N` on the new track (and ends the old subscription at Group `M = N - 1`, or the preceding aligned Group) based on its local view of both tracks and bandwidth, reporting the updated `LOCATION_FILTER`s via `PUBLISH_STATE_NOTIFY`.\r\n* **Fill:** If the message also carries `FILL_PARAMETERS`, the publisher may pick a transition Group at or before the new track's Largest Object Group; the fill fetch stream opens when the switch executes, with a fill range starting at `{N, 0}`. Without `FILL_PARAMETERS`, `N` is a later Group.\r\n* **Unified failure handling via `PUBLISH_STATE_NOTIFY` (`PAUSED=1`):** Whenever a switch cannot be completed cleanly (whether immediately or after `SUBSCRIBE_OK` / `REQUEST_UPDATE_OK` while evaluating upstream/downstream bandwidth or alignment), the publisher leaves the old subscription unmodified, resets any streams opened for the new subscription, and pauses the new subscription via `PUBLISH_STATE_NOTIFY` with `PAUSED=1`.\r\n\r\nFixes #1354\r\nCloses #1674 ",
+      "createdAt": "2026-11-15T05:42:48Z",
+      "updatedAt": "2026-11-16T19:32:37Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "ianswett-single-fill-location",
+      "baseRefOid": "e37a2615e511833d500767f92b644c7113082c10",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-minimal-switch-from",
+      "headRefOid": "254d5ff5378b7de897b897694dea96be0c896455",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYR7rSw",
+          "commit": {
+            "abbreviatedOid": "ad42583"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T17:25:55Z",
+          "updatedAt": "2026-11-16T17:25:55Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "```suggestion\nexcessive overlap, and typically responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK\n```",
+              "createdAt": "2026-11-16T17:25:55Z",
+              "updatedAt": "2026-11-16T17:25:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYSYU_Q",
+          "commit": {
+            "abbreviatedOid": "363be71"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T17:58:34Z",
+          "updatedAt": "2026-11-16T17:58:34Z",
+          "comments": [
+            {
+              "originalPosition": 39,
+              "body": "```suggestion\nIf the publisher cannot complete the switch (for example, the new Track is not\navailable or bandwidth is insufficient), it leaves the old subscription\n```",
+              "createdAt": "2026-11-16T17:58:34Z",
+              "updatedAt": "2026-11-16T17:58:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYTqIEg",
+          "commit": {
+            "abbreviatedOid": "254d5ff"
+          },
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T19:31:25Z",
+          "updatedAt": "2026-11-16T19:31:26Z",
+          "comments": [
+            {
+              "originalPosition": 38,
+              "body": "IMO a switch timeout can be set by the subscriber as a parameter. If it is not set, relay decides when to cancel the switch.",
+              "createdAt": "2026-11-16T19:31:26Z",
+              "updatedAt": "2026-11-16T19:31:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABYTrS2A",
+          "commit": {
+            "abbreviatedOid": "254d5ff"
+          },
+          "author": "zafergurel",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-16T19:32:37Z",
+          "updatedAt": "2026-11-16T19:32:37Z",
+          "comments": [
+            {
+              "originalPosition": 42,
+              "body": "Does `active` mean an `existing` or `old` subscription?",
+              "createdAt": "2026-11-16T19:32:37Z",
+              "updatedAt": "2026-11-16T19:33:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2071,
+      "id": "PR_kwDOG2Ho4M8AAAABPmpuTw",
+      "title": "Clarify FilterSets and updating Range Filters",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2071",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Editorial"
+      ],
+      "body": "Extracts FilterSet evaluation rules into a `FilterSets` subsection and adds an `Updating Range Filters` subsection under `Range Filters`:\n\n* Clarifies that `TRACK_PROPERTY_FILTER` and Object Range Filters use independent `SetID` scopes (they are not combined into the same FilterSet in `SUBSCRIBE_TRACKS`).\n* Clarifies evaluation of populated vs. unpopulated FilterSets (unpopulated `SetID`s do not match; zero populated FilterSets means no Range Filtering is applied).\n* Documents `REQUEST_UPDATE` per-Parameter-Type replacement and `Length = 0` removal rules across all FilterSets and Property Types, with worked examples for adding a second FilterSet, updating a Property Filter, and removing one of two FilterSets.\n* Clarifies `Range Filter Structure`, `MAX_FILTER_RANGES`, and `FILL_PARAMETERS` edge cases (rejecting `Length = 0` alongside another instance of the same Parameter Type, rejecting `Length > 0` with zero Ranges, `MAX_FILTER_RANGES` applying to `SUBSCRIBE_TRACKS` and resulting active Ranges after `REQUEST_UPDATE`, and per-Parameter-Type override semantics inside `FILL_PARAMETERS`).\n\nPart of #1810\nSupersedes #1894",
+      "createdAt": "2026-11-16T17:51:57Z",
+      "updatedAt": "2026-11-16T18:08:09Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "filter-sets-and-updates",
+      "headRefOid": "a7e2ee59ce97e112eb1e05cf1ac52ed335d8c068",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
