@@ -2045,16 +2045,10 @@ cases built on relay to relay communication, are out of scope.
 Relays MAY cache Objects, but are not required to.
 
 A caching relay saves Objects to its cache identified by the Object's Full Track
-Name, Group ID and Object ID. If multiple Objects are received with the same
-Full Track Name, Group ID and Object ID, the relay MAY replace all cached Object
-Properties with those of the most recently received Object.  Likewise, a relay
-that receives Track Properties for a cached Track (other than in response to a
-request with INCLUDE_PROPERTIES set to 0; see {{include-properties-param}}) MAY
-replace all cached Track Properties with the newly received set.  When updating
-cached Properties, a relay MUST replace all previously cached Properties with
-the new ones and MUST NOT merge sets of Properties received in different
-messages or Objects.  Because caching relays are not required to update cached
-Properties, applications cannot rely on updates (see {{properties}}).
+Name, Group ID and Object ID. When a relay receives a duplicate Object or Track
+Properties for a cached Track, it MAY update the cached Properties, in which
+case it MUST replace all cached Properties with the newly received set and MUST
+NOT merge sets of Properties.
 
 An endpoint that receives a duplicate Object with a different Delivery
 Mode, Subgroup ID, Priority, Immutable Properties or Payload MUST treat the
@@ -2478,10 +2472,8 @@ Property as described in {{mandatory-track-properties}}, the Relay:
 * MUST cache the Property with the Track or Object.
 * MUST allow multiple instances of the Property.
 
-If a Track or Object arrives with a different set of Properties than previously
-cached, a caching relay might or might not update its cache (see
-{{caching-relays}}).  Applications MUST NOT rely on Track or Object Properties
-being updated.
+Applications MUST NOT rely on Track or Object Properties being updated, as
+caching relays are not required to update cached Properties ({{caching-relays}}).
 
 If a Relay supports a Property, it MUST follow the processing rules in the
 Property's definition.  Unless those rules permit otherwise:
@@ -4308,10 +4300,8 @@ The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It MAY appear
 in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
 OK message sent in response includes Track Properties or whether the resulting PUBLISH
 messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
-is 0, the Track Properties are still present in the message, but they SHOULD be empty;
-the receiver MUST NOT treat the omitted Track Properties as an empty Property set when
-checking Immutable Properties ({{immutable-properties}}) or updating cached Track
-Properties ({{caching-relays}}).
+is 0, the Track Properties are still present in the message, but they SHOULD be empty,
+and empty Track Properties MUST be ignored.
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `INVALID_PARAMETER`.
@@ -4424,10 +4414,8 @@ following conditions are detected:
 
  * A Track or Object contains an Immutable Properties property that contains
    another Immutable Properties key.
- * A Track or Object has different Immutable Properties bytes (including
-   presence or absence of the Property) than previously received for the same
-   Track or Object, except when Track Properties are omitted because
-   INCLUDE_PROPERTIES ({{include-properties-param}}) was 0.
+ * A Track or Object has different serialized Immutable Properties than
+   previously received for the same Track or Object.
  * A Key-Value-Pair cannot be parsed.
 
 The following figure shows an example Object structure with a combination of
@@ -5121,9 +5109,9 @@ include:
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK.
-6. The same Object is received more than once with a different Subgroup ID,
-   Priority, Immutable Properties, or Payload, or a Track is received with
-   different Immutable Properties than previously observed.
+6. A Track or Object has different Immutable Properties than previously
+   observed, or a duplicate Object has a different Subgroup ID, Priority, or
+   Payload.
 7. An Object is received with a different Delivery Mode than previously
    observed.
 8. A supported Property is received outside its scope, such as a Track-only
