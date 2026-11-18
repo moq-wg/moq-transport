@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 7 May 2027                                        I. Swett, Ed.
+Expires: 22 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                         3 November 2026
+                                                        18 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 May 2027.
+   This Internet-Draft will expire on 22 May 2027.
 
 Copyright Notice
 
@@ -2434,14 +2434,16 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Relays MAY cache Objects, but are not required to.
 
    A caching relay saves Objects to its cache identified by the Object's
-   Full Track Name, Group ID and Object ID.  If multiple objects are
+   Full Track Name, Group ID and Object ID.  If multiple Objects are
    received with the same Full Track Name, Group ID and Object ID, the
-   relay SHOULD replace the cached Object Properties with those of the
-   most recently received Object.  Likewise, a relay that receives Track
-   Properties for a cached Track SHOULD replace the cached Track
-   Properties.  Relays MUST NOT merge sets of Properties received in
-   different messages or Objects, unless a Property's definition
-   specifies otherwise.
+   relay MAY replace all cached Object Properties with those of the most
+   recently received Object.  Likewise, a relay that receives Track
+   Properties for a cached Track MAY replace all cached Track Properties
+   with the newly received set.  When updating cached Properties, a
+   relay MUST replace all previously cached Properties with the new ones
+   and MUST NOT merge sets of Properties received in different messages
+   or Objects.  Applications MUST NOT rely on Track or Object Properties
+   being updated.
 
    An endpoint that receives a duplicate Object with a different
    Delivery Mode, Subgroup ID, Priority, Immutable Properties or Payload
@@ -2903,8 +2905,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
    *  MUST allow multiple instances of the Property.
 
-   If a Track or Object arrives with a different set of properties than
-   previously cached, the cache is updated as described in Section 7.1.
+   If a Track or Object arrives with a different set of Properties than
+   previously cached, a caching relay MAY update the cache as described
+   in Section 7.1.  Applications MUST NOT rely on Track or Object
+   Properties being updated.
 
    If a Relay supports a Property, it MUST follow the processing rules
    in the Property's definition.  Unless those rules permit otherwise:
@@ -7172,9 +7176,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-10, 28 October 2026,
+              draft-ietf-scone-protocol-11, 16 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-10>.
+              protocol-11>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
