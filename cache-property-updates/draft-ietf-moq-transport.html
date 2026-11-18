@@ -4290,16 +4290,9 @@ cases built on relay to relay communication, are out of scope.<a href="#section-
         </h3>
 <p id="section-7.1-1">Relays <span class="bcp14">MAY</span> cache Objects, but are not required to.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">A caching relay saves Objects to its cache identified by the Object's Full Track
-Name, Group ID and Object ID. If multiple Objects are received with the same
-Full Track Name, Group ID and Object ID, the relay <span class="bcp14">MAY</span> replace all cached Object
-Properties with those of the most recently received Object.  Likewise, a relay
-that receives Track Properties for a cached Track (other than in response to a
-request with INCLUDE_PROPERTIES set to 0; see <a href="#include-properties-param" class="auto internal xref">Section 9.19.22</a>) <span class="bcp14">MAY</span>
-replace all cached Track Properties with the newly received set.  When updating
-cached Properties, a relay <span class="bcp14">MUST</span> replace all previously cached Properties with
-the new ones and <span class="bcp14">MUST NOT</span> merge sets of Properties received in different
-messages or Objects.  Because caching relays are not required to update cached
-Properties, applications cannot rely on updates (see <a href="#properties" class="auto internal xref">Section 8.4</a>).<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+Name, Group ID and Object ID. When a relay receives a duplicate Object or Track
+Properties for a cached Track, it <span class="bcp14">MAY</span> update the cached Properties, in which
+case it <span class="bcp14">MUST</span> replace all cached Properties with the newly received set and <span class="bcp14">MUST NOT</span> merge sets of Properties.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">An endpoint that receives a duplicate Object with a different Delivery
 Mode, Subgroup ID, Priority, Immutable Properties or Payload <span class="bcp14">MUST</span> treat the
 track as Malformed.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
@@ -4868,10 +4861,8 @@ Property as described in <a href="#mandatory-track-properties" class="auto inter
             <p id="section-8.4-4.4.1"><span class="bcp14">MUST</span> allow multiple instances of the Property.<a href="#section-8.4-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.4-5">If a Track or Object arrives with a different set of Properties than previously
-cached, a caching relay might or might not update its cache (see
-<a href="#caching-relays" class="auto internal xref">Section 7.1</a>).  Applications <span class="bcp14">MUST NOT</span> rely on Track or Object Properties
-being updated.<a href="#section-8.4-5" class="pilcrow">¶</a></p>
+<p id="section-8.4-5">Applications <span class="bcp14">MUST NOT</span> rely on Track or Object Properties being updated, as
+caching relays are not required to update cached Properties (<a href="#caching-relays" class="auto internal xref">Section 7.1</a>).<a href="#section-8.4-5" class="pilcrow">¶</a></p>
 <p id="section-8.4-6">If a Relay supports a Property, it <span class="bcp14">MUST</span> follow the processing rules in the
 Property's definition.  Unless those rules permit otherwise:<a href="#section-8.4-6" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -7304,10 +7295,8 @@ that SUBSCRIBE_TRACKS's Request ID.<a href="#section-9.19.21-1" class="pilcrow">
 in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
 OK message sent in response includes Track Properties or whether the resulting PUBLISH
 messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
-is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty;
-the receiver <span class="bcp14">MUST NOT</span> treat the omitted Track Properties as an empty Property set when
-checking Immutable Properties (<a href="#immutable-properties" class="auto internal xref">Section 10.7</a>) or updating cached Track
-Properties (<a href="#caching-relays" class="auto internal xref">Section 7.1</a>).
+is 0, the Track Properties are still present in the message, but they <span class="bcp14">SHOULD</span> be empty,
+and empty Track Properties <span class="bcp14">MUST</span> be ignored.
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it <span class="bcp14">MUST</span> close the
 session with <code>INVALID_PARAMETER</code>.<a href="#section-9.19.22-1" class="pilcrow">¶</a></p>
@@ -7447,10 +7436,8 @@ following conditions are detected:<a href="#section-10.7-6" class="pilcrow">¶</
 another Immutable Properties key.<a href="#section-10.7-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.7-7.2">
-            <p id="section-10.7-7.2.1">A Track or Object has different Immutable Properties bytes (including
-presence or absence of the Property) than previously received for the same
-Track or Object, except when Track Properties are omitted because
-INCLUDE_PROPERTIES (<a href="#include-properties-param" class="auto internal xref">Section 9.19.22</a>) was 0.<a href="#section-10.7-7.2.1" class="pilcrow">¶</a></p>
+            <p id="section-10.7-7.2.1">A Track or Object has different serialized Immutable Properties than
+previously received for the same Track or Object.<a href="#section-10.7-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.7-7.3">
             <p id="section-10.7-7.3.1">A Key-Value-Pair cannot be parsed.<a href="#section-10.7-7.3.1" class="pilcrow">¶</a></p>
@@ -8381,9 +8368,9 @@ the final Object in the Track.  The final Object in a Track is the Object
 with Status END_OF_TRACK.<a href="#section-12.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-12.1-2.6">
-            <p id="section-12.1-2.6.1">The same Object is received more than once with a different Subgroup ID,
-Priority, Immutable Properties, or Payload, or a Track is received with
-different Immutable Properties than previously observed.<a href="#section-12.1-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-12.1-2.6.1">A Track or Object has different Immutable Properties than previously
+observed, or a duplicate Object has a different Subgroup ID, Priority, or
+Payload.<a href="#section-12.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-12.1-2.7">
             <p id="section-12.1-2.7.1">An Object is received with a different Delivery Mode than previously
