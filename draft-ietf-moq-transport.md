@@ -989,9 +989,10 @@ SUBSCRIBE_TRACKS message or a REQUEST_UPDATE for it.
 All other Range Filter parameters MAY appear multiple times in a FETCH,
 SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
 subscriber only) message.  If a Range Filter parameter has a Length of 0 and
-another instance of the same Parameter Type appears in the same message, or if
-the same combination of Parameter Type, SetID, and Property Type (for Track
-and Object Property Filters) appears more than once in a message, an endpoint
+another instance of the same Parameter Type appears in the same message (or
+within the same FILL_PARAMETERS), or if the same combination of Parameter Type,
+SetID, and Property Type (for Track and Object Property Filters) appears more
+than once in the same message (or within the same FILL_PARAMETERS), an endpoint
 MUST reject the request with REQUEST_ERROR with error code INVALID_FILTER.
 
 If a Range Filter parameter is omitted from a SUBSCRIBE, FETCH, or
@@ -1000,7 +1001,8 @@ SUBSCRIBE_TRACKS message, the default is no filter for that Parameter Type.
 Range Filters are only allowed if the setup option MAX_FILTER_RANGES
 is non-zero, which limits the total number of Ranges allowed concurrently
 across all active Range Filter parameters for a given subscription, fetch, or
-SUBSCRIBE_TRACKS request.  If this limit is exceeded, an endpoint MUST reject
+SUBSCRIBE_TRACKS request.  If a Range Filter parameter is received when
+MAX_FILTER_RANGES is 0, or if this limit is exceeded, an endpoint MUST reject
 the request with REQUEST_ERROR with error code INVALID_FILTER.
 
 The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
@@ -2630,9 +2632,10 @@ Length (vi64) is the byte count of all fields after itself.  When Length
 is 0, no further fields are present; in REQUEST_UPDATE (see
 {{updating-range-filters}}) and FILL_PARAMETERS (see {{fill-parameters}}),
 this removes all filters of that Parameter Type, and in other messages it
-specifies no filter.  When Length is non-zero, at least one Range MUST be
-present; otherwise, the endpoint MUST reject the request with REQUEST_ERROR
-with error code INVALID_FILTER.
+specifies no filter.  When Length is non-zero, SetID, Property Type (for Track
+and Object Property Filters), and at least one Range MUST be present;
+otherwise, the endpoint MUST reject the request with REQUEST_ERROR with error
+code INVALID_FILTER.
 
 Each Range is an inclusive Start/End pair.  End is optional in the last
 pair; if omitted it indicates the last Range is open-ended.
@@ -3065,8 +3068,9 @@ The MAX_FILTER_RANGES option (Type 0x06) limits the peer's total number of Range
 (Start/End pairs) allowed concurrently in all Range Filter {{range-filters}}
 parameters for a given subscription, fetch, or SUBSCRIBE_TRACKS request.  The
 default value is 0, so if not specified, the peer MUST NOT send any such filter
-parameters.  If this limit is
-exceeded, an endpoint MUST reject this with REQUEST_ERROR with error code INVALID_FILTER.
+parameters.  If a Range Filter parameter is received when MAX_FILTER_RANGES is
+0, or if this limit is exceeded, an endpoint MUST reject the request with
+REQUEST_ERROR with error code INVALID_FILTER.
 
 ### MAX_REQUEST_UPDATES {#max-request-updates}
 
