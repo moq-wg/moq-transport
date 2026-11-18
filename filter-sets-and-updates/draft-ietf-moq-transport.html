@@ -23,13 +23,13 @@ agnostic and can be used for a wide range of use cases.
 <!-- Generator version information:
   xml2rfc 3.35.0
     Python 3.14.10
-    ConfigArgParse 1.9.0
+    ConfigArgParse 1.10.1
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.14.3
+    platformdirs 4.14.7
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 20 May 2027</td>
+<td class="center">Expires 22 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-16" class="published">16 November 2026</time>
+<time datetime="2026-11-18" class="published">18 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-20">20 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-22">22 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 20 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -3066,16 +3066,18 @@ SUBSCRIBE_TRACKS message or a REQUEST_UPDATE for it.
 All other Range Filter parameters <span class="bcp14">MAY</span> appear multiple times in a FETCH,
 SUBSCRIBE, SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
 subscriber only) message.  If a Range Filter parameter has a Length of 0 and
-another instance of the same Parameter Type appears in the same message, or if
-the same combination of Parameter Type, SetID, and Property Type (for Track
-and Object Property Filters) appears more than once in a message, an endpoint
+another instance of the same Parameter Type appears in the same message (or
+within the same FILL_PARAMETERS), or if the same combination of Parameter Type,
+SetID, and Property Type (for Track and Object Property Filters) appears more
+than once in the same message (or within the same FILL_PARAMETERS), an endpoint
 <span class="bcp14">MUST</span> reject the request with REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-3.3.2-4" class="pilcrow">¶</a></p>
 <p id="section-3.3.2-5">If a Range Filter parameter is omitted from a SUBSCRIBE, FETCH, or
 SUBSCRIBE_TRACKS message, the default is no filter for that Parameter Type.<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
 <p id="section-3.3.2-6">Range Filters are only allowed if the setup option MAX_FILTER_RANGES
 is non-zero, which limits the total number of Ranges allowed concurrently
 across all active Range Filter parameters for a given subscription, fetch, or
-SUBSCRIBE_TRACKS request.  If this limit is exceeded, an endpoint <span class="bcp14">MUST</span> reject
+SUBSCRIBE_TRACKS request.  If a Range Filter parameter is received when
+MAX_FILTER_RANGES is 0, or if this limit is exceeded, an endpoint <span class="bcp14">MUST</span> reject
 the request with REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-3.3.2-6" class="pilcrow">¶</a></p>
 <p id="section-3.3.2-7">The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter PUBLISH
 messages with required Track Property types and values.  PUBLISH messages
@@ -5058,9 +5060,10 @@ Range {
 is 0, no further fields are present; in REQUEST_UPDATE (see
 <a href="#updating-range-filters" class="auto internal xref">Section 3.3.2.2</a>) and FILL_PARAMETERS (see <a href="#fill-parameters" class="auto internal xref">Section 9.19.15</a>),
 this removes all filters of that Parameter Type, and in other messages it
-specifies no filter.  When Length is non-zero, at least one Range <span class="bcp14">MUST</span> be
-present; otherwise, the endpoint <span class="bcp14">MUST</span> reject the request with REQUEST_ERROR
-with error code INVALID_FILTER.<a href="#section-8.6-3" class="pilcrow">¶</a></p>
+specifies no filter.  When Length is non-zero, SetID, Property Type (for Track
+and Object Property Filters), and at least one Range <span class="bcp14">MUST</span> be present;
+otherwise, the endpoint <span class="bcp14">MUST</span> reject the request with REQUEST_ERROR with error
+code INVALID_FILTER.<a href="#section-8.6-3" class="pilcrow">¶</a></p>
 <p id="section-8.6-4">Each Range is an inclusive Start/End pair.  End is optional in the last
 pair; if omitted it indicates the last Range is open-ended.<a href="#section-8.6-4" class="pilcrow">¶</a></p>
 <p id="section-8.6-5">Each Start is delta encoded from the prior Range's End (or from 0 for the
@@ -5630,8 +5633,9 @@ undermines the usefulness of implementation identification for debugging.<a href
 (Start/End pairs) allowed concurrently in all Range Filter <a href="#range-filters" class="auto internal xref">Section 3.3.2</a>
 parameters for a given subscription, fetch, or SUBSCRIBE_TRACKS request.  The
 default value is 0, so if not specified, the peer <span class="bcp14">MUST NOT</span> send any such filter
-parameters.  If this limit is
-exceeded, an endpoint <span class="bcp14">MUST</span> reject this with REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-9.1.6-1" class="pilcrow">¶</a></p>
+parameters.  If a Range Filter parameter is received when MAX_FILTER_RANGES is
+0, or if this limit is exceeded, an endpoint <span class="bcp14">MUST</span> reject the request with
+REQUEST_ERROR with error code INVALID_FILTER.<a href="#section-9.1.6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="max-request-updates">
@@ -10985,7 +10989,7 @@ document. All AI-generated content was reviewed and approved by the editors.<a h
 <dd class="break"></dd>
 <dt id="I-D.ietf-scone-protocol">[I-D.ietf-scone-protocol]</dt>
         <dd>
-<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-10</span>, <time datetime="2026-10-28" class="refDate">28 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-10</a>&gt;</span>. </dd>
+<span class="refAuthor">Thomson, M.</span>, <span class="refAuthor">Huitema, C.</span>, <span class="refAuthor">Oku, K.</span>, <span class="refAuthor">Joras, M.</span>, and <span class="refAuthor">L. M. Ihlar</span>, <span class="refTitle">"Standard Communication with Network Elements (SCONE) Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-scone-protocol-11</span>, <time datetime="2026-11-16" class="refDate">16 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-11">https://datatracker.ietf.org/doc/html/draft-ietf-scone-protocol-11</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-webtrans-http2">[I-D.ietf-webtrans-http2]</dt>
         <dd>

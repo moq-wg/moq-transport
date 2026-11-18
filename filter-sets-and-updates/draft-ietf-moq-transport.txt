@@ -5,11 +5,11 @@
 Media Over QUIC                                            S. Nandakumar
 Internet-Draft                                                     Cisco
 Intended status: Standards Track                             V. Vasiliev
-Expires: 20 May 2027                                       I. Swett, Ed.
+Expires: 22 May 2027                                       I. Swett, Ed.
                                                                   Google
                                                         A. Frindell, Ed.
                                                                     Meta
-                                                        16 November 2026
+                                                        18 November 2026
 
 
                        Media over QUIC Transport
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 May 2027.
+   This Internet-Draft will expire on 22 May 2027.
 
 Copyright Notice
 
@@ -1289,10 +1289,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    SUBSCRIBE_TRACKS, or REQUEST_UPDATE (on a subscription, from the
    subscriber only) message.  If a Range Filter parameter has a Length
    of 0 and another instance of the same Parameter Type appears in the
-   same message, or if the same combination of Parameter Type, SetID,
-   and Property Type (for Track and Object Property Filters) appears
-   more than once in a message, an endpoint MUST reject the request with
-   REQUEST_ERROR with error code INVALID_FILTER.
+   same message (or within the same FILL_PARAMETERS), or if the same
+   combination of Parameter Type, SetID, and Property Type (for Track
+   and Object Property Filters) appears more than once in the same
+   message (or within the same FILL_PARAMETERS), an endpoint MUST reject
+   the request with REQUEST_ERROR with error code INVALID_FILTER.
 
    If a Range Filter parameter is omitted from a SUBSCRIBE, FETCH, or
    SUBSCRIBE_TRACKS message, the default is no filter for that Parameter
@@ -1301,9 +1302,10 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Range Filters are only allowed if the setup option MAX_FILTER_RANGES
    is non-zero, which limits the total number of Ranges allowed
    concurrently across all active Range Filter parameters for a given
-   subscription, fetch, or SUBSCRIBE_TRACKS request.  If this limit is
-   exceeded, an endpoint MUST reject the request with REQUEST_ERROR with
-   error code INVALID_FILTER.
+   subscription, fetch, or SUBSCRIBE_TRACKS request.  If a Range Filter
+   parameter is received when MAX_FILTER_RANGES is 0, or if this limit
+   is exceeded, an endpoint MUST reject the request with REQUEST_ERROR
+   with error code INVALID_FILTER.
 
    The Track Property Filter can be used in SUBSCRIBE_TRACKS to filter
    PUBLISH messages with required Track Property types and values.
@@ -3069,8 +3071,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Length is 0, no further fields are present; in REQUEST_UPDATE (see
    Section 3.3.2.2) and FILL_PARAMETERS (see Section 9.19.15), this
    removes all filters of that Parameter Type, and in other messages it
-   specifies no filter.  When Length is non-zero, at least one Range
-   MUST be present; otherwise, the endpoint MUST reject the request with
+   specifies no filter.  When Length is non-zero, SetID, Property Type
+   (for Track and Object Property Filters), and at least one Range MUST
+   be present; otherwise, the endpoint MUST reject the request with
    REQUEST_ERROR with error code INVALID_FILTER.
 
    Each Range is an inclusive Start/End pair.  End is optional in the
@@ -3524,8 +3527,9 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    number of Ranges (Start/End pairs) allowed concurrently in all Range
    Filter Section 3.3.2 parameters for a given subscription, fetch, or
    SUBSCRIBE_TRACKS request.  The default value is 0, so if not
-   specified, the peer MUST NOT send any such filter parameters.  If
-   this limit is exceeded, an endpoint MUST reject this with
+   specified, the peer MUST NOT send any such filter parameters.  If a
+   Range Filter parameter is received when MAX_FILTER_RANGES is 0, or if
+   this limit is exceeded, an endpoint MUST reject the request with
    REQUEST_ERROR with error code INVALID_FILTER.
 
 9.1.7.  MAX_REQUEST_UPDATES
@@ -7264,9 +7268,9 @@ Informative References
               Thomson, M., Huitema, C., Oku, K., Joras, M., and L. M.
               Ihlar, "Standard Communication with Network Elements
               (SCONE) Protocol", Work in Progress, Internet-Draft,
-              draft-ietf-scone-protocol-10, 28 October 2026,
+              draft-ietf-scone-protocol-11, 16 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-scone-
-              protocol-10>.
+              protocol-11>.
 
    [I-D.ietf-webtrans-http2]
               Frindell, A., Kinnear, E., Pauly, T., Thomson, M.,
