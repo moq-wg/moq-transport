@@ -2045,13 +2045,14 @@ cases built on relay to relay communication, are out of scope.
 Relays MAY cache Objects, but are not required to.
 
 A caching relay saves Objects to its cache identified by the Object's Full Track
-Name, Group ID and Object ID. If multiple objects are received with the same
-Full Track Name, Group ID and Object ID, the relay SHOULD replace the cached
-Object Properties with those of the most recently received Object.  Likewise,
-a relay that receives Track Properties for a cached Track SHOULD replace the
-cached Track Properties.  Relays MUST NOT merge sets of Properties received in
-different messages or Objects, unless a Property's definition specifies
-otherwise.
+Name, Group ID and Object ID. If multiple Objects are received with the same
+Full Track Name, Group ID and Object ID, the relay MAY replace all cached Object
+Properties with those of the most recently received Object.  Likewise, a relay
+that receives Track Properties for a cached Track MAY replace all cached Track
+Properties with the newly received set.  When updating cached Properties, a
+relay MUST replace all previously cached Properties with the new ones and MUST
+NOT merge sets of Properties received in different messages or Objects.
+Applications MUST NOT rely on Track or Object Properties being updated.
 
 An endpoint that receives a duplicate Object with a different Delivery
 Mode, Subgroup ID, Priority, Immutable Properties or Payload MUST treat the
@@ -2475,8 +2476,9 @@ Property as described in {{mandatory-track-properties}}, the Relay:
 * MUST cache the Property with the Track or Object.
 * MUST allow multiple instances of the Property.
 
-If a Track or Object arrives with a different set of properties than previously
-cached, the cache is updated as described in {{caching-relays}}.
+If a Track or Object arrives with a different set of Properties than previously
+cached, a caching relay MAY update the cache as described in {{caching-relays}}.
+Applications MUST NOT rely on Track or Object Properties being updated.
 
 If a Relay supports a Property, it MUST follow the processing rules in the
 Property's definition.  Unless those rules permit otherwise:
