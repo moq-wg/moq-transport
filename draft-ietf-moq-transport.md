@@ -2040,20 +2040,19 @@ For the purposes of this specification, a coordinated set of relays are treated
 as a single MOQT relay.  How relays within such a set interconnect, and use
 cases built on relay to relay communication, are out of scope.
 
-## Caching Relays
+## Caching Relays {#caching-relays}
 
 Relays MAY cache Objects, but are not required to.
 
 A caching relay saves Objects to its cache identified by the Object's Full Track
-Name, Group ID and Object ID. If multiple objects are received with the same
-Full Track Name, Group ID and Object ID, Relays MAY ignore subsequently received
-Objects or MAY use them to update certain cached fields. Implementations that
-update the cache need to protect against cache poisoning.  Only Object
-Properties can be added, removed or updated, subject to the constraints of the
-specific property.
+Name, Group ID and Object ID. When a relay receives a duplicate Object or Track
+Properties for a cached Track, it MAY update the cached Properties, in which
+case it MUST replace all cached Properties with the newly received set and MUST
+NOT merge sets of Properties.
 
 An endpoint that receives a duplicate Object with a different Delivery
-Mode, Subgroup ID, Priority or Payload MUST treat the track as Malformed.
+Mode, Subgroup ID, Priority, Immutable Properties or Payload MUST treat the
+track as Malformed.
 
 For ranges of objects that do not exist, relays MAY change the representation
 of a missing range to a semantically equivalent one.  For instance, a relay may
@@ -2473,11 +2472,8 @@ Property as described in {{mandatory-track-properties}}, the Relay:
 * MUST cache the Property with the Track or Object.
 * MUST allow multiple instances of the Property.
 
-If a Track or Object
-arrives with a different set of unknown properties than previously cached,
-the most recent set SHOULD replace any cached values, removing any unknown
-values not present in the new set.  Relays MUST NOT attempt to merge sets
-of unknown properties received in different messages.
+Applications MUST NOT rely on Track or Object Properties being updated, as
+caching relays are not required to update cached Properties ({{caching-relays}}).
 
 If a Relay supports a Property, it MUST follow the processing rules in the
 Property's definition.  Unless those rules permit otherwise:
@@ -4306,7 +4302,8 @@ The INCLUDE_PROPERTIES parameter (Parameter Type 0x35) is a uint8. It MAY appear
 in SUBSCRIBE, TRACK_STATUS, FETCH or SUBSCRIBE_TRACKS. It specifies whether the
 OK message sent in response includes Track Properties or whether the resulting PUBLISH
 messages include Track Properties in the case of SUBSCRIBE_TRACKS. If INCLUDE_PROPERTIES
-is 0, the Track Properties are still present in the message, but they SHOULD be empty.
+is 0, the Track Properties are still present in the message, but they SHOULD be empty,
+and empty Track Properties MUST be ignored.
 The allowed values are 0 (do not send Properties) or 1 (send Properties), and the
 default is 1. If an endpoint receives a value outside this range, it MUST close the
 session with `INVALID_PARAMETER`.
@@ -4401,7 +4398,7 @@ Immutable Properties {
 This Property can be added by the Original Publisher, but MUST NOT be added by
 Relays. This Property MUST NOT be modified or removed and the serialization
 (e.g. variable-length integer encodings) of the Key-Value-Pairs MUST NOT
-change). Like other Properties, Relays MUST cache Immutable Properties if the
+change. Like other Properties, Relays MUST cache Immutable Properties if the
 Object or Track are cached and MUST forward it. Relays MAY decode and view
 the Properties in the Key-Value-Pairs.
 
@@ -4417,8 +4414,10 @@ the Property specification.
 A Track is considered malformed (see {{malformed-tracks}}) if any of the
 following conditions are detected:
 
- * An Object contains an Immutable Properties property that contains another
-   Immutable Properties key.
+ * A Track or Object contains an Immutable Properties property that contains
+   another Immutable Properties key.
+ * A Track or Object has different serialized Immutable Properties than
+   previously received for the same Track or Object.
  * A Key-Value-Pair cannot be parsed.
 
 The following figure shows an example Object structure with a combination of
@@ -4439,7 +4438,7 @@ y = e2e Encrypted Data
 EXT 1 and EXT N can be modified or removed by Relays
 ~~~
 
-An Object MUST NOT contain more than one instance of this property.
+A Track or Object MUST NOT contain more than one instance of this property.
 
 ## Prior Group ID Gap
 
@@ -5112,8 +5111,9 @@ include:
 5. An Object is received whose Group and Object ID are larger than
    the final Object in the Track.  The final Object in a Track is the Object
    with Status END_OF_TRACK.
-6. The same Object is received more than once with different Payload or
-   other immutable properties.
+6. A Track or Object has different Immutable Properties than previously
+   observed, or a duplicate Object has a different Subgroup ID, Priority, or
+   Payload.
 7. An Object is received with a different Delivery Mode than previously
    observed.
 8. A supported Property is received outside its scope, such as a Track-only
