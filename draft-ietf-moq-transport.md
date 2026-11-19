@@ -1840,76 +1840,48 @@ Subscriptions on the replaying client's behalf.
 Relays MAY defer initiating upstream subscriptions until the handshake is complete
 or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
-## Extensibility {#extensibility}
+## Extensibility {#extension-negotiation}
 
-MOQT provides both unnegotiated extension points and session-negotiated
-extensions:
+Some MOQT extension points do not require negotiation in `SETUP`: unknown Setup
+Options ({{message-setup}}), Error Detail types ({{error-details}}), error codes
+({{grease}}), and non-mandatory Track and Object Properties ({{properties}}) are
+ignored by endpoints (and, for Properties, forwarded and cached unchanged by
+relays), while unsupported Mandatory Track Properties
+({{mandatory-track-properties}}) and Session-Level Tracks
+({{session-level-tracks}}) reject only the affected track or request.
 
-* **Unnegotiated extension points** allow endpoints to introduce new metadata or
-  capabilities without prior coordination in `SETUP`. Endpoints ignore unknown
-  Setup Options ({{message-setup}}), unknown Error Detail types
-  ({{error-details}}), and unknown non-mandatory Track and Object Properties
-  ({{properties}}), and treat unknown error codes as `INTERNAL_ERROR`
-  ({{grease}}). Relays forward and cache unknown non-mandatory Properties
-  unchanged ({{properties}}). Mandatory Track Properties
-  ({{mandatory-track-properties}}) and Session-Level Tracks
-  ({{session-level-tracks}}) also do not require `SETUP` negotiation; if
-  unsupported, only the affected track or request is rejected rather than the
-  session.
-
-* **Negotiated extensions** use the exchange of `SETUP` messages to alter or
-  extend session behavior on a single hop. Negotiation in `SETUP` is required
-  for extensions that define new Control Message types ({{message}}), new
-  Message Parameters ({{message-params}}), new Parameter values, new
-  Unidirectional Stream or Datagram types ({{stream-types}}, {{data-streams}}),
-  new Object Status values ({{object-status}}), or changes to existing protocol
-  semantics.
-
-### Extension Negotiation in SETUP {#extension-negotiation}
+Extensions that introduce wire elements or semantics an unextended peer would
+treat as a session error require hop-by-hop negotiation in `SETUP`. This
+includes new Control Message types ({{message}}), Message Parameters
+({{message-params}}), Parameter values, Unidirectional Stream or Datagram types
+({{stream-types}}, {{data-streams}}), Object Status values ({{object-status}}),
+and changes to existing protocol semantics.
 
 Each endpoint declares the negotiated extensions it supports and provides any
-initial values required by those extensions as Setup Options ({{message-setup}})
-in `SETUP`. Once an endpoint has both sent and received `SETUP` messages, it
-determines the set of negotiated extensions for that Session.
+initial values required by those extensions as Setup Options ({{message-setup}},
+{{iana-setup-options}}) in `SETUP`; once both `SETUP` messages are exchanged,
+each endpoint determines the negotiated extensions for the Session. There is no
+generic format for declaring extension support: each extension specification
+defines its Setup Option(s), value format, and negotiation rules (e.g., a
+zero-length option whose presence indicates support, or a list of supported
+extension versions).
 
-There is no generic format for declaring extension support. Each extension
-specification defines the Setup Option or Options used to declare support, the
-format of their values, and the rules for determining whether the extension is
-negotiated. For example, an extension could be declared by a zero-length option
-whose presence indicates support, or by an option carrying a list of supported
-extension versions from which the endpoints select a common version. Setup
-Option types are registered with IANA; see {{iana-setup-options}}.
+An endpoint MUST NOT send negotiated extension constructs that an unextended
+peer would treat as a session error before receiving the peer's `SETUP`
+confirming negotiation, unless the extension explicitly defines safe pre-`SETUP`
+handling. Because `SETUP` applies to a single Session, negotiated extensions
+need to specify Relay behavior when adjacent sessions differ in support.
 
-An endpoint MUST NOT send extension-defined message types, Message Parameters,
-stream types, datagram types, Object Status values, or other wire constructs
-that an unextended peer would treat as a session error until it has received the
-peer's `SETUP` and confirmed that the extension has been negotiated, unless the
-extension specification explicitly defines safe pre-`SETUP` handling.
-
-Because `SETUP` negotiation applies only to a single MOQT Session, extensions
-negotiated via `SETUP` operate hop-by-hop. Specifications for negotiated
-extensions need to define how Relays interact with the extension when it is
-negotiated on some sessions (e.g., downstream) but not others (e.g., upstream).
-
-### Versions and Extensions {#versions-and-extensions}
-
-MOQT versions are identified and negotiated using ALPN
-({{session-establishment}}). A future specification can define a new version of
-MOQT (with a new ALPN identifier) either as a standalone protocol revision or
-incrementally by normative reference to an earlier MOQT specification (for
-example, by requiring support for one or more previously optional extensions as
-part of the new version's baseline). When a new version incorporates an
-extension as mandatory, its specification defines whether the extension's Setup
-Options are still sent in `SETUP` (for instance, to carry configuration values)
-or omitted as implicit from the negotiated ALPN.
-
-Extension specifications MUST state which version(s) of MOQT they target. Unless
-an extension or a future MOQT version states otherwise, extensions defined for
-`moqt` remain usable with subsequent MOQT versions that preserve compatibility
-with the protocol elements used by the extension. Specifications defining new
-versions of MOQT SHOULD describe how extensions defined for prior versions apply
-(for example, by stating general compatibility rules rather than enumerating
-individual extensions).
+MOQT versions are negotiated via ALPN ({{session-establishment}}). A future
+specification can define a new MOQT version (with a new ALPN) incrementally by
+normative reference to an earlier version, such as requiring previously optional
+extensions and specifying whether their Setup Options are still sent in `SETUP`
+or omitted as implicit. Extension specifications MUST state which MOQT
+version(s) they target; unless either specification states otherwise, extensions
+defined for `moqt` remain usable with subsequent versions that preserve
+compatibility with the protocol elements used. New MOQT version specifications
+SHOULD describe how prior extensions apply (e.g., via general compatibility
+rules rather than enumerating individual extensions).
 
 ## Stream Usage
 
