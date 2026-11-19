@@ -96,7 +96,7 @@ This document describes the MOQT protocol and is structured as follows:
 
 * Next, the document describes how Objects are transmitted and MOQT Sessions
   * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
-  * Section 6 {{session-init}} Describes how to initiate a session and key properties of a session, such as extensibility.
+  * Section 6 {{session}} Describes how to initiate a session and key properties of a session, such as extensibility.
   * Section 7 {{relays-moq}} Describes key properties and requirements of MOQT relays
 
 * Then the document describes how Control Messages and Objects are serialized and sent
@@ -1840,32 +1840,44 @@ Subscriptions on the replaying client's behalf.
 Relays MAY defer initiating upstream subscriptions until the handshake is complete
 or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
-### Extension Negotiation {#extension-negotiation}
+## Extensibility {#extension-negotiation}
 
-Endpoints use the exchange of Setup messages to negotiate MOQT extensions.
-Extensions can define new Message types, new Parameters, new Properties,
-new Parameter values, or new framing for Streams and Datagrams.
+Some MOQT extension points do not require `SETUP` negotiation: unknown Setup
+Options ({{message-setup}}), Error Detail types ({{error-details}}), and
+non-mandatory Properties ({{properties}}) are ignored by endpoints (with
+Properties forwarded and cached unchanged by relays); unknown error codes are
+treated as `INTERNAL_ERROR` ({{grease}}); and unsupported Mandatory Track
+Properties ({{mandatory-track-properties}}), Session-Level Tracks
+({{session-level-tracks}}), or Reserved Namespaces ({{reserved-namespaces}}) do
+not terminate the session.
 
-The client and server MUST include all Setup Options {{message-setup}}
-required for the negotiated MOQT version in SETUP.
+Extensions that define new Control Message types ({{message}}), Message
+Parameters (including filters, see {{message-params}}), Parameter values,
+Unidirectional Stream or Datagram types ({{stream-types}}, {{data-streams}}),
+Object Status values ({{object-status}}), or changes to existing protocol
+semantics require hop-by-hop negotiation in `SETUP`. Extensions cannot change
+the `SETUP` message format; such changes require a new version of MOQT.
 
-Each endpoint declares the extensions it supports and provides any initial
-values required by those extensions as Setup Options in SETUP. Once an endpoint
-has both sent and received SETUP messages, it determines the set of negotiated
-extensions.
+Endpoints declare supported extensions and any initial values as Setup Options
+({{message-setup}}, {{iana-setup-options}}) in `SETUP`. There is no generic
+format for extension negotiation: each extension defines its Setup Option(s),
+value format, and negotiation rules (e.g., presence of a zero-length option or a
+list of supported versions). Once both `SETUP` messages are exchanged, each
+endpoint determines the negotiated extensions for the Session; an endpoint MUST
+NOT use a negotiated extension before receiving the peer's `SETUP` unless the
+extension explicitly defines safe pre-`SETUP` handling. Because `SETUP` applies
+to a single Session, negotiated extensions need to define Relay behavior when
+adjacent sessions differ in support.
 
-There is no generic format for declaring extension support. Each extension
-specification defines the Setup Option or Options used to declare support for
-that extension, the format of their values, and the rules for determining
-whether the extension is negotiated. For example, an extension could be
-declared by a zero length option, where presence alone indicates support, or
-by an option carrying a list of supported extension versions from which the
-endpoints select a common version. Setup Option types are registered with
-IANA; see {{iana-setup-options}}.
-
-New versions of MOQT MUST specify which existing extensions can be used with
-that version. New extensions MUST specify the existing versions with which they
-can be used.
+MOQT versions are negotiated during session establishment
+({{session-establishment}}). A new version can be defined incrementally by
+normative reference to an earlier version (for example, requiring previously
+optional extensions and specifying whether their Setup Options remain sent or
+become implicit). Extension specifications MUST state the MOQT version(s) they
+target and remain usable with compatible subsequent versions unless either
+specification states otherwise. New MOQT versions SHOULD state how prior
+extensions apply (e.g., via general compatibility rules rather than enumerating
+individual extensions).
 
 ## Stream Usage
 
@@ -2864,11 +2876,10 @@ MAX_CONTROL_MESSAGE_SIZE, it MUST close the session with
 
 The `SETUP` message is the first message each endpoint sends on its control
 stream (see {{session-init}}); it allows the endpoints to agree on the initial
-configuration before any other control messages are exchanged. An endpoint that
-is not offering extensions which modify control message semantics MAY pipeline
-other control messages after SETUP without waiting for the peer's SETUP.
-Endpoints SHOULD NOT send such requests (and related Objects) that offer such
-extensions before receiving the peer SETUP.
+configuration before any other control messages are exchanged. An endpoint MAY
+pipeline other control messages and Objects after sending SETUP without waiting
+for the peer's SETUP, subject to the restrictions in this section and
+{{extension-negotiation}}.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
