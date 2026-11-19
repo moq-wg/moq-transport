@@ -96,7 +96,7 @@ This document describes the MOQT protocol and is structured as follows:
 
 * Next, the document describes how Objects are transmitted and MOQT Sessions
   * Section 5 {{object-transmission}} Describes ways MOTQ allows a subscriber to influence Object transmission order
-  * Section 6 {{session-init}} Describes how to initiate a session and key properties of a session, such as extensibility.
+  * Section 6 {{session}} Describes how to initiate a session and key properties of a session, such as extensibility.
   * Section 7 {{relays-moq}} Describes key properties and requirements of MOQT relays
 
 * Then the document describes how Control Messages and Objects are serialized and sent
@@ -1842,48 +1842,42 @@ or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.
 
 ## Extensibility {#extension-negotiation}
 
-Some MOQT extension points do not require negotiation in `SETUP`: unknown Setup
-Options ({{message-setup}}), Error Detail types ({{error-details}}), error codes
-({{grease}}), and non-mandatory Track and Object Properties ({{properties}}) are
-ignored by endpoints (and, for Properties, forwarded and cached unchanged by
-relays), while unsupported Mandatory Track Properties
-({{mandatory-track-properties}}) and Session-Level Tracks
-({{session-level-tracks}}) reject only the affected track or request.
+Some MOQT extension points do not require `SETUP` negotiation: unknown Setup
+Options ({{message-setup}}), Error Detail types ({{error-details}}), and
+non-mandatory Properties ({{properties}}) are ignored by endpoints (with
+Properties forwarded and cached unchanged by relays); unknown error codes are
+treated as `INTERNAL_ERROR` ({{grease}}); and unsupported Mandatory Track
+Properties ({{mandatory-track-properties}}), Session-Level Tracks
+({{session-level-tracks}}), or Reserved Namespaces ({{reserved-namespaces}}) do
+not terminate the session.
 
-Extensions that introduce wire elements or semantics an unextended peer would
-treat as a session error require hop-by-hop negotiation in `SETUP`. This
-includes new Control Message types ({{message}}), Message Parameters (including
-filters, see {{message-params}}), Parameter values, Unidirectional Stream or
-Datagram types ({{stream-types}}, {{data-streams}}), Object Status values
-({{object-status}}), and changes to existing protocol semantics. Extensions
-cannot change the `SETUP` message itself; such changes require a new version of
-MOQT.
+Extensions that define new Control Message types ({{message}}), Message
+Parameters (including filters, see {{message-params}}), Parameter values,
+Unidirectional Stream or Datagram types ({{stream-types}}, {{data-streams}}),
+Object Status values ({{object-status}}), or changes to existing protocol
+semantics require hop-by-hop negotiation in `SETUP`. Extensions cannot change
+the `SETUP` message format; such changes require a new version of MOQT.
 
-Each endpoint declares the negotiated extensions it supports and provides any
-initial values required by those extensions as Setup Options ({{message-setup}},
-{{iana-setup-options}}) in `SETUP`; once both `SETUP` messages are exchanged,
-each endpoint determines the negotiated extensions for the Session. There is no
-generic format for declaring extension support: each extension specification
-defines its Setup Option(s), value format, and negotiation rules (e.g., a
-zero-length option whose presence indicates support, or a list of supported
-extension versions).
+Endpoints declare supported extensions and any initial values as Setup Options
+({{message-setup}}, {{iana-setup-options}}) in `SETUP`. There is no generic
+format for extension negotiation: each extension defines its Setup Option(s),
+value format, and negotiation rules (e.g., presence of a zero-length option or a
+list of supported versions). Once both `SETUP` messages are exchanged, each
+endpoint determines the negotiated extensions for the Session; an endpoint MUST
+NOT use a negotiated extension before receiving the peer's `SETUP` unless the
+extension explicitly defines safe pre-`SETUP` handling. Because `SETUP` applies
+to a single Session, negotiated extensions need to define Relay behavior when
+adjacent sessions differ in support.
 
-An endpoint MUST NOT send negotiated extension constructs that an unextended
-peer would treat as a session error before receiving the peer's `SETUP`
-confirming negotiation, unless the extension explicitly defines safe pre-`SETUP`
-handling. Because `SETUP` applies to a single Session, negotiated extensions
-need to specify Relay behavior when adjacent sessions differ in support.
-
-MOQT versions are negotiated via ALPN ({{session-establishment}}). A future
-specification can define a new MOQT version (with a new ALPN) incrementally by
-normative reference to an earlier version, such as requiring previously optional
-extensions and specifying whether their Setup Options are still sent in `SETUP`
-or omitted as implicit. Extension specifications MUST state which MOQT
-version(s) they target; unless either specification states otherwise, extensions
-defined for `moqt` remain usable with subsequent versions that preserve
-compatibility with the protocol elements used. New MOQT version specifications
-SHOULD describe how prior extensions apply (e.g., via general compatibility
-rules rather than enumerating individual extensions).
+MOQT versions are negotiated during session establishment
+({{session-establishment}}). A new version can be defined incrementally by
+normative reference to an earlier version (for example, requiring previously
+optional extensions and specifying whether their Setup Options remain sent or
+become implicit). Extension specifications MUST state the MOQT version(s) they
+target and remain usable with compatible subsequent versions unless either
+specification states otherwise. New MOQT versions SHOULD state how prior
+extensions apply (e.g., via general compatibility rules rather than enumerating
+individual extensions).
 
 ## Stream Usage
 
@@ -2884,7 +2878,7 @@ The `SETUP` message is the first message each endpoint sends on its control
 stream (see {{session-init}}); it allows the endpoints to agree on the initial
 configuration before any other control messages are exchanged. An endpoint MAY
 pipeline other control messages and Objects after sending SETUP without waiting
-for the peer's SETUP, subject to the restrictions on negotiated extensions in
+for the peer's SETUP, subject to the restrictions in this section and
 {{extension-negotiation}}.
 
 The messages contain a sequence of key-value pairs called Setup Options; the
