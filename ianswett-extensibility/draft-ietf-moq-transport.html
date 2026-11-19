@@ -4061,10 +4061,12 @@ relays), while unsupported Mandatory Track Properties
 (<a href="#session-level-tracks" class="auto internal xref">Section 6.6</a>) reject only the affected track or request.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 <p id="section-6.4-2">Extensions that introduce wire elements or semantics an unextended peer would
 treat as a session error require hop-by-hop negotiation in <code>SETUP</code>. This
-includes new Control Message types (<a href="#message" class="auto internal xref">Section 9</a>), Message Parameters
-(<a href="#message-params" class="auto internal xref">Section 9.19</a>), Parameter values, Unidirectional Stream or Datagram types
-(<a href="#stream-types" class="auto internal xref">Section 6.5.1</a>, <a href="#data-streams" class="auto internal xref">Section 11</a>), Object Status values (<a href="#object-status" class="auto internal xref">Section 11.1.1</a>),
-and changes to existing protocol semantics.<a href="#section-6.4-2" class="pilcrow">¶</a></p>
+includes new Control Message types (<a href="#message" class="auto internal xref">Section 9</a>), Message Parameters (including
+filters, see <a href="#message-params" class="auto internal xref">Section 9.19</a>), Parameter values, Unidirectional Stream or
+Datagram types (<a href="#stream-types" class="auto internal xref">Section 6.5.1</a>, <a href="#data-streams" class="auto internal xref">Section 11</a>), Object Status values
+(<a href="#object-status" class="auto internal xref">Section 11.1.1</a>), and changes to existing protocol semantics. Extensions
+cannot change the <code>SETUP</code> message itself; such changes require a new version of
+MOQT.<a href="#section-6.4-2" class="pilcrow">¶</a></p>
 <p id="section-6.4-3">Each endpoint declares the negotiated extensions it supports and provides any
 initial values required by those extensions as Setup Options (<a href="#message-setup" class="auto internal xref">Section 9.1</a>,
 <a href="#iana-setup-options" class="auto internal xref">Section 16.4</a>) in <code>SETUP</code>; once both <code>SETUP</code> messages are exchanged,

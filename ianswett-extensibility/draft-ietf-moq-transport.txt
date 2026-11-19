@@ -2229,9 +2229,11 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    Extensions that introduce wire elements or semantics an unextended
    peer would treat as a session error require hop-by-hop negotiation in
    SETUP.  This includes new Control Message types (Section 9), Message
-   Parameters (Section 9.19), Parameter values, Unidirectional Stream or
-   Datagram types (Section 6.5.1, Section 11), Object Status values
-   (Section 11.1.1), and changes to existing protocol semantics.
+   Parameters (including filters, see Section 9.19), Parameter values,
+   Unidirectional Stream or Datagram types (Section 6.5.1, Section 11),
+   Object Status values (Section 11.1.1), and changes to existing
+   protocol semantics.  Extensions cannot change the SETUP message
+   itself; such changes require a new version of MOQT.
 
    Each endpoint declares the negotiated extensions it supports and
    provides any initial values required by those extensions as Setup
