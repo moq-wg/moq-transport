@@ -1053,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Nandakumar, et al.</td>
-<td class="center">Expires 22 May 2027</td>
+<td class="center">Expires 23 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-ietf-moq-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-18" class="published">18 November 2026</time>
+<time datetime="2026-11-19" class="published">19 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-22">22 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-23">23 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1140,7 +1140,7 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 23 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1415,14 +1415,6 @@ agnostic and can be used for a wide range of use cases.<a href="#section-abstrac
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-extensibility" class="internal xref">Extensibility</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.1">
-                    <p id="section-toc.1-1.6.2.4.2.1.1"><a href="#section-6.4.1" class="auto internal xref">6.4.1</a>.  <a href="#name-extension-negotiation-in-se" class="internal xref">Extension Negotiation in SETUP</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4.2.2">
-                    <p id="section-toc.1-1.6.2.4.2.2.1"><a href="#section-6.4.2" class="auto internal xref">6.4.2</a>.  <a href="#name-versions-and-extensions" class="internal xref">Versions and Extensions</a></p>
-</li>
-                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
                 <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-stream-usage" class="internal xref">Stream Usage</a></p>
@@ -4055,87 +4047,47 @@ or reject 0-RTT entirely to mitigate resource exhaustion from replayed packets.<
 </div>
 </section>
 </div>
-<div id="extensibility">
+<div id="extension-negotiation">
 <section id="section-6.4">
         <h3 id="name-extensibility">
 <a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-extensibility" class="section-name selfRef">Extensibility</a>
         </h3>
-<p id="section-6.4-1">MOQT provides both unnegotiated extension points and session-negotiated
-extensions:<a href="#section-6.4-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.4-2.1">
-            <p id="section-6.4-2.1.1"><strong>Unnegotiated extension points</strong> allow endpoints to introduce new metadata or
-capabilities without prior coordination in <code>SETUP</code>. Endpoints ignore unknown
-Setup Options (<a href="#message-setup" class="auto internal xref">Section 9.1</a>), unknown Error Detail types
-(<a href="#error-details" class="auto internal xref">Section 9.4.2</a>), and unknown non-mandatory Track and Object Properties
-(<a href="#properties" class="auto internal xref">Section 8.4</a>), and treat unknown error codes as <code>INTERNAL_ERROR</code>
-(<a href="#grease" class="auto internal xref">Section 13</a>). Relays forward and cache unknown non-mandatory Properties
-unchanged (<a href="#properties" class="auto internal xref">Section 8.4</a>). Mandatory Track Properties
+<p id="section-6.4-1">Some MOQT extension points do not require negotiation in <code>SETUP</code>: unknown Setup
+Options (<a href="#message-setup" class="auto internal xref">Section 9.1</a>), Error Detail types (<a href="#error-details" class="auto internal xref">Section 9.4.2</a>), error codes
+(<a href="#grease" class="auto internal xref">Section 13</a>), and non-mandatory Track and Object Properties (<a href="#properties" class="auto internal xref">Section 8.4</a>) are
+ignored by endpoints (and, for Properties, forwarded and cached unchanged by
+relays), while unsupported Mandatory Track Properties
 (<a href="#mandatory-track-properties" class="auto internal xref">Section 3.7</a>) and Session-Level Tracks
-(<a href="#session-level-tracks" class="auto internal xref">Section 6.6</a>) also do not require <code>SETUP</code> negotiation; if
-unsupported, only the affected track or request is rejected rather than the
-session.<a href="#section-6.4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.4-2.2">
-            <p id="section-6.4-2.2.1"><strong>Negotiated extensions</strong> use the exchange of <code>SETUP</code> messages to alter or
-extend session behavior on a single hop. Negotiation in <code>SETUP</code> is required
-for extensions that define new Control Message types (<a href="#message" class="auto internal xref">Section 9</a>), new
-Message Parameters (<a href="#message-params" class="auto internal xref">Section 9.19</a>), new Parameter values, new
-Unidirectional Stream or Datagram types (<a href="#stream-types" class="auto internal xref">Section 6.5.1</a>, <a href="#data-streams" class="auto internal xref">Section 11</a>),
-new Object Status values (<a href="#object-status" class="auto internal xref">Section 11.1.1</a>), or changes to existing protocol
-semantics.<a href="#section-6.4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<div id="extension-negotiation">
-<section id="section-6.4.1">
-          <h4 id="name-extension-negotiation-in-se">
-<a href="#section-6.4.1" class="section-number selfRef">6.4.1. </a><a href="#name-extension-negotiation-in-se" class="section-name selfRef">Extension Negotiation in SETUP</a>
-          </h4>
-<p id="section-6.4.1-1">Each endpoint declares the negotiated extensions it supports and provides any
-initial values required by those extensions as Setup Options (<a href="#message-setup" class="auto internal xref">Section 9.1</a>)
-in <code>SETUP</code>. Once an endpoint has both sent and received <code>SETUP</code> messages, it
-determines the set of negotiated extensions for that Session.<a href="#section-6.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-2">There is no generic format for declaring extension support. Each extension
-specification defines the Setup Option or Options used to declare support, the
-format of their values, and the rules for determining whether the extension is
-negotiated. For example, an extension could be declared by a zero-length option
-whose presence indicates support, or by an option carrying a list of supported
-extension versions from which the endpoints select a common version. Setup
-Option types are registered with IANA; see <a href="#iana-setup-options" class="auto internal xref">Section 16.4</a>.<a href="#section-6.4.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-3">An endpoint <span class="bcp14">MUST NOT</span> send extension-defined message types, Message Parameters,
-stream types, datagram types, Object Status values, or other wire constructs
-that an unextended peer would treat as a session error until it has received the
-peer's <code>SETUP</code> and confirmed that the extension has been negotiated, unless the
-extension specification explicitly defines safe pre-<code>SETUP</code> handling.<a href="#section-6.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-6.4.1-4">Because <code>SETUP</code> negotiation applies only to a single MOQT Session, extensions
-negotiated via <code>SETUP</code> operate hop-by-hop. Specifications for negotiated
-extensions need to define how Relays interact with the extension when it is
-negotiated on some sessions (e.g., downstream) but not others (e.g., upstream).<a href="#section-6.4.1-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="versions-and-extensions">
-<section id="section-6.4.2">
-          <h4 id="name-versions-and-extensions">
-<a href="#section-6.4.2" class="section-number selfRef">6.4.2. </a><a href="#name-versions-and-extensions" class="section-name selfRef">Versions and Extensions</a>
-          </h4>
-<p id="section-6.4.2-1">MOQT versions are identified and negotiated using ALPN
-(<a href="#session-establishment" class="auto internal xref">Section 6.2</a>). A future specification can define a new version of
-MOQT (with a new ALPN identifier) either as a standalone protocol revision or
-incrementally by normative reference to an earlier MOQT specification (for
-example, by requiring support for one or more previously optional extensions as
-part of the new version's baseline). When a new version incorporates an
-extension as mandatory, its specification defines whether the extension's Setup
-Options are still sent in <code>SETUP</code> (for instance, to carry configuration values)
-or omitted as implicit from the negotiated ALPN.<a href="#section-6.4.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.4.2-2">Extension specifications <span class="bcp14">MUST</span> state which version(s) of MOQT they target. Unless
-an extension or a future MOQT version states otherwise, extensions defined for
-<code>moqt</code> remain usable with subsequent MOQT versions that preserve compatibility
-with the protocol elements used by the extension. Specifications defining new
-versions of MOQT <span class="bcp14">SHOULD</span> describe how extensions defined for prior versions apply
-(for example, by stating general compatibility rules rather than enumerating
-individual extensions).<a href="#section-6.4.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
+(<a href="#session-level-tracks" class="auto internal xref">Section 6.6</a>) reject only the affected track or request.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4-2">Extensions that introduce wire elements or semantics an unextended peer would
+treat as a session error require hop-by-hop negotiation in <code>SETUP</code>. This
+includes new Control Message types (<a href="#message" class="auto internal xref">Section 9</a>), Message Parameters
+(<a href="#message-params" class="auto internal xref">Section 9.19</a>), Parameter values, Unidirectional Stream or Datagram types
+(<a href="#stream-types" class="auto internal xref">Section 6.5.1</a>, <a href="#data-streams" class="auto internal xref">Section 11</a>), Object Status values (<a href="#object-status" class="auto internal xref">Section 11.1.1</a>),
+and changes to existing protocol semantics.<a href="#section-6.4-2" class="pilcrow">¶</a></p>
+<p id="section-6.4-3">Each endpoint declares the negotiated extensions it supports and provides any
+initial values required by those extensions as Setup Options (<a href="#message-setup" class="auto internal xref">Section 9.1</a>,
+<a href="#iana-setup-options" class="auto internal xref">Section 16.4</a>) in <code>SETUP</code>; once both <code>SETUP</code> messages are exchanged,
+each endpoint determines the negotiated extensions for the Session. There is no
+generic format for declaring extension support: each extension specification
+defines its Setup Option(s), value format, and negotiation rules (e.g., a
+zero-length option whose presence indicates support, or a list of supported
+extension versions).<a href="#section-6.4-3" class="pilcrow">¶</a></p>
+<p id="section-6.4-4">An endpoint <span class="bcp14">MUST NOT</span> send negotiated extension constructs that an unextended
+peer would treat as a session error before receiving the peer's <code>SETUP</code>
+confirming negotiation, unless the extension explicitly defines safe pre-<code>SETUP</code>
+handling. Because <code>SETUP</code> applies to a single Session, negotiated extensions
+need to specify Relay behavior when adjacent sessions differ in support.<a href="#section-6.4-4" class="pilcrow">¶</a></p>
+<p id="section-6.4-5">MOQT versions are negotiated via ALPN (<a href="#session-establishment" class="auto internal xref">Section 6.2</a>). A future
+specification can define a new MOQT version (with a new ALPN) incrementally by
+normative reference to an earlier version, such as requiring previously optional
+extensions and specifying whether their Setup Options are still sent in <code>SETUP</code>
+or omitted as implicit. Extension specifications <span class="bcp14">MUST</span> state which MOQT
+version(s) they target; unless either specification states otherwise, extensions
+defined for <code>moqt</code> remain usable with subsequent versions that preserve
+compatibility with the protocol elements used. New MOQT version specifications
+<span class="bcp14">SHOULD</span> describe how prior extensions apply (e.g., via general compatibility
+rules rather than enumerating individual extensions).<a href="#section-6.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="stream-usage">
@@ -5464,7 +5416,7 @@ stream (see <a href="#session-init" class="auto internal xref">Section 6.3</a>);
 configuration before any other control messages are exchanged. An endpoint <span class="bcp14">MAY</span>
 pipeline other control messages and Objects after sending SETUP without waiting
 for the peer's SETUP, subject to the restrictions on negotiated extensions in
-<a href="#extension-negotiation" class="auto internal xref">Section 6.4.1</a>.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<a href="#extension-negotiation" class="auto internal xref">Section 6.4</a>.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <p id="section-9.1-2">The messages contain a sequence of key-value pairs called Setup Options; the
 semantics and format of which can vary based on whether the client or server is
 sending.  To ensure future extensibility of MOQT, endpoints <span class="bcp14">MUST</span> ignore unknown
@@ -5493,7 +5445,7 @@ Options.  Senders <span class="bcp14">MUST NOT</span> repeat the same Option Typ
 the option definition explicitly allows multiple instances. Receivers <span class="bcp14">MUST</span>
 allow duplicates of unknown Setup Options.<a href="#section-9.1-5" class="pilcrow">¶</a></p>
 <p id="section-9.1-6">Setup Options are also the mechanism by which endpoints declare support for
-MOQT extensions; see <a href="#extension-negotiation" class="auto internal xref">Section 6.4.1</a>.<a href="#section-9.1-6" class="pilcrow">¶</a></p>
+MOQT extensions; see <a href="#extension-negotiation" class="auto internal xref">Section 6.4</a>.<a href="#section-9.1-6" class="pilcrow">¶</a></p>
 <p id="section-9.1-7">The available Setup Options are detailed in the next sections.<a href="#section-9.1-7" class="pilcrow">¶</a></p>
 <div id="authority">
 <section id="section-9.1.1">
