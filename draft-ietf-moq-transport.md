@@ -1852,10 +1852,12 @@ relays), while unsupported Mandatory Track Properties
 
 Extensions that introduce wire elements or semantics an unextended peer would
 treat as a session error require hop-by-hop negotiation in `SETUP`. This
-includes new Control Message types ({{message}}), Message Parameters
-({{message-params}}), Parameter values, Unidirectional Stream or Datagram types
-({{stream-types}}, {{data-streams}}), Object Status values ({{object-status}}),
-and changes to existing protocol semantics.
+includes new Control Message types ({{message}}), Message Parameters (including
+filters, see {{message-params}}), Parameter values, Unidirectional Stream or
+Datagram types ({{stream-types}}, {{data-streams}}), Object Status values
+({{object-status}}), and changes to existing protocol semantics. Extensions
+cannot change the `SETUP` message itself; such changes require a new version of
+MOQT.
 
 Each endpoint declares the negotiated extensions it supports and provides any
 initial values required by those extensions as Setup Options ({{message-setup}},
