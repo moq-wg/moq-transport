@@ -356,8 +356,8 @@ Table of Contents
       -  Section 5 Section 5 Describes ways MOTQ allows a subscriber to
          influence Object transmission order
 
-      -  Section 6 Section 6.3 Describes how to initiate a session and
-         key properties of a session, such as extensibility.
+      -  Section 6 Section 6 Describes how to initiate a session and key
+         properties of a session, such as extensibility.
 
       -  Section 7 Section 7 Describes key properties and requirements
          of MOQT relays
@@ -2218,52 +2218,45 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
 
 6.4.  Extensibility
 
-   Some MOQT extension points do not require negotiation in SETUP:
-   unknown Setup Options (Section 9.1), Error Detail types
-   (Section 9.4.2), error codes (Section 13), and non-mandatory Track
-   and Object Properties (Section 8.4) are ignored by endpoints (and,
-   for Properties, forwarded and cached unchanged by relays), while
-   unsupported Mandatory Track Properties (Section 3.7) and Session-
-   Level Tracks (Section 6.6) reject only the affected track or request.
+   Some MOQT extension points do not require SETUP negotiation: unknown
+   Setup Options (Section 9.1), Error Detail types (Section 9.4.2), and
+   non-mandatory Properties (Section 8.4) are ignored by endpoints (with
+   Properties forwarded and cached unchanged by relays); unknown error
+   codes are treated as INTERNAL_ERROR (Section 13); and unsupported
+   Mandatory Track Properties (Section 3.7), Session-Level Tracks
+   (Section 6.6), or Reserved Namespaces (Section 2.4.3) do not
+   terminate the session.
 
-   Extensions that introduce wire elements or semantics an unextended
-   peer would treat as a session error require hop-by-hop negotiation in
-   SETUP.  This includes new Control Message types (Section 9), Message
+   Extensions that define new Control Message types (Section 9), Message
    Parameters (including filters, see Section 9.19), Parameter values,
    Unidirectional Stream or Datagram types (Section 6.5.1, Section 11),
-   Object Status values (Section 11.1.1), and changes to existing
-   protocol semantics.  Extensions cannot change the SETUP message
-   itself; such changes require a new version of MOQT.
+   Object Status values (Section 11.1.1), or changes to existing
+   protocol semantics require hop-by-hop negotiation in SETUP.
+   Extensions cannot change the SETUP message format; such changes
+   require a new version of MOQT.
 
-   Each endpoint declares the negotiated extensions it supports and
-   provides any initial values required by those extensions as Setup
-   Options (Section 9.1, Section 16.4) in SETUP; once both SETUP
-   messages are exchanged, each endpoint determines the negotiated
-   extensions for the Session.  There is no generic format for declaring
-   extension support: each extension specification defines its Setup
-   Option(s), value format, and negotiation rules (e.g., a zero-length
-   option whose presence indicates support, or a list of supported
-   extension versions).
+   Endpoints declare supported extensions and any initial values as
+   Setup Options (Section 9.1, Section 16.4) in SETUP.  There is no
+   generic format for extension negotiation: each extension defines its
+   Setup Option(s), value format, and negotiation rules (e.g., presence
+   of a zero-length option or a list of supported versions).  Once both
+   SETUP messages are exchanged, each endpoint determines the negotiated
+   extensions for the Session; an endpoint MUST NOT use a negotiated
+   extension before receiving the peer's SETUP unless the extension
+   explicitly defines safe pre-SETUP handling.  Because SETUP applies to
+   a single Session, negotiated extensions need to define Relay behavior
+   when adjacent sessions differ in support.
 
-   An endpoint MUST NOT send negotiated extension constructs that an
-   unextended peer would treat as a session error before receiving the
-   peer's SETUP confirming negotiation, unless the extension explicitly
-   defines safe pre-SETUP handling.  Because SETUP applies to a single
-   Session, negotiated extensions need to specify Relay behavior when
-   adjacent sessions differ in support.
-
-   MOQT versions are negotiated via ALPN (Section 6.2).  A future
-   specification can define a new MOQT version (with a new ALPN)
-   incrementally by normative reference to an earlier version, such as
-   requiring previously optional extensions and specifying whether their
-   Setup Options are still sent in SETUP or omitted as implicit.
-   Extension specifications MUST state which MOQT version(s) they
-   target; unless either specification states otherwise, extensions
-   defined for moqt remain usable with subsequent versions that preserve
-   compatibility with the protocol elements used.  New MOQT version
-   specifications SHOULD describe how prior extensions apply (e.g., via
-   general compatibility rules rather than enumerating individual
-   extensions).
+   MOQT versions are negotiated during session establishment
+   (Section 6.2).  A new version can be defined incrementally by
+   normative reference to an earlier version (for example, requiring
+   previously optional extensions and specifying whether their Setup
+   Options remain sent or become implicit).  Extension specifications
+   MUST state the MOQT version(s) they target and remain usable with
+   compatible subsequent versions unless either specification states
+   otherwise.  New MOQT versions SHOULD state how prior extensions apply
+   (e.g., via general compatibility rules rather than enumerating
+   individual extensions).
 
 6.5.  Stream Usage
 
@@ -3333,7 +3326,7 @@ SUBSCRIBE_ERROR |    SUBSCRIBE_OK |    | PUBLISH_OK       | PUBLISH_ERROR
    the initial configuration before any other control messages are
    exchanged.  An endpoint MAY pipeline other control messages and
    Objects after sending SETUP without waiting for the peer's SETUP,
-   subject to the restrictions on negotiated extensions in Section 6.4.
+   subject to the restrictions in this section and Section 6.4.
 
    The messages contain a sequence of key-value pairs called Setup
    Options; the semantics and format of which can vary based on whether
