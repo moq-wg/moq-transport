@@ -1043,22 +1043,20 @@ REQUEST_UPDATE_OK.
 
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
-`Largest Object` while the subscription itself starts at the Next Group.  If
-the fill range is empty, or starts after Largest Object, the publisher does not
-open a fill fetch stream.
+`Largest Object` while the subscription itself starts at the Next Group.  If no
+Objects have been published for the Track, or if the fill range is empty or
+starts after `Largest Object`, the publisher does not open a fill fetch stream.
 
-The fill fetch stream inherits the subscription's parameters, including
-subscriber priority, range filters and authorization; parameters carried inside
-FILL_PARAMETERS override them for the fill fetch stream.  FILL_TIMEOUT (see
-{{fill-timeout}}) applies to fill fetch streams in the same way it applies to a
-FETCH.
+The fill fetch stream inherits the subscription's parameters as updated by the
+message that triggers the fill, including subscriber priority, range filters and
+authorization; parameters carried inside FILL_PARAMETERS override them for the
+fill fetch stream.  Subsequent REQUEST_UPDATE messages do not modify an open
+fill fetch stream's parameters.  FILL_TIMEOUT (see {{fill-timeout}}) applies to
+fill fetch streams in the same way it applies to a FETCH.
 
 The FETCH_HEADER on the fill fetch stream carries the subscription's Request
 ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
-fill.  As a result of REQUEST_UPDATE, a subscription can have
-multiple fill fetch streams open at once, each identified by its Request ID;
-opening a new fill fetch stream does not implicitly cancel any previously
-opened fill fetch streams.
+fill.  A subscription can have at most one open fill fetch stream at a time.
 
 An object delivered on the fill fetch stream is **fill-delivered**.  When the
 fill range overlaps the subscription's Location filter, an object can be both
@@ -1077,7 +1075,10 @@ subscription is not paused (see {{pausing-subscriptions}}).
   not open one either.
 - A REQUEST_UPDATE that does not carry FILL_PARAMETERS does not open a new fill
   fetch stream.
-- When the subscription is cancelled, the publisher MUST reset any open fill fetch streams.
+- When the subscription is cancelled or paused, or when a REQUEST_UPDATE
+  contains LOCATION_FILTER or FILL_PARAMETERS, the publisher MUST reset any open
+  fill fetch stream for the subscription with `CANCELLED` before opening a new
+  one.
 
 The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range have been delivered.  Because there is
@@ -4183,10 +4184,17 @@ inside FILL_PARAMETERS.
 
 FILL_PARAMETERS is not retained as subscription state. It applies only to the
 message that carries it, so the sticky-parameter rules in
-{{message-request-update}} do not apply to it.  A REQUEST_UPDATE containing
-FILL_PARAMETERS cannot be coalesced with other REQUEST_UPDATEs.  A publisher
-can reject a REQUEST_UPDATE containing FILL_PARAMETERS with `EXCESSIVE_LOAD` if
-it has too many active fill fetch streams.
+{{message-request-update}} do not apply to it.  When multiple REQUEST_UPDATE
+messages are coalesced (see {{message-request-update}}), at most one fill fetch
+stream is opened, using the last FILL_PARAMETERS in the coalesced messages
+(with that message's Request ID in FETCH_HEADER), unless a subsequent coalesced
+message pauses the subscription or updates LOCATION_FILTER without
+FILL_PARAMETERS.  No fill fetch stream is opened for coalesced REQUEST_UPDATE
+messages whose FILL_PARAMETERS is superseded.  Because a publisher might open a
+fill fetch stream before processing a superseding REQUEST_UPDATE, a subscriber
+MUST tolerate receiving a fill fetch stream for a superseded Request ID and
+SHOULD send `STOP_SENDING` for it.  A publisher can reject a REQUEST_UPDATE
+with `EXCESSIVE_LOAD` if it receives too many fill requests.
 
 ### EXPIRES Parameter {#expires}
 
