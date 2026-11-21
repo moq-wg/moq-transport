@@ -1031,21 +1031,15 @@ A subscription that carries a FILL_PARAMETERS parameter (see
 beginning with a FETCH_HEADER (see {{fetch-header}}) and delivered as a FETCH
 response (see {{message-fetch}}).  This is called a fill fetch stream.
 
-The **fill range** is the range of Locations selected by the Location filter
-inside FILL_PARAMETERS, or the subscription's Location filter if it is
-omitted. The filter is evaluated using the rules for a Fetch in
-{{location-filter}}, so the fill range never extends beyond `Largest
-Object`. When the subscription has no Location filter, or the LOCATION_FILTER
-inside FILL_PARAMETERS has Location Filter Type 0x00 (None), the fill range is
-the entire track up to `Largest Object`.  The subscriber learns the `Largest
+The **fill range** is the range of Locations selected by the subscription's
+Location filter, evaluated using the rules for a Fetch in {{location-filter}},
+so the fill range never extends beyond `Largest Object`. When the subscription
+has no Location filter, or has Location Filter Type 0x00 (None), the fill range
+is the entire track up to `Largest Object`.  The subscriber learns the `Largest
 Object` from the `LARGEST_OBJECT` parameter in SUBSCRIBE_OK, PUBLISH or
-REQUEST_UPDATE_OK.
-
-Because the fill range is specified independently of the subscription's
-Location filter, a subscriber can retrieve a range of Groups prior to
-`Largest Object` while the subscription itself starts at the Next Group.  If no
-Objects have been published for the Track, or if the fill range is empty or
-starts after `Largest Object`, the publisher does not open a fill fetch stream.
+REQUEST_UPDATE_OK.  If no Objects have been published for the Track, or if the
+fill range is empty or starts after `Largest Object`, the publisher does not
+open a fill fetch stream.
 
 The fill fetch stream inherits the subscription's parameters as updated by the
 message that triggers the fill, including subscriber priority, range filters and
@@ -1058,11 +1052,11 @@ The FETCH_HEADER on the fill fetch stream carries the subscription's Request
 ID for an initial fill, or the REQUEST_UPDATE Request ID for a subsequent
 fill.  A subscription can have at most one open fill fetch stream at a time.
 
-An object delivered on the fill fetch stream is **fill-delivered**.  When the
-fill range overlaps the subscription's Location filter, an object can be both
-fill-delivered and subscription-delivered.  A subscriber that wants each Object
-delivered exactly once uses the Next Object Subscription Location Filter coupled
-with an open-ended fill range, which the publisher will end at Largest Object.
+An object delivered on the fill fetch stream is **fill-delivered**.  When a
+message triggers a fill fetch stream, the fill fetch stream delivers matching
+Objects with Locations up to and including `Largest Object`, and subscription
+delivery delivers matching Objects with Locations strictly greater than
+`Largest Object`.
 
 ### Opening and Closing Fill Fetch Streams
 
@@ -1102,15 +1096,14 @@ Filter {{location-filters}} that starts at the Next Object.  Delivery begins
 with the next Object and can begin mid-group.
 
 To join a Track at the current Group, the subscriber sends a SUBSCRIBE with a
-Location Filter that starts at the Next Object and a FILL_PARAMETERS parameter
-(see {{fill-parameters}}) whose Location filter has StartGroup=1, which fills
-the current Group from its start.
+Relative Start Location Filter (`0x01`) with `StartGroup=1`, which starts at
+the current Group, and a FILL_PARAMETERS parameter (see {{fill-parameters}}).
 
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
-FILL_PARAMETERS parameter whose Location filter selects the intended Groups,
-which can be relative.  The publisher delivers the fill range on a fill fetch
-stream and subscription-delivered Objects in subgroups or
-datagrams (see {{fill-semantics}}).
+Location Filter that selects the intended Groups, which can be relative, and a
+FILL_PARAMETERS parameter.  The publisher delivers the fill range on a fill
+fetch stream and subsequent Objects as subscription-delivered Objects in
+subgroups or datagrams (see {{fill-semantics}}).
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 a Location Filter {{location-filters}} that starts at the Next Group.
@@ -3993,8 +3986,7 @@ Ascending (0x1).
 
 The LOCATION_FILTER parameter (Parameter Type 0x21) MAY appear in a FETCH,
 SUBSCRIBE, PUBLISH, SUBSCRIBE_TRACKS, REQUEST_UPDATE (for a subscription) or
-PUBLISH_STATE_NOTIFY message, or inside a FILL_PARAMETERS parameter (see
-{{fill-parameters}}). It is a Location Filter (see
+PUBLISH_STATE_NOTIFY message. It is a Location Filter (see
 {{location-filters}}).
 
 A Location filter parameter has the following structure:
@@ -4160,16 +4152,11 @@ The following parameters MAY appear inside FILL_PARAMETERS:
 |----------------|----------------|---------------|
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
-| 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x25 | SUBGROUP_FILTER | {{range-filters}} |
 | 0x26 | OBJECTID_FILTER | {{range-filters}} |
 | 0x27 | PRIORITY_FILTER | {{range-filters}} |
 | 0x28 | OBJECT_PROPERTY_FILTER | {{range-filters}} |
-
-The LOCATION_FILTER inside FILL_PARAMETERS selects the fill range and is
-evaluated using the rules for a Fetch (see {{location-filter}}); it is
-independent of the subscription's own Location filter.
 
 A parameter that is omitted from FILL_PARAMETERS takes the value it has for the
 subscription, except GROUP_ORDER (see {{group-order}}); FILL_PARAMETERS
