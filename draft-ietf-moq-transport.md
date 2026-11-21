@@ -1136,6 +1136,49 @@ that starts at the Next Group and NEW_GROUP_REQUEST equal to 0.  The value of
 DYNAMIC_GROUPS in SUBSCRIBE_OK will indicate if the publisher supports dynamic
 groups. A publisher that does will begin the next group as soon as practical.
 
+## Track Switching {#track-switching}
+
+A subscriber can request a coordinated switch from an existing subscription
+(the old subscription) to another (the new subscription) by including
+SWITCH_FROM ({{switch-from}}) in a SUBSCRIBE or REQUEST_UPDATE on the new
+subscription's request stream. Track switching is intended for tracks with
+aligned Groups (by Group ID by default, or another alignment known to the
+publisher).
+
+The publisher executes the switch on a best-effort basis to avoid media gaps or
+excessive overlap, and typically responds with SUBSCRIBE_OK or REQUEST_UPDATE_OK
+without waiting for the transition point. While the switch is pending, the
+publisher continues delivering the old subscription and withholds Objects on
+the new subscription.
+
+To execute the switch, the publisher selects a transition Group N on the new
+track and the corresponding final Group M on the old track (M = N - 1 for Group
+ID alignment). If the message carrying SWITCH_FROM also carries FILL_PARAMETERS,
+the publisher MAY select a Group N less than or equal to the new track's
+`Largest Object.Group`; otherwise, N MUST be larger than `Largest Object.Group`
+(if any).
+
+Once N and M are selected, the publisher:
+
+* Updates the new subscription's LOCATION_FILTER to start at `{N, 0}` (with no
+  End Location unless specified in the request), begins delivering Objects from
+  `{N, 0}` (opening any fill fetch stream at this point with its fill range
+  starting at `{N, 0}`; see {{fill-semantics}}), and sends PUBLISH_STATE_NOTIFY
+  ({{ps-notify}}) reporting the updated LOCATION_FILTER.
+* Updates the old subscription's LOCATION_FILTER to end at Group M (or sets
+  PAUSED=1 if there is no preceding aligned Group), resets any open streams on
+  it for Groups > M, and sends PUBLISH_STATE_NOTIFY reporting the updated
+  LOCATION_FILTER or PAUSED=1.
+
+If the publisher cannot complete the switch (for example, the new Track is not
+available or bandwidth is insufficient), it leaves the old subscription
+unmodified, resets any streams opened for the new subscription, and pauses the
+new subscription by sending PUBLISH_STATE_NOTIFY with PAUSED=1. If SWITCH_FROM
+does not identify an active subscription, the publisher proceeds with the new
+subscription normally. A subsequent REQUEST_UPDATE on the new subscription with
+PAUSED=1, LOCATION_FILTER, or SWITCH_FROM cancels any pending switch. Relays
+handle SWITCH_FROM locally across their downstream subscriptions.
+
 ## Subscribing to Tracks by Prefix {#subscribe-tracks}
 
 SUBSCRIBE_TRACKS requests subscriptions: the publisher sends PUBLISH
@@ -3291,8 +3334,8 @@ REQUEST_UPDATE Message {
 
   * Subscription: OBJECT_DELIVERY_TIMEOUT, AUTHORIZATION_PAYLOAD,
     SUBGROUP_DELIVERY_TIMEOUT, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
-    FILL_PARAMETERS, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
-    OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
+    FILL_PARAMETERS, SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER,
+    PRIORITY_FILTER, OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST
   * FETCH: AUTHORIZATION_PAYLOAD, SUBSCRIBER_PRIORITY
   * PUBLISH_NAMESPACE: AUTHORIZATION_PAYLOAD
   * SUBSCRIBE_NAMESPACE: AUTHORIZATION_PAYLOAD, TRACK_NAMESPACE_PREFIX
@@ -3378,8 +3421,8 @@ SUBSCRIBE Message {
   that can appear in a SUBSCRIBE are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_PAYLOAD, RENDEZVOUS_TIMEOUT, SUBGROUP_DELIVERY_TIMEOUT, PAUSED,
   SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS,
-  SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER, OBJECT_PROPERTY_FILTER,
-  NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
+  SWITCH_FROM, SUBGROUP_FILTER, OBJECTID_FILTER, PRIORITY_FILTER,
+  OBJECT_PROPERTY_FILTER, NEW_GROUP_REQUEST and INCLUDE_PROPERTIES.
 
 On successful subscription, the publisher MUST reply with a SUBSCRIBE_OK,
 allowing the subscriber to determine the start group/object when not explicitly
@@ -4195,6 +4238,22 @@ fill fetch stream before processing a superseding REQUEST_UPDATE, a subscriber
 MUST tolerate receiving a fill fetch stream for a superseded Request ID and
 SHOULD send `STOP_SENDING` for it.  A publisher can reject a REQUEST_UPDATE
 with `EXCESSIVE_LOAD` if it receives too many fill requests.
+
+### SWITCH_FROM Parameter {#switch-from}
+
+The SWITCH_FROM parameter (Parameter Type 0x24) is a varint containing the
+Request ID of the old subscription to switch from (see {{track-switching}}). It
+MAY appear in a SUBSCRIBE or REQUEST_UPDATE (for a subscription) message, and is
+not retained as subscription state.  When multiple REQUEST_UPDATE messages are
+coalesced (see {{message-request-update}}), only the last SWITCH_FROM applies,
+unless a subsequent coalesced message cancels the switch (see
+{{track-switching}}).
+
+If SWITCH_FROM equals the new subscription's Request ID or appears alongside
+PAUSED=1, the publisher MUST close the session with `INVALID_PARAMETER`.
+Including SWITCH_FROM sets PAUSED=0 on the new subscription and requests that
+the publisher update LOCATION_FILTER and PAUSED on both subscriptions as needed
+via PUBLISH_STATE_NOTIFY ({{ps-notify}}).
 
 ### EXPIRES Parameter {#expires}
 
@@ -5963,6 +6022,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
 | 0x22 | GROUP_ORDER | {{group-order}} |
 | 0x23 | FILL_PARAMETERS | {{fill-parameters}} |
+| 0x24 | SWITCH_FROM | {{switch-from}} |
 | 0x25 | SUBGROUP_FILTER | {{subgroup-filter}} |
 | 0x26 | OBJECTID_FILTER | {{objectid-filter}} |
 | 0x27 | PRIORITY_FILTER | {{priority-filter}} |
