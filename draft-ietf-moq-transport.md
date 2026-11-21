@@ -1054,15 +1054,44 @@ fill.  A subscription can have at most one open fill fetch stream at a time.
 
 An object delivered on the fill fetch stream is **fill-delivered**.  When a
 message triggers a fill fetch stream, the fill fetch stream delivers matching
-Objects with Locations up to and including `Largest Object`, and subscription
-delivery delivers matching Objects with Locations strictly greater than
-`Largest Object`.
+Objects with Locations up to and including `Largest Object` (or prior to
+FIRST_SUBSCRIBE_GROUP when present; see {{fill-with-subscribe}}), and
+subscription delivery delivers matching Objects with Locations strictly greater
+than `Largest Object` (or in Groups greater than or equal to
+FIRST_SUBSCRIBE_GROUP).
+
+### Fill with Subscribe style delivery {#fill-with-subscribe}
+
+The publisher MAY deliver the current Group and/or contiguous preceding Groups
+in the fill range as subscription-delivered Objects in subgroups and datagrams
+instead of on the fill fetch stream.  When doing so, the publisher includes the
+FIRST_SUBSCRIBE_GROUP parameter (see {{first-subscribe-group}}) in SUBSCRIBE_OK,
+PUBLISH, or REQUEST_UPDATE_OK.  A publisher or relay SHOULD only include a Group
+in FIRST_SUBSCRIBE_GROUP if it has all Objects in that Group up to `Largest
+Object` available in cache or is receiving the Group from its start on an
+upstream subscription, and FILL_PARAMETERS does not specify narrower Range
+Filters than the subscription.  A publisher SHOULD NOT include Groups whose
+Objects use Datagram Delivery Mode in FIRST_SUBSCRIBE_GROUP.
+
+All Objects matching the subscription's filters in Groups in the fill range with
+Group IDs greater than or equal to FIRST_SUBSCRIBE_GROUP MUST be
+subscription-delivered (including both Objects at or before `Largest Object` and
+subsequent Objects) using the subscription's parameters (including
+SUBGROUP_DELIVERY_TIMEOUT and OBJECT_DELIVERY_TIMEOUT, see
+{{delivery-timeouts}}).  Any Groups in the fill range with Group IDs less than
+FIRST_SUBSCRIBE_GROUP MUST be delivered on a fill fetch stream; when a fill
+fetch stream is opened, its fill range ends at `{FIRST_SUBSCRIBE_GROUP - 1,
+2^64 - 1}`.  A Group MUST NOT be split between a fill fetch stream and
+subscription delivery, with the exception of the current Group when
+FIRST_SUBSCRIBE_GROUP is omitted.  If FIRST_SUBSCRIBE_GROUP is equal to the
+start Group of the fill range, the publisher does not open a fill fetch stream.
 
 ### Opening and Closing Fill Fetch Streams
 
 A publisher opens a fill fetch stream when it processes a SUBSCRIBE or
 REQUEST_UPDATE, or sends a PUBLISH, that carries FILL_PARAMETERS while the
-subscription is not paused (see {{pausing-subscriptions}}).
+subscription is not paused (see {{pausing-subscriptions}}), unless the entire
+fill range is subscription-delivered.
 
 - FILL_PARAMETERS carried while the subscription is paused opens no fill fetch
   stream.  Resuming the subscription without re-sending FILL_PARAMETERS does
@@ -1075,7 +1104,8 @@ subscription is not paused (see {{pausing-subscriptions}}).
   one.
 
 The publisher signals that the fill is complete by closing the stream with a
-FIN once all objects in the fill range have been delivered.  Because there is
+FIN once all objects in the fill range prior to FIRST_SUBSCRIBE_GROUP (or
+Largest Object if omitted) have been delivered.  Because there is
 no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
 fill failure by resetting the stream; it MUST open a fill fetch stream and reset
 it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
@@ -1102,8 +1132,8 @@ the current Group, and a FILL_PARAMETERS parameter (see {{fill-parameters}}).
 To join a Track at a past Group, the subscriber sends a SUBSCRIBE with a
 Location Filter that selects the intended Groups, which can be relative, and a
 FILL_PARAMETERS parameter.  The publisher delivers the fill range on a fill
-fetch stream and subsequent Objects as subscription-delivered Objects in
-subgroups or datagrams (see {{fill-semantics}}).
+fetch stream, as subscription-delivered Objects in subgroups or datagrams, or a
+combination of both (see {{fill-semantics}}).
 
 To join a Track at the next Group, the subscriber sends a SUBSCRIBE with
 a Location Filter {{location-filters}} that starts at the Next Group.
@@ -3109,7 +3139,7 @@ REQUEST_OK Message {
 
   * PUBLISH_OK: EXPIRES
   * FETCH_OK: EXPIRES, LARGEST_OBJECT
-  * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT
+  * REQUEST_UPDATE_OK: EXPIRES, LARGEST_OBJECT, FIRST_SUBSCRIBE_GROUP
   * TRACK_STATUS_OK: EXPIRES, LARGEST_OBJECT
   * SUBSCRIBE_NAMESPACE_OK: EXPIRES
   * SUBSCRIBE_TRACKS_OK: EXPIRES
@@ -3399,7 +3429,8 @@ SUBSCRIBE_OK Message {
   {{track-alias}}).
 
 * Parameters: The parameters are defined in {{message-params}}.  The parameters
-  that can appear in a SUBSCRIBE_OK are EXPIRES and LARGEST_OBJECT.
+  that can appear in a SUBSCRIBE_OK are EXPIRES, LARGEST_OBJECT, and
+  FIRST_SUBSCRIBE_GROUP.
 
 * Track Properties : A sequence of Properties. See {{properties}}.
 
@@ -3438,8 +3469,9 @@ PUBLISH Message {
 * Parameters: The parameters are defined in {{message-params}}. The parameters
   that can appear in a PUBLISH are OBJECT_DELIVERY_TIMEOUT,
   AUTHORIZATION_PAYLOAD, SUBGROUP_DELIVERY_TIMEOUT, EXPIRES, LARGEST_OBJECT,
-  PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER, GROUP_ORDER, FILL_PARAMETERS
-  and SUBSCRIBE_TRACKS_ID.  Those governing delivery, such as PAUSED,
+  FIRST_SUBSCRIBE_GROUP, PAUSED, SUBSCRIBER_PRIORITY, LOCATION_FILTER,
+  GROUP_ORDER, FILL_PARAMETERS and SUBSCRIBE_TRACKS_ID.  Those governing
+  delivery, such as PAUSED,
   GROUP_ORDER, SUBSCRIBER_PRIORITY,
   SUBGROUP_DELIVERY_TIMEOUT, OBJECT_DELIVERY_TIMEOUT and LOCATION_FILTER,
   inform the Subscriber of the initial Subscription parameters.
@@ -4221,6 +4253,25 @@ If omitted from a message where it is otherwise required, the sending endpoint
 has not published or received any Objects in the Track.
 
 A relay sets LARGEST_OBJECT as described in {{subscriber-interactions}}.
+
+### FIRST SUBSCRIBE GROUP Parameter {#first-subscribe-group}
+
+The FIRST_SUBSCRIBE_GROUP parameter (Parameter Type 0x0C) is a varint indicating
+a Group ID. It MAY appear in a SUBSCRIBE_OK, PUBLISH, or REQUEST_UPDATE_OK
+message when FILL_PARAMETERS is present in the corresponding SUBSCRIBE, PUBLISH,
+or REQUEST_UPDATE (or in the REQUEST_UPDATE_OK for the surviving fill when
+REQUEST_UPDATE messages are coalesced; see {{fill-parameters}}).
+
+It indicates the first Group ID in the fill range that the publisher will
+deliver as subscription-delivered Objects (in subgroups or datagrams) rather
+than on a fill fetch stream (see {{fill-with-subscribe}}). If omitted, no Groups
+in the fill range are subscription-delivered.
+
+An endpoint MUST close the session with `INVALID_PARAMETER` if it receives
+FIRST_SUBSCRIBE_GROUP when FILL_PARAMETERS was not present in the corresponding
+SUBSCRIBE, PUBLISH, or REQUEST_UPDATE, when the fill range is empty (including
+when LARGEST_OBJECT is omitted), or when the Group ID is smaller than the start
+Group of the fill range or greater than the end Group of the fill range.
 
 ### PAUSED Parameter {#paused-parameter}
 
@@ -5945,6 +5996,7 @@ Setup Options SHOULD request a provisional registration.
 | 0x08 | EXPIRES | {{expires}} |
 | 0x09 | LARGEST_OBJECT | {{largest-param}} |
 | 0x0A | FILL_TIMEOUT | {{fill-timeout}} |
+| 0x0C | FIRST_SUBSCRIBE_GROUP | {{first-subscribe-group}} |
 | 0x11 | PAUSED | {{paused-parameter}} |
 | 0x20 | SUBSCRIBER_PRIORITY | {{subscriber-priority}} |
 | 0x21 | LOCATION_FILTER | {{location-filter}} |
