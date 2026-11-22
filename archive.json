@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-19T06:36:36.016228+00:00",
+  "timestamp": "2026-11-22T05:47:55.139439+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -55624,7 +55624,7 @@
       ],
       "body": "This was fine before Mandatory to Implement Properties, but now it's unclear.  If e.g. the MTI property changes how the parser interprets the FETCH stream, then we need to hold parsing til the OK arrives.\n\nWe specifically wanted to allow _sending_ fetch data before the OK, although part of the reason is that FETCH_OK has End Location, which may require an upstream trip if the relay didn't have a live view.  However, that might change with #1897, which would narrow that cases why FETCH_OK might ever be delayed.\n\nStill, it would be nice if we could just leave it like it is now.\n",
       "createdAt": "2026-10-12T21:48:52Z",
-      "updatedAt": "2026-11-03T17:45:23Z",
+      "updatedAt": "2026-11-20T08:21:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -55640,6 +55640,20 @@
           "body": "Suggestions ....\n\nAdd text to security considerations that warns that in some cases, fetch objects are forwarded before the relay sees all the track properties. So properties should not be defined that cause the relay not to forward objects that would be forwarded without th property. ",
           "createdAt": "2026-10-14T23:29:35Z",
           "updatedAt": "2026-10-14T23:29:35Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "With respect to MTI:\n\nGwendal wrote a sample extension draft for redundant publishers [here](https://gwendalsimon.github.io/draft-simon-moq-redundant-publishers/draft-simon-moq-redundant-publishers.html).\n\n@fluffy also commented on the mailing list [thread](https://mailarchive.ietf.org/arch/msg/moq/iqchiPDcQgDdKC01nyInGG2ykTA/) with a logging example.\n\nIn both examples, it's _very bad_ to deliver objects to the application (or at least the application to handle/process them) without knowing if the track has an unsupported MTI.  In Gwendal's extension, early objects could get cached and/or collide with a redundant publisher.  In Cullen's, the objects might be forwarded without being logged.\n\nThat is to say, if we want to keep MTI, either \n\n1) the subscriber (or upstream half of a relay) needs to speculatively hold early objects from _all_ tracks until the _OK with the properties arrives OR\n2) the publisher needs to signal object streams and datagrams that belong to tracks with MTI Track Properties\n\nMy proposal is to add another bit in the data plane headers \"Track has MTI\".  When the subscriber sees the bit, it holds early objects for the _OK but ordinary tracks get the lowest latency treatment.  For subgroups and fetch, this bit will spill the header into the two-byte varint range, but only for tracks with MTI, and the sg headers are probably small relative to stream data.  Datagrams have enough free header bits to keep the header 1 byte.",
+          "createdAt": "2026-11-20T06:54:45Z",
+          "updatedAt": "2026-11-20T06:54:45Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "The redundant publishers draft blocks early Objects at the publisher. The REDUNDANT_PUBLISHERS_SUPPORTED Setup Option tells each publisher at SETUP whether its subscriber supports the property or not. A publisher refuses SUBSCRIBE and FETCH from a subscriber without support, and it sends no PUBLISH to it. Therefore, a relay that does not understand the property receives no Object of the Track, early or not.\n\nThe only gap is that MOQT states this refusal as a SHOULD, and the draft defers to it. I'd propose to generalize the Setup Option approach. MOQT could define one Setup Option that lists the MTI property types an endpoint supports. With it, every publisher knows at SETUP which MTI properties its subscriber supports. The refusal by the publisher becomes a MUST for every MTI property.\n\nThe Setup Option could complement @afrind's proposal of a data-plane bit. The bit would be a backstop against a publisher that violates the MUST.\n",
+          "createdAt": "2026-11-20T08:21:26Z",
+          "updatedAt": "2026-11-20T08:21:26Z"
         }
       ]
     },
@@ -56006,7 +56020,7 @@
       ],
       "body": "\nThis is just too ripe for abuse ",
       "createdAt": "2026-10-15T20:40:30Z",
-      "updatedAt": "2026-10-30T19:16:57Z",
+      "updatedAt": "2026-11-21T20:23:47Z",
       "closedAt": null,
       "comments": [
         {
@@ -56022,6 +56036,13 @@
           "body": "Claude's summary of Monday's transcript.  Please correct if needed:  @martinduke @suhasHere @mzanaty.  \"You\" below means \"me == afrind\".\n\n  In HTTP, a server can redirect a POST to a different path, because the resource is\n  the same and has just moved. The question is whether MoQT redirect should have the same\n  ability, e.g. answering a PUBLISH for foo/bar with \"re-send this as new/foo/bar.\"\n\n  - Martin : can see why it'd be useful, but sees an attack vector, because redirects\n    aren't authenticated. You pointed out the same attack applies to HTTP redirects, which got the\n    HTTP-will-never-work-for-video joke.\n  - You: PUBLISH_NAMESPACE is different from PUBLISH. For PUBLISH_NAMESPACE, the other side saying\n    \"your tracks are actually in this other namespace\" is strange. For PUBLISH, \"we don't put\n    those here anymore, put them over there\" is closer to why POST supports redirect.\n  - Suhas: is building a MoQ-based load balancer and thinks redirect helps there. But the common\n    case is \"foo/bar, go to relay 3\", meaning a different URI with the same namespace. Suhas\n    hasn't thought through rewriting foo/bar to bar/something or x/y, and can't yet justify\n    flipping the whole namespace (Alice's video becoming Bob's video). Redirecting anything under\n    a matching prefix does have a use case.\n  - You: so Suhas wants to change the connect URI, not normally the namespace. You don't have an\n    immediate use case either, and maybe the answer is to remove the capability. Large deployments\n    do this when reorganizing legacy paths (\"old client didn't get the memo\"), and you'd like to\n    keep the lessons HTTP learned the hard way.\n  - Mo: asked whether PUBLISH, like SUBSCRIBE, requires the relay to wait for the upstream\n    response before answering downstream.\n    - You said no. A relay can accept a PUBLISH immediately: PUBLISH fans out where SUBSCRIBE fans\n      in, so \"end to end\" would mean waiting for every subscriber. Also, with PAUSED=0 objects\n      flow before the OK anyway.\n    - Mo concluded that since the relay can steer what happens downstream, a namespace-changing\n      redirect could be useful.\n  - Your aside on end-to-end encryption: your agent pointed out that secure objects use the full\n    track name in the AAD, so an object minted under foo/bar can't simply be moved to another\n    name. Suhas said that was relevant to a different point, and it was dropped.\n  - Assad: is there protection on who you can redirect to? Does the new session know it was\n    redirected? You said the session sees the redirect and can choose whether to follow it. Assad\n    compared it to HTTP, where the client protects itself by refusing certain redirects depending\n    on the type of request.\n  - You: that's wandering into CORS territory.\n  - Martin, in chat: \"This capability requires a security analysis that cannot happen in this\n    call. Namespaces are tied to authentication.\" You agreed.\n\n  Outcome: tabled to IETF 127. You'll ask HTTP/CORS people what they wish they'd known before\n  going further.",
           "createdAt": "2026-10-30T19:16:57Z",
           "updatedAt": "2026-10-30T19:16:57Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The purpose of redirect is to tell you to connect to a different server. It is not to change the names of the track. \n\nThis would be like a HTTP 3xx changing the contents of the post. ",
+          "createdAt": "2026-11-21T20:23:47Z",
+          "updatedAt": "2026-11-21T20:23:47Z"
         }
       ]
     },
@@ -56039,7 +56060,7 @@
       ],
       "body": "The REDIRECT error code says relays may follow or forward a Redirect from upstream:\n\nhttps://github.com/moq-wg/moq-transport/blob/1e8472a201c624c485d70eadf4d3e03f836e4a4e/draft-ietf-moq-transport.md?plain=1#L5185-L5190\n\n#1997 refines forwarding and caching, but leaves following unspecified.\n\nIf a relay follows a Redirect that changes the Full Track Name from A to B:\n\n- Which key are the received Objects cached under?\n- How does this interact with Malformed Tracks?\n\nIt seems the relay should be required to forward a Redirect that changes the Full Track Name.\nWhat use case needs a relay to follow it instead?\n\n------\n\nAlso, this endpoint-to-peer spelling is a little bit weird.\nhttps://github.com/moq-wg/moq-transport/blob/1e8472a201c624c485d70eadf4d3e03f836e4a4e/draft-ietf-moq-transport.md?plain=1#L3047-L3048",
       "createdAt": "2026-10-15T21:39:45Z",
-      "updatedAt": "2026-10-30T19:18:21Z",
+      "updatedAt": "2026-11-21T20:25:02Z",
       "closedAt": null,
       "comments": [
         {
@@ -56048,6 +56069,13 @@
           "body": "Claude summary of 10/26 transcript.  Please correct @michalhosna @mzanaty @vasilvv  (You means me -- afrind)\n\n - Michael (issue author): discussed it with Victor, and they agreed it has to be either\n    must-follow or never-follow. As redirect is currently written, never-follow / always-forward\n    is the only workable option. The alternative is a way for the sender to say whether\n    intermediaries should follow. \"Should a relay follow?\" and \"should it forward to the original\n    requester?\" have very different semantics.\n  - You: your HTTP proxies don't follow origin redirects internally, precisely to avoid these\n    problems, so you're landing where Michael and Victor did: relays don't follow.\n    - You then raised a counterpoint: the end subscriber can't do anything either, since it came\n      to the relay.\n  - Michael: a URI change and a track-name change are very different. One is in-session; the other\n    isn't. The problem exists for both, so there are really four cases: {follow, forward} \u00d7\n    {different URI, different track name}. Each probably needs its own handling rather than being\n    merged into one mechanism.\n  - Mo: there are two distinct uses of redirect:\n    - Content-level: the content itself moved. Relays shouldn't participate, because the relay\n      network doesn't make content decisions. This should be handled out of band, end to end, from\n      whatever source of truth produced the URI and track name in the first place, such as a\n      catalog.\n    - Service-level: GOAWAY-like moves and load balancing. These belong in MoQT, and it makes\n      sense for relays to steer them.\n    - Separate the two.\n  - Michael: agrees they're different use cases, but thinks both may be needed in core, because\n    many extensions will rely on content-level redirect. Michael linked it to Gwendal's issue and\n    to watermarking. If you need special per-subscriber or per-group tracks but still have to obey\n    immutability rules, a relay or application relay needs to be able to do a content redirect.\n  - You: you had intended to propose killing content-level redirect and saying all redirects go to\n    a new service, until Michael's point. Your takeaway is that content-level redirect is needed,\n    at least as an extensibility point, but the draft should treat it differently from\n    service-level redirect.\n\n  Outcome: open, with no decision. The consensus direction is to separate service-level redirect\n  (URI change, relay may steer) from content-level redirect (track name change). Relays not\n  following name-changing redirects had support from Michael, Victor (via Michael) and you, but\n  wasn't decided.\n\n",
           "createdAt": "2026-10-30T19:18:21Z",
           "updatedAt": "2026-10-30T19:18:21Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "redirect should not be allowed to change the trackname. It is only about changing the server one connects to. ",
+          "createdAt": "2026-11-21T20:25:02Z",
+          "updatedAt": "2026-11-21T20:25:02Z"
         }
       ]
     },
@@ -56098,7 +56126,7 @@
       ],
       "body": "The current draft says, in [Section 12.1 (Malformed Tracks)](https://www.ietf.org/archive/id/draft-ietf-moq-transport-22.html#section-12.1-4) of draft-22:\n\n> When a subscriber detects a Malformed Track, it MUST cancel any\n> corresponding subscription or fetches for that Track from that\n> publisher\n\nand\n\n> If a relay detects a Malformed Track, it MUST immediately terminate\n> downstream subscriptions with PUBLISH_DONE and reset any fetch streams\n> with Status Code MALFORMED_TRACK.\n\nI am interested in redundant publishers (two encoders publishing the same Track, see #1037). A relay MUST subscribe to both encoders. If the encoders assign the same IDs but produce one Object differently, the relay MUST treat the Track as Malformed and terminate every downstream subscription. In short, a second encoder makes the Track less available than a single encoder.\n\n#1084 raised the same problem and closed because a relay cannot tell a faulty publisher from a correct one. In my view, both encoders are legitimate. Any consistent choice between them keeps the Track running.\n\nA relay (or an end subscriber) can survive a temporary divergence between publishers. 1/ it can take each Group from the publisher whose copy arrives first and, if the two publishers diverge, ignore the other one until the next Group. Because Groups are join points, the conflict stays within one Group. 2/ cancel only the upstream subscription that delivered the conflicting Object. 3/ each publisher declares its role (for example Main or Backup) as a parameter on PUBLISH or PUBLISH_NAMESPACE, so that every receiver keeps the same copy and knows which publisher to cancel/ignore.\n\nThe subscriber rule is already scoped to \"that publisher\", so a subscriber can cancel the publisher that delivered the conflicting Object and keep the other one. The relay rule removes that option, because the relay must still terminate every downstream subscription. I propose we replace the relay MUST with a SHOULD. If the WG also wants to allow ignoring a diverging publisher until the next Group, the same MUST -> SHOULD should apply to the subscriber.",
       "createdAt": "2026-10-16T11:53:11Z",
-      "updatedAt": "2026-11-06T20:12:36Z",
+      "updatedAt": "2026-11-19T15:11:58Z",
       "closedAt": null,
       "comments": [
         {
@@ -56240,6 +56268,13 @@
           "body": "A relay-side view on the options.\n\nRelaxing the MUST to a SHOULD without saying what a relay does instead is the risky one. Relays in one network could resolve a conflict differently, so caches would disagree about what a Location holds, and a subscriber that fails over between two relays could get two different Objects for one Location: exactly what the immutability rule prevents.\n\nA publisher opt-in where each Group is taken whole from one source keeps that guarantee per Group. It's also close to what a relay needs anyway for failover between publishers of one Track: track which source each Group came from, and never splice a second source into a Group already being forwarded. So the opt-in looks implementable without a second data plane.\n\n+1 to riedlse's point about the truncated Group. The rest of a Group cut off by an upstream loss needs a state the relay is allowed to signal. Unknown is all that's left today, and it isn't cached. If the opt-in goes ahead, that would be worth defining with it.\n",
           "createdAt": "2026-11-06T20:12:36Z",
           "updatedAt": "2026-11-06T20:12:36Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "@afrind The draft is public: https://gwendalsimon.github.io/draft-simon-moq-redundant-publishers/draft-simon-moq-redundant-publishers.html. @riedlse and I co-author it. It defines REDUNDANT_PUBLISHERS, a Mandatory Track Property by which the Original Publishers of a Track declare that their copies can differ. A relay that supports the property delivers each Group from one Original Publisher. A relay drops a malformed source without terminating downstream subscriptions, which is the behavior this issue asked for, scoped to Tracks that opt in. Open points are in the issues of https://github.com/gwendalsimon/draft-simon-moq-redundant-publishers.",
+          "createdAt": "2026-11-19T15:11:58Z",
+          "updatedAt": "2026-11-19T15:11:58Z"
         }
       ]
     },
@@ -56743,7 +56778,7 @@
       ],
       "body": "The current definition implies that they are not sent, which feels somewhat against the spirit of Mandatory Track Properties.  I don't have an opinion either way, someone who understands the motivation behind both of those features should probably chime in here.\n\n(regardless of what we decide, there should be at least an editorial PR telling you which way it goes)",
       "createdAt": "2026-11-04T13:43:26Z",
-      "updatedAt": "2026-11-14T09:36:09Z",
+      "updatedAt": "2026-11-19T15:11:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -56759,6 +56794,13 @@
           "body": "REDUNDANT_PUBLISHERS (#2003) is a use case for Mandatory Track Properties. It only works if INCLUDE_PROPERTIES=0 does not apply to Mandatory Track Properties.\n\nREDUNDANT_PUBLISHERS lets two encoders publish the same Track (see #2003). Their copies of a Group may not be the same. A relay that supports the property delivers each Group from one encoder only. A relay that does not support it would mix Objects of both copies in one Group, or close the Track as malformed. Therefore, the property has to be mandatory: a relay that does not understand it must not carry the Track. @riedlse and I are writing a draft that defines it, with a Setup Option as discussed in #1939.\n\nOn the question of @vasilvv: I would make INCLUDE_PROPERTIES=0 apply only to the properties that are not Mandatory Track Properties. Otherwise, an endpoint that does not understand REDUNDANT_PUBLISHERS would not see it. The endpoint would accept the Track and break it.\n\nI expect to share the draft next week, but I won't be at SF to discuss it, unfortunately.",
           "createdAt": "2026-11-14T09:36:09Z",
           "updatedAt": "2026-11-14T09:36:09Z"
+        },
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "The draft with the use case is public: https://gwendalsimon.github.io/draft-simon-moq-redundant-publishers/draft-simon-moq-redundant-publishers.html. REDUNDANT_PUBLISHERS is a Mandatory Track Property. A Setup Option tells a publisher whether a peer supports the property. The Mandatory Track Property protects the Track when the publisher lacks that knowledge. The draft also forbids INCLUDE_PROPERTIES=0 on a request to a source of such a Track.",
+          "createdAt": "2026-11-19T15:11:59Z",
+          "updatedAt": "2026-11-19T15:11:59Z"
         }
       ]
     },
@@ -56844,6 +56886,24 @@
           "updatedAt": "2026-11-14T04:11:36Z"
         }
       ]
+    },
+    {
+      "number": 2075,
+      "id": "I_kwDOG2Ho4M8AAAABhLy-yA",
+      "title": "Updating FilterSets in Range Filters is awkward and error prone",
+      "url": "https://github.com/moq-wg/moq-transport/issues/2075",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "Filters"
+      ],
+      "body": "I wrote #2071 to try to clarify how Filter Sets work today, and I find it fairly confusing to do simple things like if you have two FilterSets, removing one of them.\n\nFrom the wire format in `{{subgroup-filter}}`\u2013`{{track-property-filter}}` (lines 4151\u20134228):\n```\nSUBGROUP_FILTER        { Type=0x25, Length, [SetID (8)], [Range ...] }\nOBJECT_PROPERTY_FILTER { Type=0x28, Length, [SetID (8)], [Property Type], [Range ...] }\n```\nBecause `Length` precedes `SetID` and `Property Type`, **`Length = 0` carries neither `SetID` nor `Property Type`**., so you can't remove a SetID or single Property filter.\n\nI've heard from people that most people haven't implemented Filters yet (which seems like a problem as well), and so they haven't hit this yet.\n\nIf we were to change the encoding some options might be:\n---\n\n#### Concrete design options\nDepending on whether you want to keep wire-format changes out of scope for this PR:\n\n| Option | Wire change? | How to remove Set `i` | Tradeoffs |\n|---|---|---|---|\n| **A. Keep Parameter-Type-wide replacement (#1765)** | None | Resend all remaining sets for shared types; `Length=0` for types exclusive to Set `i` | Zero framing churn; clean `REQUEST_UPDATE` coalescing; matches #1765 intent \u2014 but O(N) on relay unsubscribe and asymmetric/error-prone. Needs line 994 restored (*\"including all FilterSets and Property Types\"*) and `### Updating Range Filters` rewritten to match. |\n| **B. Per-entry removal via 0 Ranges** | None (`[Range ...]` is already optional) | Send `Length > 0` with `SetID` (+ `Property Type`) and **0 Ranges** for *each* filter in Set `i` | Fixes `Length=0` contradiction and makes single-filter edits O(1), **but** removing a whole Set still takes one empty parameter per `(Type, Property Type)` in that Set (still not atomic/single-op, still risks accidental widening, and needs per-key coalescing rules). |\n| **C. Container `FILTER_SET` parameter** (like `FILL_PARAMETERS`) | Restructures `0x25\u20130x29` | **1 parameter** (`FILTER_SET { Length=1, SetID=i }`, 3 bytes) | Cleanest semantics overall: atomic set replacement/removal, trivial per-`SetID` coalescing, no repeated `SetID` bytes, and structurally prevents mixing Track and Object filters in one SetID. Higher wire-format churn (which #1801 previously had low appetite for, though that was before writing out update semantics). |\n\n\n---",
+      "createdAt": "2026-11-21T00:08:14Z",
+      "updatedAt": "2026-11-21T00:08:14Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -229143,14 +229203,14 @@
       "labels": [],
       "body": "The 0-RTT guidance omits replay effects for FETCH, SUBSCRIBE_TRACKS, and SETUP, and permits relays to start upstream work before the QUIC handshake completes. This change requires endpoints to defer replay-sensitive actions until handshake completion and links the message analysis to the replay security requirements.\n\nIt also requires any session authorization to complete before subsequent requests execute, preserves authorization checks for each request, and identifies upstream requests, Object redistribution, shared-cache changes, and single-use token consumption as replay-sensitive actions. Endpoints can buffer early messages within resource limits or reject 0-RTT.\n\nFixes moq-wg/moq-transport#1906.\n\nValidation: `make` built the HTML and text drafts successfully; `git diff --check` passed. The build reported existing table-format warnings outside the changed text.\n",
       "createdAt": "2026-10-08T23:27:41Z",
-      "updatedAt": "2026-10-08T23:29:34Z",
+      "updatedAt": "2026-11-20T17:25:50Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
-      "baseRefOid": "564ec7a21a1d2e06911ab15e612f2e4ce510d986",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "manugupt1/mike-moq-transport",
       "headRefName": "replay-0rtt",
       "headRefOid": "a44c03e12097fc8b5ec377f7da5e235fbe06df63",
-      "closedAt": "2026-10-08T23:29:34Z",
+      "closedAt": "2026-11-20T17:25:50Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -230651,7 +230711,7 @@
       ],
       "body": "Fixes #1582\n\nOpen questions:\n* Do we want to cache permanent errors and redirects? On one hand, those are the cases where the caching is most efficient; on the other hand, permanently caching those means an incorrect redirect is stuck forever.\n* What is the cache key?  Track makes sense for 99%, but FETCH requests may theoretically vary on other parameters.\n* Does PUBLISH need a different treatment?",
       "createdAt": "2026-10-15T06:43:36Z",
-      "updatedAt": "2026-10-29T18:39:30Z",
+      "updatedAt": "2026-11-21T20:32:03Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "1e8472a201c624c485d70eadf4d3e03f836e4a4e",
@@ -230675,6 +230735,19 @@
           "body": "@vasilvv said he was going to make some updates baed on Seattle discussion",
           "createdAt": "2026-10-22T18:28:31Z",
           "updatedAt": "2026-10-22T18:28:31Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZhpq3g",
+          "commit": {
+            "abbreviatedOid": "7bdcf22"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I don't think it make sense to use a cached error unless everything in the 2nd request is identical to first. For example, if it has different auth tokens, and original failed due to auth, then the caching the response will break things. \n\nI think we would need to say in the spec what  exact error codes can be cached and what can not. ",
+          "createdAt": "2026-11-21T20:32:03Z",
+          "updatedAt": "2026-11-21T20:32:03Z",
           "comments": []
         }
       ]
@@ -233606,15 +233679,15 @@
         "Subscribe",
         "Design"
       ],
-      "body": "Stacked on #2069 (base branch `ianswett-single-fill-location`); this diff shows only the `FIRST_SUBSCRIBE_GROUP` changes.\n\nWhen a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery:\n\n* Subscribe-style delivery starts at `FIRST_SUBSCRIBE_GROUP` (`0x0C`) and prior Groups in the fill range are delivered on the Fill-Fetch stream.\n* Updates `#2069`'s fill-delivery partition rule to exclude Groups `>= FIRST_SUBSCRIBE_GROUP`.\n* Clarifies cache-completeness criteria, Range Filter respect, Datagram guidance (`SHOULD NOT`), fill stream end location (`{FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}`), coalesced `REQUEST_UPDATE_OK` handling, and `INVALID_PARAMETER` bounds.\n\nFixes #1358",
+      "body": "Stacked on #2076 (`main` -> #2069 -> #2076 -> #2033); this diff shows only the `FIRST_SUBSCRIBE_GROUP` changes.\n\nWhen a subscriber joins at the current Group or a past Group, allow the Publisher to deliver some or all past Groups with Subscribe-style delivery:\n\n* Subscribe-style delivery starts at `FIRST_SUBSCRIBE_GROUP` (`0x0C`) and prior Groups in the fill range are delivered on the Fill-Fetch stream.\n* Updates #2076's single-watermark partition (`<= Largest Object` on fill, `> Largest Object` on subscription) so Groups `>= FIRST_SUBSCRIBE_GROUP` are subscription-delivered instead of fill-delivered.\n* Clarifies cache-completeness criteria, Range Filter respect, Datagram guidance (`SHOULD NOT`), fill stream end location (`{FIRST_SUBSCRIBE_GROUP - 1, 2^64 - 1}`), coalesced `REQUEST_UPDATE_OK` handling, and `INVALID_PARAMETER` bounds.\n\nFixes #1358",
       "createdAt": "2026-10-21T05:13:56Z",
-      "updatedAt": "2026-11-16T02:43:27Z",
+      "updatedAt": "2026-11-21T01:16:57Z",
       "baseRepository": "moq-wg/moq-transport",
-      "baseRefName": "ianswett-single-fill-location",
-      "baseRefOid": "e37a2615e511833d500767f92b644c7113082c10",
+      "baseRefName": "ianswett-remove-fill-location-filter",
+      "baseRefOid": "7c59bec268a34ff4752e09f97094b628ad9723f8",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-subscribe-style-fill",
-      "headRefOid": "b55dfa6ce984519bd00d99315b7a2a8669e3bfad",
+      "headRefOid": "56f6ab2293e0a19288afcf2764614da7bcfca2bb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -235457,7 +235530,7 @@
       ],
       "body": "Caching relays MAY update cached Track and Object Properties as long as they replace all previously cached Properties with the newly received set (and MUST NOT merge sets of Properties), consolidating the rule previously split between Caching Relays and Properties. Applications MUST NOT rely on Track or Object Properties being updated. Differing Immutable Properties make the track Malformed.\n\nFixes: #1703",
       "createdAt": "2026-11-03T18:45:35Z",
-      "updatedAt": "2026-11-18T23:27:41Z",
+      "updatedAt": "2026-11-19T22:20:26Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
@@ -235537,6 +235610,32 @@
           "createdAt": "2026-11-18T23:27:31Z",
           "updatedAt": "2026-11-18T23:27:40Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZLA-Kw",
+          "commit": {
+            "abbreviatedOid": "c7cc350"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-19T22:12:17Z",
+          "updatedAt": "2026-11-19T22:20:26Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Does this sufficiently cover the case of \r\n\r\nObj 1\r\nFoo=Bar\r\n\r\nObj 1\r\n[no properties]\r\n\r\nI don't really want more text, I think the spirit is clear?",
+              "createdAt": "2026-11-19T22:12:17Z",
+              "updatedAt": "2026-11-19T22:20:26Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "```suggestion\r\nis 0, the publisher MUST NOT include any Track Properties in the corresponding\r\nSUBSCRIBE_OK or REQUEST_OK. If a subscriber receives Track Properties in\r\nresponse to a message with INCLUDE_PROPERTIES=0, it MUST close the session with\r\n`MALFORMED_MESSAGE`. \r\n```",
+              "createdAt": "2026-11-19T22:19:19Z",
+              "updatedAt": "2026-11-19T22:20:26Z"
+            }
+          ]
         }
       ]
     },
@@ -235847,7 +235946,7 @@
       "labels": [],
       "body": "Follow-up to the merged renaming in #2060. Generalize the descriptions to cover tokens, proofs, challenges, and responses.\r\n",
       "createdAt": "2026-11-12T19:56:06Z",
-      "updatedAt": "2026-11-12T20:01:42Z",
+      "updatedAt": "2026-11-19T22:29:56Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "047c629ff3753dc33b935dbd9d0d0564da87fb63",
@@ -235859,7 +235958,58 @@
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZLJfvg",
+          "commit": {
+            "abbreviatedOid": "a1d7592"
+          },
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-19T22:23:44Z",
+          "updatedAt": "2026-11-19T22:29:56Z",
+          "comments": [
+            {
+              "originalPosition": 52,
+              "body": "do \"payloads\" expire?  Would it be more clear to say like the authorization itself expired?",
+              "createdAt": "2026-11-19T22:23:44Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "Same question, bike shed - the payload doesn't sound like what's expired.  Should we rename to EXPIRED_AUTH, and remove \"payload\" from the description too?",
+              "createdAt": "2026-11-19T22:25:18Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            },
+            {
+              "originalPosition": 119,
+              "body": "This is slightly different than the other error descriptions.",
+              "createdAt": "2026-11-19T22:26:06Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            },
+            {
+              "originalPosition": 129,
+              "body": "Setup Options comes first, should we list them first?",
+              "createdAt": "2026-11-19T22:26:58Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            },
+            {
+              "originalPosition": 131,
+              "body": "I don't think this sentence adds any value\r\n```suggestion\r\nrequirements. The\r\n```",
+              "createdAt": "2026-11-19T22:28:24Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            },
+            {
+              "originalPosition": 137,
+              "body": "This is duplicated from the compression scheme - maybe remove it there?",
+              "createdAt": "2026-11-19T22:29:30Z",
+              "updatedAt": "2026-11-19T22:29:56Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 2067,
@@ -236038,7 +236188,7 @@
     {
       "number": 2069,
       "id": "PR_kwDOG2Ho4M8AAAABPQZ5Ew",
-      "title": "Remove LOCATION_FILTER from FILL_PARAMETERS and limit to one active fill fetch stream",
+      "title": "Limit to one active fill fetch stream and allow coalescing",
       "url": "https://github.com/moq-wg/moq-transport/pull/2069",
       "state": "OPEN",
       "author": "ianswett",
@@ -236048,20 +236198,28 @@
         "Needs Discussion",
         "Design"
       ],
-      "body": "Simplify Fill-Fetch semantics and prevent extra Objects from being sent when seeking or updating a subscription:\n\n* Remove `LOCATION_FILTER` from `FILL_PARAMETERS`; the fill range is always determined by the subscription's `LOCATION_FILTER` up to `Largest Object` (and does not open a fill fetch stream if no Objects have been published yet, the range is empty, or it starts after `Largest Object`).\n* Clarify that the fill fetch stream inherits the subscription's parameters in effect when the fill begins (subsequent `REQUEST_UPDATE`s do not retroactively update an open fill fetch stream's priority or parameters).\n* Specify that once processing a fill range begins, Objects in the fill range are delivered on the fill fetch stream instead of being subscription-delivered (unless skipped as a Timed-Out gap on the fill fetch stream), preventing duplicate delivery without needing two separate Location Filters or retroactive tracking across prior subscription delivery.\n* Limit a subscription to at most one open fill fetch stream at a time: cancelling or pausing a subscription (`PAUSED=1`, consistent with subgroup resets), or sending a `REQUEST_UPDATE` containing `LOCATION_FILTER` or `FILL_PARAMETERS`, resets any open fill fetch stream for that subscription with `CANCELLED` before opening a new one.\n* Allow coalescing `REQUEST_UPDATE` messages that contain `FILL_PARAMETERS`, opening at most one fill fetch stream for the last surviving `FILL_PARAMETERS` without opening streams for superseded updates (publishers can still reject excessive update churn with `EXCESSIVE_LOAD`).\n\nThis also simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035, #2063, and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n\nFixes #2048\nFixes #2066",
+      "body": "Split per review feedback into two PRs: this PR limits a subscription to one active fill fetch stream and allows `REQUEST_UPDATE` coalescing; removing `LOCATION_FILTER` from `FILL_PARAMETERS` has been moved to #2076.\n\n### Summary of changes\n* **One active fill fetch stream per subscription:** Cancelling or pausing a subscription (`PAUSED=1`, consistent with `#pausing-subscriptions` and subgroup resets), or sending a `REQUEST_UPDATE` containing `LOCATION_FILTER` or `FILL_PARAMETERS`, resets any open fill fetch stream for that subscription with `CANCELLED` before opening a new one. Also clarifies that no fill fetch stream is opened if no Objects have been published for the Track yet.\n* **Parameter snapshot semantics (#2066):** Clarifies that the fill fetch stream inherits the subscription's parameters as updated by the message that triggers the fill (overridden by `FILL_PARAMETERS`), and that subsequent `REQUEST_UPDATE` messages do not modify an open fill fetch stream's parameters.\n* **Coalescing `REQUEST_UPDATE`s with `FILL_PARAMETERS` (#2048):** Allows coalescing `REQUEST_UPDATE` messages that contain `FILL_PARAMETERS`, opening at most one fill fetch stream for the last surviving `FILL_PARAMETERS` (unless superseded by a pause or `LOCATION_FILTER` update without `FILL_PARAMETERS`). Explicitly notes that a subscriber MUST tolerate receiving an in-flight fill fetch stream for a superseded Request ID and SHOULD send `STOP_SENDING` for it.\n\nFixes #2048\nFixes #2066",
       "createdAt": "2026-11-15T02:44:52Z",
-      "updatedAt": "2026-11-16T19:38:45Z",
+      "updatedAt": "2026-11-21T01:20:33Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-single-fill-location",
-      "headRefOid": "e37a2615e511833d500767f92b644c7113082c10",
+      "headRefOid": "beb2067fb6b7e03cb4c71b0aad018de272d5f2da",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Split per feedback: #2069 now covers only limiting to one active fill fetch stream, parameter snapshot semantics (#2066), and coalescing (#2048). Removing `LOCATION_FILTER` from `FILL_PARAMETERS` (with a simplified single-watermark rule) has been moved to #2076.",
+          "createdAt": "2026-11-21T01:20:33Z",
+          "updatedAt": "2026-11-21T01:20:33Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABYSUcNg",
@@ -236126,6 +236284,126 @@
               "updatedAt": "2026-11-16T19:38:45Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbVEuQ",
+          "commit": {
+            "abbreviatedOid": "e37a261"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T00:37:32Z",
+          "updatedAt": "2026-11-21T00:37:33Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "Yes, because the previous ones are cancelled, you know that you'll only get the last Fill stream.",
+              "createdAt": "2026-11-21T00:37:32Z",
+              "updatedAt": "2026-11-21T00:37:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbsjCw",
+          "commit": {
+            "abbreviatedOid": "beb2067"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T01:20:25Z",
+          "updatedAt": "2026-11-21T01:20:25Z",
+          "comments": [
+            {
+              "originalPosition": 12,
+              "body": "Split this part out into #2076 so we can discuss it separately. Note that @vasilvv's comment on #1642 was actually about using `SUBGROUP_FILTER` (e.g., `subgroup=0` only during fill, all layers live), which still works since #2076 keeps all non-Location range filters inside `FILL_PARAMETERS`.",
+              "createdAt": "2026-11-21T01:20:25Z",
+              "updatedAt": "2026-11-21T01:20:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbsj8A",
+          "commit": {
+            "abbreviatedOid": "beb2067"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T01:20:27Z",
+          "updatedAt": "2026-11-21T01:20:27Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "Good catch \u2014 reworded to *\"as updated by the message that triggers the fill\"* and explicitly noted that subsequent `REQUEST_UPDATE` messages do not modify an open fill fetch stream's parameters (to address #2066 without async stream-open ambiguity).",
+              "createdAt": "2026-11-21T01:20:27Z",
+              "updatedAt": "2026-11-21T01:20:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbskwQ",
+          "commit": {
+            "abbreviatedOid": "beb2067"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T01:20:28Z",
+          "updatedAt": "2026-11-21T01:20:28Z",
+          "comments": [
+            {
+              "originalPosition": 56,
+              "body": "Good point \u2014 moved this part to #2076 and replaced the Timed-Out / per-object rules with a single `Largest Object` watermark (`<= Largest Object` on the fill stream, `> Largest Object` on subscription delivery), which requires no per-object tracking.",
+              "createdAt": "2026-11-21T01:20:28Z",
+              "updatedAt": "2026-11-21T01:20:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbslvw",
+          "commit": {
+            "abbreviatedOid": "beb2067"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T01:20:30Z",
+          "updatedAt": "2026-11-21T01:20:30Z",
+          "comments": [
+            {
+              "originalPosition": 68,
+              "body": "`#pausing-subscriptions` already says *\"The publisher does not send Objects on a paused subscription\"*, `main` already forbids opening a fill while paused and resets Subgroup streams on pause, and cancelling on `PAUSED=1` gives a fast 1-RTT stop on the control stream (#2048). Open to revisiting if the WG prefers leaving an open fill running while paused.",
+              "createdAt": "2026-11-21T01:20:30Z",
+              "updatedAt": "2026-11-21T01:20:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZbsmqg",
+          "commit": {
+            "abbreviatedOid": "beb2067"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-21T01:20:31Z",
+          "updatedAt": "2026-11-21T01:20:31Z",
+          "comments": [
+            {
+              "originalPosition": 133,
+              "body": "Added an explicit sentence noting that a subscriber MUST tolerate receiving an in-flight fill fetch stream for a superseded Request ID and SHOULD send `STOP_SENDING` for it.",
+              "createdAt": "2026-11-21T01:20:31Z",
+              "updatedAt": "2026-11-21T01:20:31Z"
+            }
+          ]
         }
       ]
     },
@@ -236141,13 +236419,13 @@
       "labels": [],
       "body": "Stacked on #2069 (base branch `ianswett-single-fill-location`); this diff shows only the `SWITCH_FROM` changes.\r\n\r\nAlternative to / simplification of #1674 that scopes `SWITCH_FROM` (`0x24`) to a best-effort hand-off between aligned tracks:\r\n\r\n* **Single-varint wire format:** `SWITCH_FROM` (`0x24`) is a single `varint` containing the Request ID of the old subscription to switch from (dropping the `Mode` registry, `Publish Done` bit, `SWITCHED_AWAY`, and `INVALID_SWITCH`).\r\n* **Publisher/Relay selects the aligned transition Group:** Instead of deriving the switch point mechanically from a subscriber-specified `LOCATION_FILTER` on the new track, the publisher/relay selects the aligned transition Group `N` on the new track (and ends the old subscription at Group `M = N - 1`, or the preceding aligned Group) based on its local view of both tracks and bandwidth, reporting the updated `LOCATION_FILTER`s via `PUBLISH_STATE_NOTIFY`.\r\n* **Fill:** If the message also carries `FILL_PARAMETERS`, the publisher may pick a transition Group at or before the new track's Largest Object Group; the fill fetch stream opens when the switch executes, with a fill range starting at `{N, 0}`. Without `FILL_PARAMETERS`, `N` is a later Group.\r\n* **Unified failure handling via `PUBLISH_STATE_NOTIFY` (`PAUSED=1`):** Whenever a switch cannot be completed cleanly (whether immediately or after `SUBSCRIBE_OK` / `REQUEST_UPDATE_OK` while evaluating upstream/downstream bandwidth or alignment), the publisher leaves the old subscription unmodified, resets any streams opened for the new subscription, and pauses the new subscription via `PUBLISH_STATE_NOTIFY` with `PAUSED=1`.\r\n\r\nFixes #1354\r\nCloses #1674 ",
       "createdAt": "2026-11-15T05:42:48Z",
-      "updatedAt": "2026-11-18T19:33:19Z",
+      "updatedAt": "2026-11-21T01:17:00Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "ianswett-single-fill-location",
-      "baseRefOid": "e37a2615e511833d500767f92b644c7113082c10",
+      "baseRefOid": "beb2067fb6b7e03cb4c71b0aad018de272d5f2da",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-minimal-switch-from",
-      "headRefOid": "254d5ff5378b7de897b897694dea96be0c896455",
+      "headRefOid": "7009324b6fe5551e262d00a768b150d49d7ad6a4",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -236341,6 +236619,32 @@
               "updatedAt": "2026-11-18T19:33:18Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABY_brSg",
+          "commit": {
+            "abbreviatedOid": "254d5ff"
+          },
+          "author": "wilaw",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-19T09:04:59Z",
+          "updatedAt": "2026-11-19T09:12:18Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "O looks like 0 and your formula would become (O = N-1) which looks N = 1. in quick read. M is fine. ",
+              "createdAt": "2026-11-19T09:04:59Z",
+              "updatedAt": "2026-11-19T09:12:18Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "An optional timeout parameter is a rational requirement. Different applications will have different tolerances for how long they are willing to wait for a switch to occur before the real-side machinery is shut down. Timeout can be expressed as wallclock interval or Group count on the old stream - i.e if I haven't switched by the time 2 new groups have arrived on the old stream, then time me out. ",
+              "createdAt": "2026-11-19T09:11:08Z",
+              "updatedAt": "2026-11-19T09:12:18Z"
+            }
+          ]
         }
       ]
     },
@@ -236356,9 +236660,9 @@
       "labels": [
         "Editorial"
       ],
-      "body": "Extracts FilterSet evaluation rules into a `FilterSets` subsection and adds an `Updating Range Filters` subsection under `Range Filters`:\r\n\r\n* Clarifies that `TRACK_PROPERTY_FILTER` and Object Range Filters use independent `SetID` scopes (they are not combined into the same FilterSet in `SUBSCRIBE_TRACKS`).\r\n* Clarifies evaluation of populated vs. unpopulated FilterSets (unpopulated `SetID`s do not match; zero populated FilterSets means no Range Filtering is applied).\r\n* Documents `REQUEST_UPDATE` per-Parameter-Type replacement and `Length = 0` removal rules across all FilterSets and Property Types, with worked examples for adding a second FilterSet, updating a Property Filter, and removing one of two FilterSets.\r\n* Clarifies `Range Filter Structure`, `MAX_FILTER_RANGES`, and `FILL_PARAMETERS` edge cases (rejecting `Length = 0` alongside another instance of the same Parameter Type, rejecting `Length > 0` with zero Ranges, `MAX_FILTER_RANGES` applying to `SUBSCRIBE_TRACKS` and resulting active Ranges after `REQUEST_UPDATE`, and per-Parameter-Type override semantics inside `FILL_PARAMETERS`).\r\n\r\nFixes #1810\r\nSupersedes #1894",
+      "body": "Extracts FilterSet evaluation rules into a `FilterSets` subsection and adds an `Updating Range Filters` subsection under `Range Filters`:\r\n\r\n* Clarifies that `TRACK_PROPERTY_FILTER` and Object Range Filters use independent `SetID` scopes (they are not combined into the same FilterSet in `SUBSCRIBE_TRACKS`).\r\n* Clarifies evaluation of populated vs. unpopulated FilterSets (unpopulated `SetID`s do not match; zero populated FilterSets means no Range Filtering is applied).\r\n* Documents `REQUEST_UPDATE` per-Parameter-Type replacement and `Length = 0` removal rules across all FilterSets and Property Types, with worked examples for adding a second FilterSet, updating a Property Filter, and removing one of two FilterSets.\r\n* Clarifies `Range Filter Structure`, `MAX_FILTER_RANGES`, and `FILL_PARAMETERS` edge cases (rejecting `Length = 0` alongside another instance of the same Parameter Type, rejecting `Length > 0` with zero Ranges, `MAX_FILTER_RANGES` applying to `SUBSCRIBE_TRACKS` and resulting active Ranges after `REQUEST_UPDATE`, and per-Parameter-Type override semantics inside `FILL_PARAMETERS`).\r\n\r\nFixes #1810\r\nSupercedes #1894",
       "createdAt": "2026-11-16T17:51:57Z",
-      "updatedAt": "2026-11-19T00:15:21Z",
+      "updatedAt": "2026-11-19T06:53:52Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
@@ -236381,16 +236685,155 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
-      "body": "Promotes `Extension Negotiation` to an `Extensibility` section under `Sessions` and clarifies how extensions and MOQT versions interact:\n\n* **Unnegotiated vs. negotiated extensions:** Distinguishes unnegotiated extension points (Setup Options, Error Details, error codes, non-mandatory Track/Object Properties, Mandatory Track Properties, and `.session` tracks) from session-negotiated extensions in `SETUP` (new Control Message types, Message Parameters including filters, Parameter values, Stream/Datagram types, Object Status values, and protocol semantic changes), and notes that extensions cannot change `SETUP` itself.\n* **Pipelining and Relay scope for `SETUP`-negotiated extensions:** Clarifies that endpoints `MUST NOT` send negotiated extension constructs that an unextended peer would treat as a session error before receiving the peer's `SETUP` (aligning the pipelining note in `SETUP`), and notes that `SETUP` negotiation is hop-by-hop so negotiated extensions need to specify Relay behavior across sessions with differing support.\n* **Versions and extensions:** Clarifies that future MOQT versions (identified via ALPN) can be defined incrementally by normative reference to an earlier MOQT specification (e.g., requiring previously optional extensions as baseline and specifying whether their Setup Options remain sent or implicit), requires extension specifications to state target MOQT version(s), and replaces the requirement for new MOQT versions to enumerate all existing extensions with `SHOULD` guidance to describe compatibility rules.\n\nFixes #1681\n",
+      "labels": [
+        "Editorial & Minor Design"
+      ],
+      "body": "Promotes `Extension Negotiation` to an `Extensibility` section under `Sessions` and clarifies how extensions and MOQT versions interact:\n\n* **Unnegotiated vs. negotiated extensions:** Distinguishes unnegotiated extension points (Setup Options, Error Detail types, non-mandatory Properties, error codes treated as `INTERNAL_ERROR`, Mandatory Track Properties, `.session` tracks, and Reserved Namespaces) from hop-by-hop `SETUP`-negotiated extensions (new Control Message types, Message Parameters including filters, Parameter values, Stream/Datagram types, Object Status values, and protocol semantic changes), and notes that extensions cannot change the `SETUP` message format.\n* **Pre-`SETUP` usage and Relay scope:** Clarifies that endpoints `MUST NOT` use a negotiated extension before receiving the peer's `SETUP` (unless the extension explicitly defines safe pre-`SETUP` handling), aligns the pipelining note in `SETUP`, and notes that negotiated extensions need to define Relay behavior when adjacent sessions differ in support.\n* **Versions and extensions:** Clarifies that new MOQT versions (negotiated during session establishment) can be defined incrementally by normative reference to an earlier version (e.g., requiring previously optional extensions and specifying whether their Setup Options remain sent or become implicit), requires extension specifications to state target MOQT version(s) with forward compatibility for compatible versions, and replaces the requirement for new MOQT versions to enumerate all existing extensions with `SHOULD` guidance to state general compatibility rules.\n\nFixes #1681\n",
       "createdAt": "2026-11-18T23:57:51Z",
-      "updatedAt": "2026-11-19T00:21:09Z",
+      "updatedAt": "2026-11-19T19:46:44Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
       "headRepository": "moq-wg/moq-transport",
       "headRefName": "ianswett-extensibility",
-      "headRefOid": "f9e8692e96d887432a7156303f668aa004dccf40",
+      "headRefOid": "c26ada83abc6b3b57bdd4e352c994daad37a1b6c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I re-reviewed this and I think it's a nice improvement.  PTAL",
+          "createdAt": "2026-11-19T07:12:45Z",
+          "updatedAt": "2026-11-19T07:12:45Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABZIzpRg",
+          "commit": {
+            "abbreviatedOid": "c26ada8"
+          },
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "I marked some points that I think could use clarification but this helps make things better. I reviewed just this diff and did not look at in context of broader draft. Will try and do that at some point. ",
+          "createdAt": "2026-11-19T19:31:18Z",
+          "updatedAt": "2026-11-19T19:46:43Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "I'm not really sure what this sentence means ( and sort of doubt it needs normative language. I probably agree with what it is trying to say. ",
+              "createdAt": "2026-11-19T19:31:18Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "be good to clarify by new version what we mean is new ALPN value, not just a new RFC. ",
+              "createdAt": "2026-11-19T19:32:21Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "I think it would be OK to use them if you have out of band information that suggest they will work but doing this will result in an failure if they are not supported. \n\nFor calls we are trying to minimize time to connect and most the time you are connecting to same relay as last time and it's capability have not changed from previous call. Think of doing something similar to TLS session resumption which saves you latency most the time but in rare cases failes and makes latency worse. ",
+              "createdAt": "2026-11-19T19:35:56Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "I would still rather signal they will used in the setup for all of this. (Note not negotate use, signal they will used) I do not want to get unknown messages. To be clear, I don't want to change the handling of unknown things, relays should still forward etc. But if an extension is in use, it should have something to indicate what extensions will be used. ",
+              "createdAt": "2026-11-19T19:37:04Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "I don't understand this sentence but agree with what it is trying to say. ",
+              "createdAt": "2026-11-19T19:41:51Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            },
+            {
+              "originalPosition": 58,
+              "body": "I can live with this but I think it would be *much* better to have a separate IANA table for extension that have an ID for the extension and a pointer to the spec that defines it and then we use numbers from that table in the setup to signal/negotiate support.  If values were needed, they could be carried as they are today. ",
+              "createdAt": "2026-11-19T19:44:10Z",
+              "updatedAt": "2026-11-19T19:46:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2073,
+      "id": "PR_kwDOG2Ho4M8AAAABQuUBlQ",
+      "title": "Define OR semantics for multiple authorization tokens",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2073",
+      "state": "CLOSED",
+      "author": "manugupt1",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft permits multiple authorization tokens but does not define how their results combine. This change defines OR semantics: one token that authorizes the requested action and resource access satisfies the token requirement.\n\n- Evaluate tokens independently at each relay; token schemes handle combined requirements within an individual token.\n- Ignore unsupported, foreign, or unverifiable tokens for authorization.\n- Keep authorization decisions in the Authorization section and reference them from Authorization Token Compression.\n- Align alias registration and cached failures with those decisions while preserving mandatory malformed-token, expired-alias, and structural errors.\n\nAddresses the multiple-token semantics raised in moq-wg/moq-transport#1838 and clarifies hop-by-hop evaluation discussed in moq-wg/moq-transport#1662. Mandatory token errors still take precedence over an authorizing token.\n\nThe whitespace check found two lines with trailing spaces. No document build was run.\n\nThe source branch has a merge conflict with upstream main in the Authorization Payload text.\n\nSee the [reviewed fork PR #7](https://github.com/englishm/moq-transport/pull/7).",
+      "createdAt": "2026-11-20T17:07:13Z",
+      "updatedAt": "2026-11-21T11:30:48Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "manugupt1/mike-moq-transport",
+      "headRefName": "clarify-multiple-auth-tokens",
+      "headRefOid": "aee0ad37cd03a374c6e51f08359331d8d49c12df",
+      "closedAt": "2026-11-21T11:30:48Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2074,
+      "id": "PR_kwDOG2Ho4M8AAAABQuUEWQ",
+      "title": "Clarify authorization policies and re-evaluation",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2074",
+      "state": "CLOSED",
+      "author": "manugupt1",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Clarify how relays enforce policies encoded in authorization tokens and re-evaluate continued authorization. Requests must be rejected when authorization fails, and affected subscriptions must end when authorization expires without renewal or re-evaluation fails.\n\nSeparate token renewal and mTLS certificate replacement guidance. Token renewal covers expiration and other authorization failures, while EXPIRES remains advisory.\n\nRelated to https://github.com/moq-wg/moq-transport/issues/1662.\n\nValidation: `git diff --check` passed. Checked the section references and confirmed that moved text appears once.\n\nThe source branch has a merge conflict with upstream main in the Authorization Payload text.\n\nSee the [reviewed fork PR #8](https://github.com/englishm/moq-transport/pull/8).",
+      "createdAt": "2026-11-20T17:07:16Z",
+      "updatedAt": "2026-11-21T11:31:03Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "main",
+      "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
+      "headRepository": "manugupt1/mike-moq-transport",
+      "headRefName": "mg-add-reeval-clarification",
+      "headRefOid": "9fed5724a9b8181b2c726d76ad0248293dc44ca9",
+      "closedAt": "2026-11-21T11:31:03Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 2076,
+      "id": "PR_kwDOG2Ho4M8AAAABQzkmnA",
+      "title": "Remove LOCATION_FILTER from FILL_PARAMETERS",
+      "url": "https://github.com/moq-wg/moq-transport/pull/2076",
+      "state": "OPEN",
+      "author": "ianswett",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Split out from #2069 per review feedback; stacked on #2069 (`main` -> #2069 -> this PR).\n\nRemoves `LOCATION_FILTER` (`0x21`) from `FILL_PARAMETERS` so a subscription has a single Location Filter covering both fill and live delivery:\n\n* **Single `Location` watermark (no per-object tracking):** When a message triggers a fill fetch stream, the fill fetch stream delivers matching Objects with Locations `<= Largest Object` and subscription delivery delivers matching Objects with Locations `> Largest Object` \u2014 a single `Location` comparison (matching `Next Object` on `main`), addressing the implementation complexity feedback on #2069 from @afrind and @zafergurel.\n* **Preserves non-Location range filters in `FILL_PARAMETERS`:** `SUBGROUP_FILTER`, `OBJECTID_FILTER`, `PRIORITY_FILTER`, and `OBJECT_PROPERTY_FILTER` remain inside `FILL_PARAMETERS`, preserving the enhancement-layer use case from #1642 (e.g., `SUBSCRIBE` with `Relative Start(StartGroup=1)` and `FILL_PARAMETERS` carrying `SUBGROUP_FILTER = 0` fetches only base-layer objects up to `Largest Object` while receiving all layers live afterward).\n* **Simpler track join:** Joining at the current Group only requires a single `Relative Start (0x01)` Location Filter (`StartGroup=1`) plus `FILL_PARAMETERS`, instead of coordinating two separate Location Filters (`Next Object` + `StartGroup=1`).\n* Simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035, #2063, and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n",
+      "createdAt": "2026-11-21T01:16:50Z",
+      "updatedAt": "2026-11-21T01:16:51Z",
+      "baseRepository": "moq-wg/moq-transport",
+      "baseRefName": "ianswett-single-fill-location",
+      "baseRefOid": "beb2067fb6b7e03cb4c71b0aad018de272d5f2da",
+      "headRepository": "moq-wg/moq-transport",
+      "headRefName": "ianswett-remove-fill-location-filter",
+      "headRefOid": "7c59bec268a34ff4752e09f97094b628ad9723f8",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
