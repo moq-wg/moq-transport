@@ -2656,6 +2656,8 @@ Authorization payloads are carried in the AUTHORIZATION_PAYLOAD message paramete
 (see {{authorization-payload}}) and the AUTHORIZATION_PAYLOAD Setup Option (see
 {{setup-auth-payload}}).  Both use the wire format and semantics defined in this
 section.
+Payload Types can define authorization tokens, proofs, challenges, or responses;
+their contents and processing rules are defined by the Payload Type specification.
 
 The value is an Authorization Payload structure containing an optional Session-specific
 Alias. The Alias allows the sender to reference a previously transmitted Payload
@@ -2704,8 +2706,8 @@ provided. The Payload Value MAY be discarded after processing.
   {{iana}}). Type 0 is reserved to indicate that the type is not defined in the
   table and is negotiated out-of-band between client and receiver.
 
-* Payload Value - the payload of the Authorization Payload. The contents and serialization of this
-  payload are defined by the Payload Type.
+* Payload Value - the opaque content of the Authorization Payload. The contents and serialization of this
+  payload, and its validity and reuse requirements, are defined by the Payload Type.
 
 If the Authorization Payload structure cannot be decoded, including an unknown Alias Type, the
 receiver MUST close the Session with `MALFORMED_AUTH_PAYLOAD`.  The receiver of
@@ -2732,17 +2734,19 @@ future or due to some other property becoming fulfilled which currently
 isn't. The size of a registered cache entry includes the length of the Payload
 Value, regardless of whether it is stored.
 
-If a receiver detects that an authorization payload has expired, it MUST retain
+If a receiver detects that an authorization payload has expired according to its Payload Type, it MUST retain
 the registered Alias until it is deleted by the sender, though it MAY discard
 other state associated with the payload that is no longer needed.  Expiration does
 not affect the size occupied by a payload in the payload cache.  Any message that
-references an expired payload with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_PAYLOAD`.
+references an expired payload with Alias Type USE_ALIAS fails with `EXPIRED_AUTH`.
 
 Using an Alias to refer to a previously registered Payload Type and Value is for
 efficiency only and has the same effect as if the Payload Type and Value was
 included directly.  Retiring an Alias that was previously used to authorize a
 message has no retroactive effect on the original authorization, nor does it
 prevent that same Payload Type and Value from being re-registered.
+Caching a payload does not grant authorization or bypass its validity and reuse
+requirements.
 
 Senders of payloads SHOULD only register payloads which they intend to re-use during
 the Session and SHOULD retire previously registered payloads once their utility
@@ -2951,6 +2955,7 @@ The AUTHORIZATION_PAYLOAD Setup Option (Option Type 0x03) is functionally
 equivalent to the AUTHORIZATION_PAYLOAD message parameter, see {{authorization-payload}}.
 The endpoint can specify one or more payloads in SETUP
 that the peer can use to authorize MOQT session establishment.
+These can include tokens and proofs, as defined by their Payload Types.
 
 The option value is an Authorization Payload structure, whose wire format and semantics are
 defined in {{auth-payload-compression}}.
@@ -3505,9 +3510,9 @@ potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
 
-A publisher that ends a subscription because the authorization payload that
-authorized it has expired SHOULD send PUBLISH_DONE with status code
-`EXPIRED_AUTH_PAYLOAD`.
+A publisher that ends a subscription because authorization
+has expired SHOULD send PUBLISH_DONE with status code
+`EXPIRED_AUTH`.
 
 The format of `PUBLISH_DONE` is as follows:
 
@@ -3885,9 +3890,10 @@ Message Parameters to appear in Setup messages.
 The AUTHORIZATION_PAYLOAD parameter (Parameter Type 0x03) uses Length-prefixed
 encoding. It MAY appear in a PUBLISH, SUBSCRIBE, REQUEST_UPDATE,
 SUBSCRIBE_NAMESPACE, SUBSCRIBE_TRACKS, PUBLISH_NAMESPACE, TRACK_STATUS or FETCH message. This
-parameter conveys information to authorize the sender to perform the operation
+parameter carries data used by the applicable authorization scheme in the message
 carrying the parameter. This Parameter MUST NOT be copied from a SUBSCRIBE_TRACKS
 to the resulting PUBLISH message Parameters.
+The Payload Type defines how this content is processed in the context of the message.
 
 The parameter value is an Authorization Payload structure, whose wire format and semantics are
 defined in {{auth-payload-compression}}.
@@ -4202,7 +4208,7 @@ in a SUBSCRIBE_OK for the same Track.
 
 The receiver of the parameter can attempt to extend the request by sending
 a REQUEST_UPDATE with 0 or more updated parameters. If the receiver has one or
-more updated AUTHORIZATION_PAYLOADs, it SHOULD include those in the
+more updated AUTHORIZATION_PAYLOADs for continued authorization, it SHOULD include those in the
 REQUEST_UPDATE. If the extension is granted, the sender includes a new EXPIRES
 value in REQUEST_UPDATE_OK. Relays that send this parameter and applications that
 receive it MAY introduce jitter to prevent many endpoints from updating
@@ -5211,8 +5217,8 @@ UNKNOWN_AUTH_PAYLOAD_ALIAS (0x17):
 : No registered payload found for the provided Alias (see
   {{auth-payload-compression}}).
 
-EXPIRED_AUTH_PAYLOAD (0x18):
-: Authorization payload has expired ({{auth-payload-compression}}).
+EXPIRED_AUTH (0x18):
+: Authorization has expired ({{auth-payload-compression}}).
 
 INVALID_AUTHORITY (0x19):
 : The specified AUTHORITY does not correspond to this server or cannot be
@@ -5287,7 +5293,7 @@ INTERNAL_ERROR:
 
 UNAUTHORIZED:
 : The subscriber is not authorized to perform the requested action on the given
-track.  This might be retryable if the authorization payload is not yet valid.
+track.  This might be retryable if a required authorization payload is not yet valid.
 
 TIMEOUT:
 : The subscription could not be completed before an implementation specific
@@ -5301,8 +5307,8 @@ MALFORMED_AUTH_PAYLOAD:
 : Invalid Authorization Payload serialization during registration (see
   {{auth-payload-compression}}).
 
-EXPIRED_AUTH_PAYLOAD:
-: Authorization payload has expired ({{auth-payload-compression}}).
+EXPIRED_AUTH:
+: Authorization has expired ({{auth-payload-compression}}).
 
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
@@ -5397,8 +5403,8 @@ TOO_FAR_BEHIND (0x5):
 EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
-EXPIRED_AUTH_PAYLOAD (0x7):
-: The authorization payload that authorized the subscription has expired
+EXPIRED_AUTH (0x7):
+: Authorization has expired
   (see {{message-publish-done}}).
 
 MALFORMED_TRACK (0x12):
@@ -5437,8 +5443,8 @@ TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
   is being terminated (see {{delivery-timeouts}}).
 
-EXPIRED_AUTH_PAYLOAD (0x7):
-: The authorization payload for the request has expired.
+EXPIRED_AUTH (0x7):
+: Authorization has expired.
 
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
@@ -5604,23 +5610,26 @@ certificate as an input to authorization decisions; the granularity and policy
 of such authorization is out of scope for this document.
 ### Authorization Payloads {#sec-payloads}
 
-MOQT has functionality to carry Authorization payloads as message
-parameters. These payloads can vary based on the application
-requirements. Two variants of authorization payloads have already
-been defined for MOQT, and more are expected in the future. The
-current payloads are Privacy Pass Authentication for Media over QUIC
+MOQT has functionality to carry Authorization payloads as Setup Options
+and message parameters. These payloads can vary based on the application
+requirements. The
+current schemes are Privacy Pass Authentication for Media over QUIC
 {{PPA}} and Authentication scheme for MOQT using Common Access Tokens
 {{CAT}}.
+Payload Types can define tokens, proofs, challenges, or responses along with
+their processing rules. Authorization tokens are one kind of authorization payload.
 
 Tokens are expected to contain information about which actions and
 which resources the endpoint providing the token is authorized to
 perform and access. Relays will verify the
 token to ensure that the request is authorized.
+Any accompanying proofs or responses are also verified according to the applicable
+authorization scheme.
 
 ### Replay Attacks
 
 Replay protection for authorization payloads is the responsibility of
-the specific token scheme used. Token schemes such as {{CAT}} and
+the applicable Payload Type specification. Token schemes such as {{CAT}} and
 {{PPA}} include requirements for relays when processing tokens and
 requests.
 
@@ -6092,7 +6101,7 @@ between independent implementations.
 | DUPLICATE_AUTH_PAYLOAD_ALIAS | 0x14 | {{session-termination-codes}} |
 | MALFORMED_AUTH_PAYLOAD       | 0x16 | {{session-termination-codes}} |
 | UNKNOWN_AUTH_PAYLOAD_ALIAS   | 0x17 | {{session-termination-codes}} |
-| EXPIRED_AUTH_PAYLOAD         | 0x18 | {{session-termination-codes}} |
+| EXPIRED_AUTH         | 0x18 | {{session-termination-codes}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
 | TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
@@ -6120,7 +6129,7 @@ between independent implementations.
 | TIMEOUT                    | 0x2  | {{request-error-codes}} |
 | NOT_SUPPORTED              | 0x3  | {{request-error-codes}} |
 | MALFORMED_AUTH_PAYLOAD       | 0x4  | {{request-error-codes}} |
-| EXPIRED_AUTH_PAYLOAD         | 0x5  | {{request-error-codes}} |
+| EXPIRED_AUTH         | 0x5  | {{request-error-codes}} |
 | GOING_AWAY                 | 0x6  | {{request-error-codes}} |
 | EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
 | UNAVAILABLE                | 0xA  | {{request-error-codes}} |
@@ -6145,7 +6154,7 @@ between independent implementations.
 | GOING_AWAY         | 0x4  | {{publish-done-codes}} |
 | TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
 | EXPIRED            | 0x6  | {{publish-done-codes}} |
-| EXPIRED_AUTH_PAYLOAD | 0x7  | {{publish-done-codes}} |
+| EXPIRED_AUTH | 0x7  | {{publish-done-codes}} |
 | UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
 | EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
 | MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
@@ -6161,7 +6170,7 @@ between independent implementations.
 | SESSION_CLOSED        | 0x3  | {{stream-reset-codes}}   |
 | GOING_AWAY            | 0x4  | {{stream-reset-codes}}   |
 | TOO_FAR_BEHIND        | 0x5  | {{stream-reset-codes}}   |
-| EXPIRED_AUTH_PAYLOAD    | 0x7  | {{stream-reset-codes}}   |
+| EXPIRED_AUTH    | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
