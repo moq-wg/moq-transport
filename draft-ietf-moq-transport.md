@@ -2738,7 +2738,7 @@ If a receiver detects that an authorization payload has expired according to its
 the registered Alias until it is deleted by the sender, though it MAY discard
 other state associated with the payload that is no longer needed.  Expiration does
 not affect the size occupied by a payload in the payload cache.  Any message that
-references an expired payload with Alias Type USE_ALIAS fails with `EXPIRED_AUTH_PAYLOAD`.
+references an expired payload with Alias Type USE_ALIAS fails with `EXPIRED_AUTH`.
 
 Using an Alias to refer to a previously registered Payload Type and Value is for
 efficiency only and has the same effect as if the Payload Type and Value was
@@ -3510,9 +3510,9 @@ potentially not delivering some late objects to the application.  The
 subscriber SHOULD send STOP_SENDING on all streams related to the subscription
 when it deletes subscription state.
 
-A publisher that ends a subscription because an authorization payload required for
-continued authorization has expired SHOULD send PUBLISH_DONE with status code
-`EXPIRED_AUTH_PAYLOAD`.
+A publisher that ends a subscription because authorization
+has expired SHOULD send PUBLISH_DONE with status code
+`EXPIRED_AUTH`.
 
 The format of `PUBLISH_DONE` is as follows:
 
@@ -5215,8 +5215,8 @@ UNKNOWN_AUTH_PAYLOAD_ALIAS (0x17):
 : No registered payload found for the provided Alias (see
   {{auth-payload-compression}}).
 
-EXPIRED_AUTH_PAYLOAD (0x18):
-: Authorization payload has expired according to its Payload Type ({{auth-payload-compression}}).
+EXPIRED_AUTH (0x18):
+: Authorization has expired ({{auth-payload-compression}}).
 
 INVALID_AUTHORITY (0x19):
 : The specified AUTHORITY does not correspond to this server or cannot be
@@ -5305,8 +5305,8 @@ MALFORMED_AUTH_PAYLOAD:
 : Invalid Authorization Payload serialization during registration (see
   {{auth-payload-compression}}).
 
-EXPIRED_AUTH_PAYLOAD:
-: Authorization payload has expired according to its Payload Type ({{auth-payload-compression}}).
+EXPIRED_AUTH:
+: Authorization has expired ({{auth-payload-compression}}).
 
 GOING_AWAY:
 : The endpoint has received a GOAWAY and MAY reject new requests.
@@ -5401,8 +5401,8 @@ TOO_FAR_BEHIND (0x5):
 EXPIRED (0x6):
 : The publisher reached the timeout specified in SUBSCRIBE_OK.
 
-EXPIRED_AUTH_PAYLOAD (0x7):
-: An authorization payload required for continued authorization of the subscription has expired
+EXPIRED_AUTH (0x7):
+: Authorization has expired
   (see {{message-publish-done}}).
 
 MALFORMED_TRACK (0x12):
@@ -5441,8 +5441,8 @@ TOO_FAR_BEHIND (0x5):
 : The corresponding subscription has exceeded the publisher's resource limits and
   is being terminated (see {{delivery-timeouts}}).
 
-EXPIRED_AUTH_PAYLOAD (0x7):
-: An authorization payload required to authorize the request has expired.
+EXPIRED_AUTH (0x7):
+: Authorization has expired.
 
 EXCESSIVE_LOAD (0x9):
 : The endpoint is overloaded and is resetting this stream.
@@ -5608,10 +5608,9 @@ certificate as an input to authorization decisions; the granularity and policy
 of such authorization is out of scope for this document.
 ### Authorization Payloads {#sec-payloads}
 
-MOQT has functionality to carry Authorization payloads as message
-parameters and Setup Options. These payloads can vary based on the application
-requirements. Two token schemes have already
-been defined for MOQT, and more are expected in the future. The
+MOQT has functionality to carry Authorization payloads as Setup Options
+and message parameters. These payloads can vary based on the application
+requirements. The
 current schemes are Privacy Pass Authentication for Media over QUIC
 {{PPA}} and Authentication scheme for MOQT using Common Access Tokens
 {{CAT}}.
@@ -6100,7 +6099,7 @@ between independent implementations.
 | DUPLICATE_AUTH_PAYLOAD_ALIAS | 0x14 | {{session-termination-codes}} |
 | MALFORMED_AUTH_PAYLOAD       | 0x16 | {{session-termination-codes}} |
 | UNKNOWN_AUTH_PAYLOAD_ALIAS   | 0x17 | {{session-termination-codes}} |
-| EXPIRED_AUTH_PAYLOAD         | 0x18 | {{session-termination-codes}} |
+| EXPIRED_AUTH         | 0x18 | {{session-termination-codes}} |
 | INVALID_AUTHORITY          | 0x19 | {{session-termination-codes}} |
 | MALFORMED_AUTHORITY        | 0x1A | {{session-termination-codes}} |
 | TOO_MANY_REQUEST_UPDATES   | 0x1B | {{session-termination-codes}} |
@@ -6128,7 +6127,7 @@ between independent implementations.
 | TIMEOUT                    | 0x2  | {{request-error-codes}} |
 | NOT_SUPPORTED              | 0x3  | {{request-error-codes}} |
 | MALFORMED_AUTH_PAYLOAD       | 0x4  | {{request-error-codes}} |
-| EXPIRED_AUTH_PAYLOAD         | 0x5  | {{request-error-codes}} |
+| EXPIRED_AUTH         | 0x5  | {{request-error-codes}} |
 | GOING_AWAY                 | 0x6  | {{request-error-codes}} |
 | EXCESSIVE_LOAD             | 0x9  | {{request-error-codes}} |
 | UNAVAILABLE                | 0xA  | {{request-error-codes}} |
@@ -6153,7 +6152,7 @@ between independent implementations.
 | GOING_AWAY         | 0x4  | {{publish-done-codes}} |
 | TOO_FAR_BEHIND     | 0x5  | {{publish-done-codes}} |
 | EXPIRED            | 0x6  | {{publish-done-codes}} |
-| EXPIRED_AUTH_PAYLOAD | 0x7  | {{publish-done-codes}} |
+| EXPIRED_AUTH | 0x7  | {{publish-done-codes}} |
 | UPDATE_FAILED      | 0x8  | {{publish-done-codes}} |
 | EXCESSIVE_LOAD     | 0x9  | {{publish-done-codes}} |
 | MALFORMED_TRACK    | 0x12 | {{publish-done-codes}} |
@@ -6169,7 +6168,7 @@ between independent implementations.
 | SESSION_CLOSED        | 0x3  | {{stream-reset-codes}}   |
 | GOING_AWAY            | 0x4  | {{stream-reset-codes}}   |
 | TOO_FAR_BEHIND        | 0x5  | {{stream-reset-codes}}   |
-| EXPIRED_AUTH_PAYLOAD    | 0x7  | {{stream-reset-codes}}   |
+| EXPIRED_AUTH    | 0x7  | {{stream-reset-codes}}   |
 | EXCESSIVE_LOAD        | 0x9  | {{stream-reset-codes}}   |
 | MALFORMED_TRACK       | 0x12 | {{stream-reset-codes}}   |
 | Reserved for greasing | 0x7f * N + 0x9D | {{grease}} |
