@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-22T05:47:55.139439+00:00",
+  "timestamp": "2026-11-24T09:02:45.170109+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -56020,7 +56020,7 @@
       ],
       "body": "\nThis is just too ripe for abuse ",
       "createdAt": "2026-10-15T20:40:30Z",
-      "updatedAt": "2026-11-21T20:23:47Z",
+      "updatedAt": "2026-11-24T01:38:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -56043,6 +56043,20 @@
           "body": "The purpose of redirect is to tell you to connect to a different server. It is not to change the names of the track. \n\nThis would be like a HTTP 3xx changing the contents of the post. ",
           "createdAt": "2026-11-21T20:23:47Z",
           "updatedAt": "2026-11-21T20:23:47Z"
+        },
+        {
+          "author": "afrind",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> The purpose of redirect is to tell you to connect to a different server. It is not to change the names of the track.\n> This would be like a HTTP 3xx changing the contents of the post.\n\nI don't think this is the best analogy.  HTTP redirects let you change either the host or path portions of the URI, or both.  The namespace and name of a track are similar in nature for most requests.  Let's group the requests:\n\nSUBSCRIBE\nFETCH\nTRACK_STATUS\nSUBSCRIBE_TRACKS\nSUBSCRIBE_NAMESPACE\n\nIncluding the namespace or name in the redirect for these messages seems entirely equivalent to an HTTP redirect that changes a path.    \"we moved that, try over here\".  Operators will probably have need of this as e.g. an older version of an application needs to learn about a new namespace / name structure.\n\nPUBLISH\n\nFor publisher side requests, I _think_ the same logic applies.  \"We put that content over here now\", and is equivalent to sending a redirect to an HTTP POST with a different _path_. I disagree it's like changing the content \"Don't say X, say Y\".\n\nPUBLISH_NAMESPACE\n\nThis one makes less sense to me.  The publisher is authoritative for a particular set of tracks that it accepts SUBSCRIBE for.\n\nI think request level namespace/track redirection is a useful feature, and probably one that MOQT operators eventually require, but the draft will clearly be simpler and probably done sooner without it.  If the working group would prefer to restrict redirects to changing servers only in v1, I can live with it.",
+          "createdAt": "2026-11-22T17:20:22Z",
+          "updatedAt": "2026-11-22T17:20:22Z"
+        },
+        {
+          "author": "fluffy",
+          "authorAssociation": "COLLABORATOR",
+          "body": "It seems like HTTP equivalent is changing the path in the MOQ setup - that might be fine. ",
+          "createdAt": "2026-11-24T01:38:31Z",
+          "updatedAt": "2026-11-24T01:38:31Z"
         }
       ]
     },
@@ -235937,27 +235951,35 @@
     {
       "number": 2065,
       "id": "PR_kwDOG2Ho4M8AAAABOvcwBw",
-      "title": "Generalize authorization payload descriptions",
+      "title": "Clarify authorization payloads and expiration errors",
       "url": "https://github.com/moq-wg/moq-transport/pull/2065",
       "state": "OPEN",
       "author": "sharmafb",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
-      "body": "Follow-up to the merged renaming in #2060. Generalize the descriptions to cover tokens, proofs, challenges, and responses.\r\n",
+      "body": "Generalize authorization payload descriptions to cover tokens, proofs, challenges,\nand responses, following #2060. Rename authorization expiration errors to\n`EXPIRED_AUTH` and clarify that authorization has expired.\n\nValidation: `make`, `git diff --check`, and independent review.\n",
       "createdAt": "2026-11-12T19:56:06Z",
-      "updatedAt": "2026-11-19T22:29:56Z",
+      "updatedAt": "2026-11-23T21:41:01Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "047c629ff3753dc33b935dbd9d0d0564da87fb63",
       "headRepository": "sharmafb/moq-transport",
       "headRefName": "authorization-payload-language",
-      "headRefOid": "a1d759286127dd46056ddff211ed25083a41c63d",
+      "headRefOid": "2d5ff01aa71395ee5a09aed31305d7406702b5bd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "sharmafb",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Addressed comments",
+          "createdAt": "2026-11-23T19:14:59Z",
+          "updatedAt": "2026-11-23T21:41:01Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOG2Ho4M8AAAABZLJfvg",
