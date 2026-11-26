@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-24T09:02:45.170109+00:00",
+  "timestamp": "2026-11-26T07:30:40.176796+00:00",
   "repo": "moq-wg/moq-transport",
   "labels": [
     {
@@ -236043,11 +236043,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Wire Format"
       ],
       "body": "Stacked on #2068 (base branch `ianswett-object-stream`); this diff shows only the per-Object `Object Flags`, `Gone` status, and `FIRST_OBJECT` bit relocation changes.\n\nReplace the per-Subgroup `PROPERTIES` bit in `SUBGROUP_HEADER` (complementing #2068's removal of `END_OF_GROUP`) with a single-byte `Object Flags (vi64)` field on each `SUBGROUP_HEADER` Object, aligned with `OBJECT_DATAGRAM` and `OBJECT_STREAM`:\n\n- **`PROPERTIES` (`0x01`):** Per-Object Properties presence, avoiding a 1-byte `Properties Length = 0` on property-less Objects in mixed or relayed Subgroups.\n- **`END_OF_GROUP` (`0x02`):** Per-Object End of Group signal for multi-Object Subgroups without stream-open prediction hazards when filters change mid-stream.\n- **`DELTA_MODE` (`0x0C`):** 2-bit inline Object ID delta (`0`, `1`, `2` inline; `0b11` encodes `delta - 3` in `Object ID Delta`), keeping sequential and 2\u20133 interleaved Subgroups the exact same wire size as before.\n- **`STATUS` (`0x20`):** Omits `Object Payload Length` when `Object Status` is present, shrinking standalone status Objects from 3\u20134 bytes to 2 bytes while allowing zero-length `Normal` Objects (`STATUS = 0`, `Object Payload Length = 0`) to carry `END_OF_GROUP`.\n- **`Gone` (`0x2`) Object Status:** Signals `Gone` Objects (or ranges within a `SUBGROUP_HEADER` stream, respecting `FIRST_OBJECT`, and across the remainder of a Group when combined with `END_OF_GROUP`).\n- **`FIRST_OBJECT` (`0x08`) & stream-type alignment:** Moves `FIRST_OBJECT` from bit 6 (`0x40`) into freed bit 3 (`0x08`) so `SUBGROUP_HEADER` occupies `0b00X1XXXX` (bit 6 always 0, bit 0 still free) and `OBJECT_STREAM` occupies all of `0b01XXXXXX` (`0x40 | OBJECT_DATAGRAM Type Flags`) (see #2023).\n\nFixes #2032\nFixes #2034\nAn alternative to #2058\nA cleaner and less error prone fix for #1073",
       "createdAt": "2026-11-12T22:49:14Z",
-      "updatedAt": "2026-11-16T17:48:18Z",
+      "updatedAt": "2026-11-25T04:39:23Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "ianswett-object-stream",
       "baseRefOid": "917f72871ea6e8a877cc6afc66bf153aafc38bd2",
@@ -236123,6 +236124,26 @@
               "updatedAt": "2026-11-16T17:35:37Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOG2Ho4M8AAAABaLlMWw",
+          "commit": {
+            "abbreviatedOid": "b0ee13f"
+          },
+          "author": "martinduke",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-25T04:39:23Z",
+          "updatedAt": "2026-11-25T04:39:23Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "FIRST_OBJECT should be an object flag. If for some reason a relay gets just a stream header, it can't forward that header until it gets the first object, to verify that it isn't filtered out of the stream. Plus, it's conceptually about the object.",
+              "createdAt": "2026-11-25T04:39:23Z",
+              "updatedAt": "2026-11-25T04:39:23Z"
+            }
+          ]
         }
       ]
     },
@@ -236136,11 +236157,12 @@
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [
+        "Needs Discussion",
         "Wire Format"
       ],
       "body": "Remove `END_OF_GROUP` (`0x08`) from `SUBGROUP_HEADER` and introduce `OBJECT_STREAM` (`0b01X0XXXX`) for single-Object Subgroups, using the same `0x01`, `0x02`, `0x04`, `0x08`, and `0x20` Type Flags and field layout as `OBJECT_DATAGRAM`:\n\n- **Solves #2032 without `SUBGROUP_HEADER` edge cases:** `OBJECT_STREAM` carries a single Object (`Delivery Mode = Subgroup`, `Subgroup ID = Object ID`, `FIRST_OBJECT = 1`) whose payload runs to `FIN` (or ends immediately after `Object Status` when `STATUS = 1`), and resets before `FIN` discard the incomplete Object without inferring `END_OF_GROUP`.\n- **Smaller single-Object Subgroups:** Omits `Object Payload Length` and uses `ZERO_OBJECT_ID` (`0x04`), matching `OBJECT_DATAGRAM` wire overhead (3 B for `Object ID = 0`, 4 B for `Object ID = 1..127` \u2014 1\u20132 B smaller than `main`, offsetting explicit 1-byte `Publisher Priority` when non-default; see #1270 / #1957).\n- **Frees `SUBGROUP_HEADER` bit `0x08`:** Useful for Subgroup Properties (#2023).\n\nFixes #2032\nAn alternative to #2058; complements #2067 (which moves `PROPERTIES` and `END_OF_GROUP` onto per-Object `Object Flags` for multi-Object Subgroups and adds `Gone` status).\n\nIt's not clear to me what we need Object Status for on this or Datagram, but I kept it for consistency.",
       "createdAt": "2026-11-14T15:21:04Z",
-      "updatedAt": "2026-11-16T17:49:57Z",
+      "updatedAt": "2026-11-24T23:57:34Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "main",
       "baseRefOid": "2e953e9a6b0c664ec2ffc2d09ff6afad4959d666",
@@ -236438,10 +236460,13 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion",
+        "Design"
+      ],
       "body": "Stacked on #2069 (base branch `ianswett-single-fill-location`); this diff shows only the `SWITCH_FROM` changes.\r\n\r\nAlternative to / simplification of #1674 that scopes `SWITCH_FROM` (`0x24`) to a best-effort hand-off between aligned tracks:\r\n\r\n* **Single-varint wire format:** `SWITCH_FROM` (`0x24`) is a single `varint` containing the Request ID of the old subscription to switch from (dropping the `Mode` registry, `Publish Done` bit, `SWITCHED_AWAY`, and `INVALID_SWITCH`).\r\n* **Publisher/Relay selects the aligned transition Group:** Instead of deriving the switch point mechanically from a subscriber-specified `LOCATION_FILTER` on the new track, the publisher/relay selects the aligned transition Group `N` on the new track (and ends the old subscription at Group `M = N - 1`, or the preceding aligned Group) based on its local view of both tracks and bandwidth, reporting the updated `LOCATION_FILTER`s via `PUBLISH_STATE_NOTIFY`.\r\n* **Fill:** If the message also carries `FILL_PARAMETERS`, the publisher may pick a transition Group at or before the new track's Largest Object Group; the fill fetch stream opens when the switch executes, with a fill range starting at `{N, 0}`. Without `FILL_PARAMETERS`, `N` is a later Group.\r\n* **Unified failure handling via `PUBLISH_STATE_NOTIFY` (`PAUSED=1`):** Whenever a switch cannot be completed cleanly (whether immediately or after `SUBSCRIBE_OK` / `REQUEST_UPDATE_OK` while evaluating upstream/downstream bandwidth or alignment), the publisher leaves the old subscription unmodified, resets any streams opened for the new subscription, and pauses the new subscription via `PUBLISH_STATE_NOTIFY` with `PAUSED=1`.\r\n\r\nFixes #1354\r\nCloses #1674 ",
       "createdAt": "2026-11-15T05:42:48Z",
-      "updatedAt": "2026-11-21T01:17:00Z",
+      "updatedAt": "2026-11-24T23:57:37Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "ianswett-single-fill-location",
       "baseRefOid": "beb2067fb6b7e03cb4c71b0aad018de272d5f2da",
@@ -236846,10 +236871,13 @@
       "author": "ianswett",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "Needs Discussion",
+        "Design"
+      ],
       "body": "Split out from #2069 per review feedback; stacked on #2069 (`main` -> #2069 -> this PR).\n\nRemoves `LOCATION_FILTER` (`0x21`) from `FILL_PARAMETERS` so a subscription has a single Location Filter covering both fill and live delivery:\n\n* **Single `Location` watermark (no per-object tracking):** When a message triggers a fill fetch stream, the fill fetch stream delivers matching Objects with Locations `<= Largest Object` and subscription delivery delivers matching Objects with Locations `> Largest Object` \u2014 a single `Location` comparison (matching `Next Object` on `main`), addressing the implementation complexity feedback on #2069 from @afrind and @zafergurel.\n* **Preserves non-Location range filters in `FILL_PARAMETERS`:** `SUBGROUP_FILTER`, `OBJECTID_FILTER`, `PRIORITY_FILTER`, and `OBJECT_PROPERTY_FILTER` remain inside `FILL_PARAMETERS`, preserving the enhancement-layer use case from #1642 (e.g., `SUBSCRIBE` with `Relative Start(StartGroup=1)` and `FILL_PARAMETERS` carrying `SUBGROUP_FILTER = 0` fetches only base-layer objects up to `Largest Object` while receiving all layers live afterward).\n* **Simpler track join:** Joining at the current Group only requires a single `Relative Start (0x01)` Location Filter (`StartGroup=1`) plus `FILL_PARAMETERS`, instead of coordinating two separate Location Filters (`Next Object` + `StartGroup=1`).\n* Simplifies the `PAUSED` and `INVALID_RANGE` edge cases discussed in #2035, #2063, and #2064 by eliminating the separate fill `LOCATION_FILTER`.\n",
       "createdAt": "2026-11-21T01:16:50Z",
-      "updatedAt": "2026-11-21T01:16:51Z",
+      "updatedAt": "2026-11-24T23:57:40Z",
       "baseRepository": "moq-wg/moq-transport",
       "baseRefName": "ianswett-single-fill-location",
       "baseRefOid": "beb2067fb6b7e03cb4c71b0aad018de272d5f2da",
