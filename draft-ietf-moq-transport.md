@@ -1044,8 +1044,8 @@ REQUEST_UPDATE_OK.
 Because the fill range is specified independently of the subscription's
 Location filter, a subscriber can retrieve a range of Groups prior to
 `Largest Object` while the subscription itself starts at the Next Group.  If
-the fill range is empty, or starts after Largest Object, the publisher does not
-open a fill fetch stream.
+the fill range starts after Largest Object, the publisher does not open a fill
+fetch stream.
 
 The fill fetch stream inherits the subscription's parameters, including
 subscriber priority, range filters and authorization; parameters carried inside
@@ -1083,7 +1083,8 @@ The publisher signals that the fill is complete by closing the stream with a
 FIN once all objects in the fill range have been delivered.  Because there is
 no REQUEST_ERROR associated with a fill fetch stream, the publisher signals a
 fill failure by resetting the stream; it MUST open a fill fetch stream and reset
-it immediately after the FETCH_HEADER if necessary.  A subscriber can cancel a
+it immediately after the FETCH_HEADER if necessary, unless the error is INVALID_RANGE
+(see {{fill-semantics}}).  A subscriber can cancel a
 fill fetch stream independently using STOP_SENDING.  Resetting or
 cancelling a fill fetch stream, by either endpoint, does not affect the
 subscription, which continues to deliver objects using subscribe subgroups and
